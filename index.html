@@ -74,45 +74,6 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Single Control Panel Form */
-    .panel-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .panel-title { font-size: 1rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; }
-    
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      align-items: flex-end;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-    .input-field {
-      background: #0e1735;
-      border: 1px solid var(--border-color);
-      color: white;
-      padding: 10px 12px;
-      border-radius: 8px;
-      outline: none;
-      font-size: 0.875rem;
-      width: 100%;
-    }
-    .input-field:focus { border-color: var(--accent-blue); }
-
     /* KPI Cards Grid */
     .kpi-grid {
       display: grid;
@@ -171,6 +132,45 @@
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
     .btn-outline:hover { background: rgba(255,255,255,0.05); }
 
+    /* Form Fields */
+    .input-field {
+      background: #0e1735;
+      border: 1px solid var(--border-color);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      outline: none;
+      font-size: 0.875rem;
+      width: 100%;
+    }
+    .input-field:focus { border-color: var(--accent-blue); }
+
+    /* Modal Popup Styles */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%; max-width: 550px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan); }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
+    .modal-close:hover { color: white; }
+    
+    .modal-grid { display: flex; flex-direction: column; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+
     /* Label Cards Grid */
     .labels-grid {
       display: grid;
@@ -224,7 +224,7 @@
 
     /* Print Styles */
     @media print {
-      header, .nav-bar, .panel-card, .kpi-grid, .chart-container, .btn, .card-checkbox, .del-btn, #tab-overview, #tab-inventory { display: none !important; }
+      header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, .btn, .card-checkbox, .del-btn, #tab-overview, #tab-inventory { display: none !important; }
       body { background: white; color: black; }
       .container { max-width: 100%; margin: 0; padding: 0; }
       .labels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -244,6 +244,9 @@
       </div>
     </div>
     <div class="header-actions">
+      <!-- Add Material Button (Triggers Popup Modal) -->
+      <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
+
       <!-- Language Toggle Button -->
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
 
@@ -265,41 +268,6 @@
   </div>
 
   <div class="container">
-
-    <!-- SINGLE INPUT & SAVE PANEL (5 Core Fields) -->
-    <div class="panel-card">
-      <div class="panel-header">
-        <div class="panel-title" id="panelHeaderTitle">✏️ لوحة إضافة المادة الموحدة (Item Information Panel)</div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label id="lblCode">1. كود المادة (Material Code)</label>
-          <input type="text" id="inputCode" class="input-field" placeholder="7272446">
-        </div>
-        <div class="form-group">
-          <label id="lblName">2. اسم المادة (Material Name)</label>
-          <input type="text" id="inputName" class="input-field" placeholder="...">
-        </div>
-        <div class="form-group">
-          <label id="lblUnit">3. الوحدة (Unit)</label>
-          <input type="text" id="inputUnit" class="input-field" placeholder="EA, Set, Roll...">
-        </div>
-        <div class="form-group">
-          <label id="lblLocation">4. الموقع / المستودع (Warehouse / Location)</label>
-          <input type="text" id="inputLocation" list="warehouseList" class="input-field" placeholder="...">
-          <datalist id="warehouseList">
-            <!-- Dynamic Datalist Options -->
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label id="lblClass">5. التصنيف (Classification)</label>
-          <input type="text" id="inputClassification" class="input-field" placeholder="Tools, Filters...">
-        </div>
-        <div>
-          <button class="btn btn-success" style="height: 42px; width: 100%;" onclick="saveNewItemFromPanel()">💾 <span id="btnSaveText">حفظ المادة (Save Item)</span></button>
-        </div>
-      </div>
-    </div>
 
     <!-- TAB 1: OVERVIEW DASHBOARD -->
     <div id="tab-overview" class="tab-content active">
@@ -400,6 +368,45 @@
 
   </div>
 
+  <!-- ADD MATERIAL POPUP MODAL -->
+  <div class="modal-overlay" id="addMaterialModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modalHeaderTitle">✏️ إضافة تفاصيل المادة (Add Material Details)</div>
+        <button class="modal-close" onclick="closeAddModal()">✕</button>
+      </div>
+      <div class="modal-grid">
+        <div class="form-group">
+          <label id="lblCodeModal">1. كود المادة (Material Code)</label>
+          <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
+        </div>
+        <div class="form-group">
+          <label id="lblNameModal">2. اسم المادة (Material Name)</label>
+          <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالتفصيل...">
+        </div>
+        <div class="form-group">
+          <label id="lblUnitModal">3. الوحدة (Unit)</label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="EA, Set, Roll, Can...">
+        </div>
+        <div class="form-group">
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location)</label>
+          <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="اختر أو اكتب اسم المستودع...">
+          <datalist id="modalWarehouseList">
+            <!-- Dynamic Datalist Options -->
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label id="lblClassModal">5. التصنيف (Classification)</label>
+          <input type="text" id="modalInputClassification" class="input-field" placeholder="Tools, Filters, Electrical...">
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">إلغاء</button>
+          <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">حفظ المادة (Save Item)</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V2";
 
@@ -410,6 +417,7 @@
         toggleBtn: "English",
         appTitle: "نظام إدارة لوجستيات وإستعلامات المخزون v2.4",
         appSubTitle: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
+        btnAddMaterial: "+ إضافة مادة جديدة",
         btnTemplate: "تحميل قالب اكسل",
         btnImport: "استيراد بيانات اكسل",
         btnBackup: "حفظ النسخة الاحتياطية",
@@ -417,13 +425,14 @@
         tab1: "📊 نظرة عامة والملخص",
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
-        panelTitle: "✏️ لوحة إضافة المادة الموحدة (Item Panel)",
+        modalTitle: "✏️ إضافة تفاصيل المادة (Add Material Details)",
         lblCode: "1. كود المادة (Material Code)",
         lblName: "2. اسم المادة (Material Name)",
         lblUnit: "3. الوحدة (Unit)",
         lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
         lblClass: "5. التصنيف (Classification)",
-        btnSave: "💾 حفظ المادة (Save Item)",
+        btnSaveModal: "حفظ المادة (Save Item)",
+        btnCancelModal: "إلغاء",
         kpi1Title: "إجمالي المواد المسجلة",
         kpi1Sub: "إجمالي الأصناف بالمخازن",
         kpi2Title: "التصنيفات المعتمدة",
@@ -448,6 +457,7 @@
         toggleBtn: "العربية",
         appTitle: "Logistics & Inventory Management System v2.4",
         appSubTitle: "Central Equipment, Parts & Classification Control Center",
+        btnAddMaterial: "+ Add New Material",
         btnTemplate: "Download Template",
         btnImport: "Import Excel Data",
         btnBackup: "Save Backup",
@@ -455,13 +465,14 @@
         tab1: "📊 Overview & Summary",
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
-        panelTitle: "✏️ Single Item Entry Panel",
+        modalTitle: "✏️ Add Material Details",
         lblCode: "1. Material Code",
         lblName: "2. Material Name",
         lblUnit: "3. Unit",
         lblLocation: "4. Warehouse / Location",
         lblClass: "5. Classification",
-        btnSave: "💾 Save Item",
+        btnSaveModal: "Save Item",
+        btnCancelModal: "Cancel",
         kpi1Title: "Total Registered Items",
         kpi1Sub: "Total items in stock",
         kpi2Title: "Approved Classifications",
@@ -499,6 +510,40 @@
     let selectedCodes = new Set();
     let chartInstance = null;
 
+    // Modal Control Functions
+    function openAddModal() {
+      document.getElementById('addMaterialModal').classList.add('active');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addMaterialModal').classList.remove('active');
+      // Clear inputs
+      document.getElementById('modalInputCode').value = '';
+      document.getElementById('modalInputName').value = '';
+      document.getElementById('modalInputUnit').value = '';
+      document.getElementById('modalInputLocation').value = '';
+      document.getElementById('modalInputClassification').value = '';
+    }
+
+    // Save Material from Modal
+    function saveMaterialFromModal() {
+      const code = document.getElementById('modalInputCode').value.trim();
+      const name = document.getElementById('modalInputName').value.trim();
+      const unit = document.getElementById('modalInputUnit').value.trim() || "EA";
+      const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
+      const classification = document.getElementById('modalInputClassification').value.trim() || "General";
+
+      if (!code || !name) {
+        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
+        return;
+      }
+
+      warehouseItems.unshift({ code, name, unit, location, classification });
+      saveAndRefresh();
+      closeAddModal();
+      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
+    }
+
     // Language Switcher
     function toggleLanguage() {
       currentLang = currentLang === "ar" ? "en" : "ar";
@@ -513,6 +558,7 @@
       document.getElementById('langToggleBtnText').textContent = t.toggleBtn;
       document.getElementById('appTitle').childNodes[0].nodeValue = t.appTitle + " ";
       document.getElementById('appSubTitle').textContent = t.appSubTitle;
+      document.getElementById('btnAddMaterialText').textContent = t.btnAddMaterial;
       document.getElementById('btnTemplateText').textContent = t.btnTemplate;
       document.getElementById('btnImportText').textContent = t.btnImport;
       document.getElementById('btnBackupText').textContent = t.btnBackup;
@@ -520,13 +566,17 @@
       document.getElementById('tab1Title').textContent = t.tab1;
       document.getElementById('tab2Title').textContent = t.tab2;
       document.getElementById('tab3Title').textContent = t.tab3;
-      document.getElementById('panelHeaderTitle').textContent = t.panelTitle;
-      document.getElementById('lblCode').textContent = t.lblCode;
-      document.getElementById('lblName').textContent = t.lblName;
-      document.getElementById('lblUnit').textContent = t.lblUnit;
-      document.getElementById('lblLocation').textContent = t.lblLocation;
-      document.getElementById('lblClass').textContent = t.lblClass;
-      document.getElementById('btnSaveText').textContent = t.btnSave;
+      
+      // Modal Translation
+      document.getElementById('modalHeaderTitle').textContent = t.modalTitle;
+      document.getElementById('lblCodeModal').textContent = t.lblCode;
+      document.getElementById('lblNameModal').textContent = t.lblName;
+      document.getElementById('lblUnitModal').textContent = t.lblUnit;
+      document.getElementById('lblLocationModal').textContent = t.lblLocation;
+      document.getElementById('lblClassModal').textContent = t.lblClass;
+      document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
+      document.getElementById('btnCancelModal').textContent = t.btnCancelModal;
+
       document.getElementById('kpi1Title').textContent = t.kpi1Title;
       document.getElementById('kpi1Sub').textContent = t.kpi1Sub;
       document.getElementById('kpi2Title').textContent = t.kpi2Title;
@@ -583,30 +633,6 @@
 
       document.getElementById(tabId).classList.add('active');
       el.classList.add('active');
-    }
-
-    // Save Item from Panel
-    function saveNewItemFromPanel() {
-      const code = document.getElementById('inputCode').value.trim();
-      const name = document.getElementById('inputName').value.trim();
-      const unit = document.getElementById('inputUnit').value.trim() || "EA";
-      const location = document.getElementById('inputLocation').value.trim() || "Main Warehouse";
-      const classification = document.getElementById('inputClassification').value.trim() || "General";
-
-      if (!code || !name) {
-        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
-        return;
-      }
-
-      warehouseItems.unshift({ code, name, unit, location, classification });
-      saveAndRefresh();
-
-      // Clear Form Fields
-      document.getElementById('inputCode').value = '';
-      document.getElementById('inputName').value = '';
-      document.getElementById('inputUnit').value = '';
-      document.getElementById('inputClassification').value = '';
-      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح!" : "Item saved successfully!");
     }
 
     // Download Excel Template
@@ -666,7 +692,7 @@
 
     // Populate Datalist
     function populateWarehouseDatalist() {
-      const dl = document.getElementById('warehouseList');
+      const dl = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
       dl.innerHTML = '';
       uniqueWarehouses.forEach(w => {
