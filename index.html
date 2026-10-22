@@ -222,11 +222,8 @@
     th { background: #0e1735; color: var(--text-muted); font-weight: 700; }
     tr:hover { background: rgba(255,255,255,0.02); }
 
-    /* ========================================= */
-    /* STRICT PRINT STYLES (LABEL-ONLY FIX)       */
-    /* ========================================= */
+    /* Dynamic Print Page Rule Holder */
     @media print {
-      /* Hide ALL UI elements, controls, forms, inputs, headers, tabs, search bars, modals */
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .card-checkbox,
       #tab-overview, #tab-inventory, .labels-controls-bar, .selection-bar-container {
@@ -250,11 +247,8 @@
         display: block !important;
       }
 
-      /* Print Grid: Clean stickers layout */
       .labels-grid {
         display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
         padding: 0 !important;
       }
 
@@ -262,15 +256,14 @@
         border: 1px solid #000 !important;
         break-inside: avoid !important;
         box-shadow: none !important;
-        padding: 12px !important;
       }
 
-      /* Hide unselected labels if printing specific items */
       .sticker-card.unselected-for-print {
         display: none !important;
       }
     }
   </style>
+  <style id="dynamicPrintStyles"></style>
 </head>
 <body>
 
@@ -284,15 +277,17 @@
       </div>
     </div>
     <div class="header-actions">
-      <!-- Add Material Button (Triggers Popup Modal) -->
+      <!-- Add Material Button -->
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
+
+      <!-- Print Configurator Modal Trigger -->
+      <button class="btn btn-outline" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="openPrintSettingsModal()">⚙️ <span id="btnSettingsText">إعدادات مقاسات الطباعة</span></button>
 
       <!-- Language Toggle Button -->
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
 
-      <!-- Hidden File Input for Excel Import -->
+      <!-- File Import / Download Actions -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
-      
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
@@ -390,6 +385,7 @@
           </select>
         </div>
         <div style="display:flex; gap:10px;">
+          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()">⚙️ مقاسات الصفحة والملصق</button>
           <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
           <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
         </div>
@@ -406,6 +402,51 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- PRINT SIZE & GRID CONFIGURATOR MODAL -->
+  <div class="modal-overlay" id="printSettingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ إعدادات مقاس الصفحة والملصقات (Page & Label Configurator)</div>
+        <button class="modal-close" onclick="closePrintSettingsModal()">✕</button>
+      </div>
+      <div class="modal-grid">
+        <div class="form-group">
+          <label>1. نوع ورقة الطباعة (Page Size)</label>
+          <select id="cfgPageSize" class="input-field" onchange="updatePrintConfigPreview()">
+            <option value="A4">A4 Sheet (210mm × 297mm)</option>
+            <option value="Letter">Letter Sheet (8.5" × 11")</option>
+            <option value="Roll4x6">Thermal Roll 4" × 6" (100mm × 150mm)</option>
+            <option value="Roll4x2">Thermal Continuous Roll 4" × 2"</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>2. نمط عدد الملصقات في الصفحة (Grid Preset)</label>
+          <select id="cfgGridPreset" class="input-field" onchange="updatePrintConfigPreview()">
+            <option value="8_labels">8 الملصقات في الصفحة (2 columns × 4 rows)</option>
+            <option value="10_labels">10 الملصقات في الصفحة (2 columns × 5 rows)</option>
+            <option value="12_labels">12 ملصق في الصفحة (3 columns × 4 rows)</option>
+            <option value="21_labels">21 ملصق قياسي (3 columns × 7 rows)</option>
+            <option value="single_thermal">ملصق حراري واحد لكل صفحة (Single Thermal Sticker)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>3. اتجاه الصفحة (Page Orientation)</label>
+          <select id="cfgOrientation" class="input-field" onchange="updatePrintConfigPreview()">
+            <option value="portrait">عمودي (Portrait)</option>
+            <option value="landscape">أفقي (Landscape)</option>
+          </select>
+        </div>
+
+        <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-outline" onclick="closePrintSettingsModal()">إلغاء</button>
+          <button class="btn btn-success" onclick="applyPrintSettingsAndClose()">💾 حفظ الإعدادات وتطبيق الطباعة</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ADD MATERIAL POPUP MODAL -->
@@ -450,12 +491,11 @@
   <script>
     const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V2";
 
-    // Unit Conversion Mapping Dictionary (Normalizes Arabic inputs to standard recommended units)
+    // Unit Conversion Mapping Dictionary
     function normalizeUnit(rawUnit) {
       if (!rawUnit) return "Pieces";
       const u = rawUnit.toString().trim().toLowerCase();
 
-      // "حبة" / "قطعة" -> "Pieces"
       if (u === "حبة" || u === "حبه" || u === "قطعة" || u === "قطعه" || u === "حبة/قطعة" || u === "piece" || u === "pieces" || u === "ea" || u === "pill") {
         return "Pieces";
       }
@@ -572,6 +612,53 @@
     let selectedCodes = new Set();
     let chartInstance = null;
 
+    // Print Settings Modals
+    function openPrintSettingsModal() {
+      document.getElementById('printSettingsModal').classList.add('active');
+    }
+
+    function closePrintSettingsModal() {
+      document.getElementById('printSettingsModal').classList.remove('active');
+    }
+
+    function applyPrintSettingsAndClose() {
+      updatePrintConfigPreview();
+      closePrintSettingsModal();
+      alert("تم حفظ إعدادات مقاسات الطباعة وتحديث المخطط بنجاح!");
+    }
+
+    function updatePrintConfigPreview() {
+      const pageSize = document.getElementById('cfgPageSize').value;
+      const preset = document.getElementById('cfgGridPreset').value;
+      const orientation = document.getElementById('cfgOrientation').value;
+
+      let cols = 2;
+      let minHeight = "120px";
+
+      if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
+      else if (preset === "10_labels") { cols = 2; minHeight = "110px"; }
+      else if (preset === "12_labels") { cols = 3; minHeight = "110px"; }
+      else if (preset === "21_labels") { cols = 3; minHeight = "85px"; }
+      else if (preset === "single_thermal") { cols = 1; minHeight = "180px"; }
+
+      const styleTag = document.getElementById('dynamicPrintStyles');
+      styleTag.innerHTML = `
+        @media print {
+          @page {
+            size: ${pageSize} ${orientation};
+            margin: 8mm;
+          }
+          .labels-grid {
+            grid-template-columns: repeat(${cols}, 1fr) !important;
+            gap: 10px !important;
+          }
+          .sticker-card {
+            min-height: ${minHeight} !important;
+          }
+        }
+      `;
+    }
+
     // Modal Control Functions
     function openAddModal() {
       document.getElementById('addMaterialModal').classList.add('active');
@@ -664,7 +751,6 @@
 
     // Clean Label-Only Print Handler
     function triggerCleanPrint() {
-      // Switch view to Barcode Labels Studio if not already open
       const labelsTab = document.getElementById('tab-labels');
       if (!labelsTab.classList.contains('active')) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
@@ -673,7 +759,6 @@
         document.getElementById('tab3Title').classList.add('active');
       }
 
-      // If items are selected, temporarily mark unselected cards to hide them during print
       const cards = document.querySelectorAll('.sticker-card');
       if (selectedCodes.size > 0) {
         cards.forEach(card => {
@@ -697,7 +782,6 @@
       if (stored) {
         try {
           warehouseItems = JSON.parse(stored);
-          // Normalize existing stored units
           warehouseItems.forEach(i => i.unit = normalizeUnit(i.unit));
         } catch (e) {
           warehouseItems = [...initialDataset];
@@ -705,6 +789,7 @@
       } else {
         warehouseItems = [...initialDataset];
       }
+      updatePrintConfigPreview();
       applyTranslations();
       saveAndRefresh();
     }
