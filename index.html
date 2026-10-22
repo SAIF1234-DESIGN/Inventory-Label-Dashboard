@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة لوجستيات وإستعلامات المخزون v2.4</title>
+  <title>نظام إدارة لوجستيات وإستعلامات المخزون | Logistics & Inventory Management System</title>
   <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- JsBarcode for barcode rendering -->
@@ -217,7 +217,7 @@
       border-radius: 16px;
       overflow: hidden;
     }
-    table { width: 100%; border-collapse: collapse; text-align: right; }
+    table { width: 100%; border-collapse: collapse; text-align: inherit; }
     th, td { padding: 14px 18px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; }
     th { background: #0e1735; color: var(--text-muted); font-weight: 700; }
     tr:hover { background: rgba(255,255,255,0.02); }
@@ -239,26 +239,29 @@
     <div class="brand-title">
       <div class="brand-logo">📦</div>
       <div class="brand-text">
-        <h1>نظام إدارة لوجستيات وإستعلامات المخزون <span class="version-badge">v2.4</span></h1>
-        <p>مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
+        <h1 id="appTitle">نظام إدارة لوجستيات وإستعلامات المخزون <span class="version-badge">v2.4</span></h1>
+        <p id="appSubTitle">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
       </div>
     </div>
     <div class="header-actions">
+      <!-- Language Toggle Button -->
+      <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
+
       <!-- Hidden File Input for Excel Import -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
       
-      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 تحميل قالب اكسل</button>
-      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 استيراد بيانات اكسل</button>
-      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 حفظ النسخة الاحتياطية</button>
-      <button class="btn btn-success" onclick="window.print()">🖨️ طباعة ملصقات الشحنات</button>
+      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
+      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
+      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
+      <button class="btn btn-success" onclick="window.print()">🖨️ <span id="btnPrintText">طباعة ملصقات الشحنات</span></button>
     </div>
   </header>
 
   <!-- Navigation Bar -->
   <div class="nav-bar">
-    <div class="nav-tab active" onclick="switchNav('tab-overview', this)">📊 نظرة عامة والملخص</div>
-    <div class="nav-tab" onclick="switchNav('tab-inventory', this)">📋 سجل المواد والمخزون</div>
-    <div class="nav-tab" onclick="switchNav('tab-labels', this)">🏷️ مولد طباعة الباركود</div>
+    <div class="nav-tab active" id="tab1Title" onclick="switchNav('tab-overview', this)">📊 نظرة عامة والملخص</div>
+    <div class="nav-tab" id="tab2Title" onclick="switchNav('tab-inventory', this)">📋 سجل المواد والمخزون</div>
+    <div class="nav-tab" id="tab3Title" onclick="switchNav('tab-labels', this)">🏷️ مولد طباعة الباركود</div>
   </div>
 
   <div class="container">
@@ -266,34 +269,34 @@
     <!-- SINGLE INPUT & SAVE PANEL (5 Core Fields) -->
     <div class="panel-card">
       <div class="panel-header">
-        <div class="panel-title">✏️ لوحة إضافة المادة الموحدة (Item Information Panel)</div>
+        <div class="panel-title" id="panelHeaderTitle">✏️ لوحة إضافة المادة الموحدة (Item Information Panel)</div>
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label>1. كود المادة (Material Code)</label>
-          <input type="text" id="inputCode" class="input-field" placeholder="مثال: 7272446">
+          <label id="lblCode">1. كود المادة (Material Code)</label>
+          <input type="text" id="inputCode" class="input-field" placeholder="7272446">
         </div>
         <div class="form-group">
-          <label>2. اسم المادة (Material Name)</label>
-          <input type="text" id="inputName" class="input-field" placeholder="اسم المادة بالكامل...">
+          <label id="lblName">2. اسم المادة (Material Name)</label>
+          <input type="text" id="inputName" class="input-field" placeholder="...">
         </div>
         <div class="form-group">
-          <label>3. الوحدة (Unit)</label>
+          <label id="lblUnit">3. الوحدة (Unit)</label>
           <input type="text" id="inputUnit" class="input-field" placeholder="EA, Set, Roll...">
         </div>
         <div class="form-group">
-          <label>4. الموقع / المستودع (Warehouse / Location)</label>
-          <input type="text" id="inputLocation" list="warehouseList" class="input-field" placeholder="اختر أو اكتب اسم المستودع...">
+          <label id="lblLocation">4. الموقع / المستودع (Warehouse / Location)</label>
+          <input type="text" id="inputLocation" list="warehouseList" class="input-field" placeholder="...">
           <datalist id="warehouseList">
             <!-- Dynamic Datalist Options -->
           </datalist>
         </div>
         <div class="form-group">
-          <label>5. التصنيف (Classification)</label>
+          <label id="lblClass">5. التصنيف (Classification)</label>
           <input type="text" id="inputClassification" class="input-field" placeholder="Tools, Filters...">
         </div>
         <div>
-          <button class="btn btn-success" style="height: 42px; width: 100%;" onclick="saveNewItemFromPanel()">💾 حفظ المادة (Save Item)</button>
+          <button class="btn btn-success" style="height: 42px; width: 100%;" onclick="saveNewItemFromPanel()">💾 <span id="btnSaveText">حفظ المادة (Save Item)</span></button>
         </div>
       </div>
     </div>
@@ -303,27 +306,27 @@
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3>إجمالي المواد المسجلة</h3>
+            <h3 id="kpi1Title">إجمالي المواد المسجلة</h3>
             <div class="value" id="kpiTotalItems">0</div>
-            <div class="subtext">إجمالي الأصناف بالمخازن</div>
+            <div class="subtext" id="kpi1Sub">إجمالي الأصناف بالمخازن</div>
           </div>
           <div class="kpi-icon">📦</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3>التصنيفات المعتمدة</h3>
+            <h3 id="kpi2Title">التصنيفات المعتمدة</h3>
             <div class="value" id="kpiTotalCategories">0</div>
-            <div class="subtext">جميع الفئات المسجلة</div>
+            <div class="subtext" id="kpi2Sub">جميع الفئات المسجلة</div>
           </div>
           <div class="kpi-icon">📚</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3>المستودعات المسجلة</h3>
+            <h3 id="kpi3Title">المستودعات المسجلة</h3>
             <div class="value" id="kpiLocations">0</div>
-            <div class="subtext">مواقع التخزين المستهدفة</div>
+            <div class="subtext" id="kpi3Sub">مواقع التخزين المستهدفة</div>
           </div>
           <div class="kpi-icon">🏢</div>
         </div>
@@ -332,8 +335,8 @@
       <!-- Full Classification Chart Section -->
       <div class="chart-container">
         <div style="margin-bottom: 16px;">
-          <h2>توزيع جميع التصنيفات (All Classifications Overview)</h2>
-          <p style="font-size:0.8rem; color:var(--text-muted);">رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل</p>
+          <h2 id="chartHeaderTitle">توزيع جميع التصنيفات (All Classifications Overview)</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);" id="chartHeaderSub">رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل</p>
         </div>
         <div style="height: 340px; position: relative;">
           <canvas id="allClassificationsChart"></canvas>
@@ -346,7 +349,7 @@
       <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
         <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 300px;">
         <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 250px;">
-          <option value="">جميع التصنيفات</option>
+          <option value="" id="optAllClass1">جميع التصنيفات</option>
         </select>
       </div>
 
@@ -354,12 +357,12 @@
         <table>
           <thead>
             <tr>
-              <th>كود المادة (Material Code)</th>
-              <th>اسم المادة (Material Name)</th>
-              <th>الوحدة (Unit)</th>
-              <th>الموقع (Warehouse / Location)</th>
-              <th>التصنيف (Classification)</th>
-              <th>الإجراءات</th>
+              <th id="thCode">كود المادة (Material Code)</th>
+              <th id="thName">اسم المادة (Material Name)</th>
+              <th id="thUnit">الوحدة (Unit)</th>
+              <th id="thLocation">الموقع (Warehouse / Location)</th>
+              <th id="thClass">التصنيف (Classification)</th>
+              <th id="thActions">الإجراءات</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -375,18 +378,18 @@
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderLabelsGrid()" style="max-width: 280px;">
           <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 220px;">
-            <option value="">جميع التصنيفات</option>
+            <option value="" id="optAllClass2">جميع التصنيفات</option>
           </select>
         </div>
         <div style="display:flex; gap:10px;">
-          <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ حذف المحددة</button>
-          <button class="btn btn-primary" onclick="window.print()">🖨️ طباعة المحدد</button>
+          <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
+          <button class="btn btn-primary" onclick="window.print()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
         </div>
       </div>
 
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="width:18px; height:18px; cursor:pointer;">
-        <label for="selectAllCheckbox" style="font-weight: 600;">تحديد الكل (Select All)</label>
+        <label for="selectAllCheckbox" style="font-weight: 600;" id="lblSelectAll">تحديد الكل (Select All)</label>
         <span id="selectedCountBadge" style="color: var(--text-muted); font-size:0.85rem;">(المحدد: 0)</span>
       </div>
 
@@ -399,6 +402,87 @@
 
   <script>
     const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V2";
+
+    // Bilingual Dictionary
+    let currentLang = "ar";
+    const translations = {
+      ar: {
+        toggleBtn: "English",
+        appTitle: "نظام إدارة لوجستيات وإستعلامات المخزون v2.4",
+        appSubTitle: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
+        btnTemplate: "تحميل قالب اكسل",
+        btnImport: "استيراد بيانات اكسل",
+        btnBackup: "حفظ النسخة الاحتياطية",
+        btnPrint: "طباعة ملصقات الشحنات",
+        tab1: "📊 نظرة عامة والملخص",
+        tab2: "📋 سجل المواد والمخزون",
+        tab3: "🏷️ مولد طباعة الباركود",
+        panelTitle: "✏️ لوحة إضافة المادة الموحدة (Item Panel)",
+        lblCode: "1. كود المادة (Material Code)",
+        lblName: "2. اسم المادة (Material Name)",
+        lblUnit: "3. الوحدة (Unit)",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
+        lblClass: "5. التصنيف (Classification)",
+        btnSave: "💾 حفظ المادة (Save Item)",
+        kpi1Title: "إجمالي المواد المسجلة",
+        kpi1Sub: "إجمالي الأصناف بالمخازن",
+        kpi2Title: "التصنيفات المعتمدة",
+        kpi2Sub: "جميع الفئات المسجلة",
+        kpi3Title: "المستودعات المسجلة",
+        kpi3Sub: "مواقع التخزين المستهدفة",
+        chartTitle: "توزيع جميع التصنيفات (Classifications Breakdown)",
+        chartSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
+        optAllClass: "جميع التصنيفات",
+        thCode: "كود المادة (Code)",
+        thName: "اسم المادة (Name)",
+        thUnit: "الوحدة (Unit)",
+        thLocation: "الموقع (Location)",
+        thClass: "التصنيف (Classification)",
+        thActions: "الإجراءات",
+        btnDeleteSelected: "حذف المحددة",
+        btnPrintSelected: "طباعة المحدد",
+        lblSelectAll: "تحديد الكل (Select All)",
+        searchPlaceholder: "ابحث بكود المادة أو الاسم..."
+      },
+      en: {
+        toggleBtn: "العربية",
+        appTitle: "Logistics & Inventory Management System v2.4",
+        appSubTitle: "Central Equipment, Parts & Classification Control Center",
+        btnTemplate: "Download Template",
+        btnImport: "Import Excel Data",
+        btnBackup: "Save Backup",
+        btnPrint: "Print Labels",
+        tab1: "📊 Overview & Summary",
+        tab2: "📋 Inventory Register",
+        tab3: "🏷️ Barcode Labels Studio",
+        panelTitle: "✏️ Single Item Entry Panel",
+        lblCode: "1. Material Code",
+        lblName: "2. Material Name",
+        lblUnit: "3. Unit",
+        lblLocation: "4. Warehouse / Location",
+        lblClass: "5. Classification",
+        btnSave: "💾 Save Item",
+        kpi1Title: "Total Registered Items",
+        kpi1Sub: "Total items in stock",
+        kpi2Title: "Approved Classifications",
+        kpi2Sub: "All registered categories",
+        kpi3Title: "Registered Warehouses",
+        kpi3Sub: "Target storage locations",
+        chartTitle: "Classifications Breakdown",
+        chartSub: "Bar chart displaying total items per classification category",
+        optAllClass: "All Classifications",
+        thCode: "Material Code",
+        thName: "Material Name",
+        thUnit: "Unit",
+        thLocation: "Warehouse / Location",
+        thClass: "Classification",
+        thActions: "Actions",
+        btnDeleteSelected: "Delete Selected",
+        btnPrintSelected: "Print Selected",
+        lblSelectAll: "Select All",
+        searchPlaceholder: "Search by code or name..."
+      }
+    };
 
     // Initial Dataset
     const initialDataset = [
@@ -415,6 +499,57 @@
     let selectedCodes = new Set();
     let chartInstance = null;
 
+    // Language Switcher
+    function toggleLanguage() {
+      currentLang = currentLang === "ar" ? "en" : "ar";
+      document.documentElement.lang = currentLang;
+      document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+      applyTranslations();
+      saveAndRefresh();
+    }
+
+    function applyTranslations() {
+      const t = translations[currentLang];
+      document.getElementById('langToggleBtnText').textContent = t.toggleBtn;
+      document.getElementById('appTitle').childNodes[0].nodeValue = t.appTitle + " ";
+      document.getElementById('appSubTitle').textContent = t.appSubTitle;
+      document.getElementById('btnTemplateText').textContent = t.btnTemplate;
+      document.getElementById('btnImportText').textContent = t.btnImport;
+      document.getElementById('btnBackupText').textContent = t.btnBackup;
+      document.getElementById('btnPrintText').textContent = t.btnPrint;
+      document.getElementById('tab1Title').textContent = t.tab1;
+      document.getElementById('tab2Title').textContent = t.tab2;
+      document.getElementById('tab3Title').textContent = t.tab3;
+      document.getElementById('panelHeaderTitle').textContent = t.panelTitle;
+      document.getElementById('lblCode').textContent = t.lblCode;
+      document.getElementById('lblName').textContent = t.lblName;
+      document.getElementById('lblUnit').textContent = t.lblUnit;
+      document.getElementById('lblLocation').textContent = t.lblLocation;
+      document.getElementById('lblClass').textContent = t.lblClass;
+      document.getElementById('btnSaveText').textContent = t.btnSave;
+      document.getElementById('kpi1Title').textContent = t.kpi1Title;
+      document.getElementById('kpi1Sub').textContent = t.kpi1Sub;
+      document.getElementById('kpi2Title').textContent = t.kpi2Title;
+      document.getElementById('kpi2Sub').textContent = t.kpi2Sub;
+      document.getElementById('kpi3Title').textContent = t.kpi3Title;
+      document.getElementById('kpi3Sub').textContent = t.kpi3Sub;
+      document.getElementById('chartHeaderTitle').textContent = t.chartTitle;
+      document.getElementById('chartHeaderSub').textContent = t.chartSub;
+      document.getElementById('optAllClass1').textContent = t.optAllClass;
+      document.getElementById('optAllClass2').textContent = t.optAllClass;
+      document.getElementById('thCode').textContent = t.thCode;
+      document.getElementById('thName').textContent = t.thName;
+      document.getElementById('thUnit').textContent = t.thUnit;
+      document.getElementById('thLocation').textContent = t.thLocation;
+      document.getElementById('thClass').textContent = t.thClass;
+      document.getElementById('thActions').textContent = t.thActions;
+      document.getElementById('btnDeleteSelectedText').textContent = t.btnDeleteSelected;
+      document.getElementById('btnPrintSelectedText').textContent = t.btnPrintSelected;
+      document.getElementById('lblSelectAll').textContent = t.lblSelectAll;
+      document.getElementById('inventorySearch').placeholder = t.searchPlaceholder;
+      document.getElementById('labelsSearch').placeholder = t.searchPlaceholder;
+    }
+
     // Initialize App
     function initData() {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -427,6 +562,7 @@
       } else {
         warehouseItems = [...initialDataset];
       }
+      applyTranslations();
       saveAndRefresh();
     }
 
@@ -458,7 +594,7 @@
       const classification = document.getElementById('inputClassification').value.trim() || "General";
 
       if (!code || !name) {
-        alert("يرجى إدخال كود المادة واسم المادة على الأقل.");
+        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
         return;
       }
 
@@ -470,7 +606,7 @@
       document.getElementById('inputName').value = '';
       document.getElementById('inputUnit').value = '';
       document.getElementById('inputClassification').value = '';
-      alert("تم حفظ المادة بنجاح وتحديث الملصقات والاحصائيات!");
+      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح!" : "Item saved successfully!");
     }
 
     // Download Excel Template
@@ -480,15 +616,8 @@
           "كود المادة (Material Code)": "1001",
           "اسم المادة (Material Name)": "صمام أمان ديزل 2 بوصة",
           "الوحدة (Unit)": "EA",
-          "الموقع (Location)": "المستودع الرئيسي / المنطقة الجنوبية",
+          "الموقع (Location)": "Main Warehouse",
           "التصنيف (Classification)": "Fuel Equipment"
-        },
-        {
-          "كود المادة (Material Code)": "1002",
-          "اسم المادة (Material Name)": "مفتاح طوارئ شنايدر",
-          "الوحدة (Unit)": "Pieces",
-          "الموقع (Location)": "مستودع الصيانة",
-          "التصنيف (Classification)": "Electrical Components"
         }
       ];
 
@@ -498,7 +627,7 @@
       XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
     }
 
-    // Import Excel File (.xlsx, .xls, .csv)
+    // Import Excel File
     function importExcelFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -512,18 +641,13 @@
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-          if (!jsonData || jsonData.length === 0) {
-            alert("الملف الفارغ أو يحتوي على تنسيق غير صحيح.");
-            return;
-          }
-
           let newItemsCount = 0;
           jsonData.forEach(row => {
-            const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || row["كود المادة"] || "").trim();
-            const name = String(row["اسم المادة (Material Name)"] || row["Name"] || row["Material Name"] || row["اسم المادة"] || "").trim();
-            const unit = String(row["الوحدة (Unit)"] || row["Unit"] || row["الوحدة"] || "EA").trim();
-            const location = String(row["الموقع (Location)"] || row["Location"] || row["الموقع"] || "Main Warehouse").trim();
-            const classification = String(row["التصنيف (Classification)"] || row["Classification"] || row["التصنيف"] || "General").trim();
+            const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || "").trim();
+            const name = String(row["اسم المادة (Material Name)"] || row["Name"] || row["Material Name"] || "").trim();
+            const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "EA").trim();
+            const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
+            const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
 
             if (code && name) {
               warehouseItems.unshift({ code, name, unit, location, classification });
@@ -532,16 +656,15 @@
           });
 
           saveAndRefresh();
-          alert(`تم استيراد (${newItemsCount}) مادة بنجاح من ملف الاكسل!`);
+          alert(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة بنجاح!` : `Successfully imported (${newItemsCount}) items!`);
         } catch (err) {
-          console.error("Excel Import Error:", err);
-          alert("حدث خطأ أثناء قراءة ملف الاكسل. يرجى التأكد من التنسيق.");
+          alert("Error parsing file.");
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
-    // Populate Dynamic Warehouse Datalist
+    // Populate Datalist
     function populateWarehouseDatalist() {
       const dl = document.getElementById('warehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
@@ -564,11 +687,11 @@
       document.getElementById('kpiLocations').textContent = locations.size;
     }
 
-    // Render Full Classification Graph
+    // Render Chart
     function renderAllClassificationsChart() {
       const counts = {};
       warehouseItems.forEach(i => {
-        const cls = i.classification || 'غير محدد';
+        const cls = i.classification || (currentLang === 'ar' ? 'غير محدد' : 'Unassigned');
         counts[cls] = (counts[cls] || 0) + 1;
       });
 
@@ -583,7 +706,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'عدد الأصناف',
+            label: currentLang === 'ar' ? 'عدد الأصناف' : 'Item Count',
             data: data,
             backgroundColor: '#3a86ff',
             borderRadius: 6
@@ -601,14 +724,14 @@
       });
     }
 
-    // Populate Category Dropdowns
+    // Populate Categories
     function populateCategoryDropdowns() {
       const categories = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
       
       ['inventoryCategoryFilter', 'labelsCategoryFilter'].forEach(id => {
         const sel = document.getElementById(id);
         const currVal = sel.value;
-        sel.innerHTML = '<option value="">جميع التصنيفات</option>';
+        sel.innerHTML = `<option value="">${translations[currentLang].optAllClass}</option>`;
         categories.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c;
@@ -619,7 +742,7 @@
       });
     }
 
-    // Render Inventory Master Table
+    // Render Table
     function renderInventoryTable() {
       const search = document.getElementById('inventorySearch').value.toLowerCase();
       const cat = document.getElementById('inventoryCategoryFilter').value;
@@ -649,7 +772,7 @@
       });
     }
 
-    // Render Barcode Sticker Cards Grid
+    // Render Barcode Cards Grid
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
@@ -670,14 +793,14 @@
         card.innerHTML = `
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
-            <span style="font-size:0.75rem; color:#64748b;">🏢 ${item.location || 'المستودع الرئيسي'}</span>
+            <span style="font-size:0.75rem; color:#64748b;">🏢 ${item.location || 'Main Warehouse'}</span>
             <button class="del-btn" onclick="deleteSingleItem('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
-            <div><label>الكود</label><span>${item.code}</span></div>
-            <div><label>الوحدة</label><span>${item.unit || 'EA'}</span></div>
-            <div><label>التصنيف</label><span>${item.classification || '-'}</span></div>
+            <div><label>${currentLang === 'ar' ? 'الكود' : 'Code'}</label><span>${item.code}</span></div>
+            <div><label>${currentLang === 'ar' ? 'الوحدة' : 'Unit'}</label><span>${item.unit || 'EA'}</span></div>
+            <div><label>${currentLang === 'ar' ? 'التصنيف' : 'Class'}</label><span>${item.classification || '-'}</span></div>
           </div>
           <div class="barcode-container">
             <svg id="barcode-${item.code}"></svg>
@@ -696,7 +819,7 @@
         } catch (e) {}
       });
 
-      document.getElementById('selectedCountBadge').textContent = `(المحدد: ${selectedCodes.size})`;
+      document.getElementById('selectedCountBadge').textContent = `(${currentLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
     }
 
     // Selection Handling
@@ -717,7 +840,7 @@
 
     // Delete Single Item
     function deleteSingleItem(code) {
-      if (confirm(`هل أنت تأكد من حذف المادة ذات الكود (${code})؟`)) {
+      if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         selectedCodes.delete(code);
         saveAndRefresh();
@@ -725,8 +848,8 @@
     }
 
     function deleteSelectedLabels() {
-      if (selectedCodes.size === 0) return alert("يرجى تحديد عناصر للحذف.");
-      if (confirm(`هل أنت تأكد من حذف (${selectedCodes.size}) مادة مسجلة؟`)) {
+      if (selectedCodes.size === 0) return alert(currentLang === 'ar' ? "يرجى تحديد عناصر للحذف." : "Please select items to delete.");
+      if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف (${selectedCodes.size}) مادة مسجلة؟` : `Are you sure you want to delete (${selectedCodes.size}) selected items?`)) {
         warehouseItems = warehouseItems.filter(i => !selectedCodes.has(i.code));
         selectedCodes.clear();
         saveAndRefresh();
