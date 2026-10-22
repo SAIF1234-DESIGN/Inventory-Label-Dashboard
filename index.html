@@ -222,13 +222,53 @@
     th { background: #0e1735; color: var(--text-muted); font-weight: 700; }
     tr:hover { background: rgba(255,255,255,0.02); }
 
-    /* Print Styles */
+    /* ========================================= */
+    /* STRICT PRINT STYLES (LABEL-ONLY FIX)       */
+    /* ========================================= */
     @media print {
-      header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, .btn, .card-checkbox, .del-btn, #tab-overview, #tab-inventory { display: none !important; }
-      body { background: white; color: black; }
-      .container { max-width: 100%; margin: 0; padding: 0; }
-      .labels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .sticker-card { border: 1px solid #000; break-inside: avoid; box-shadow: none; }
+      /* Hide ALL UI elements, controls, forms, inputs, headers, tabs, search bars, modals */
+      header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
+      .btn, .input-field, .del-btn, .card-checkbox,
+      #tab-overview, #tab-inventory, .labels-controls-bar, .selection-bar-container {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      #tab-labels {
+        display: block !important;
+      }
+
+      /* Print Grid: Clean stickers layout */
+      .labels-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        padding: 0 !important;
+      }
+
+      .sticker-card {
+        border: 1px solid #000 !important;
+        break-inside: avoid !important;
+        box-shadow: none !important;
+        padding: 12px !important;
+      }
+
+      /* Hide unselected labels if printing specific items */
+      .sticker-card.unselected-for-print {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -256,7 +296,7 @@
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
-      <button class="btn btn-success" onclick="window.print()">🖨️ <span id="btnPrintText">طباعة ملصقات الشحنات</span></button>
+      <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintText">طباعة ملصقات الشحنات</span></button>
     </div>
   </header>
 
@@ -342,7 +382,7 @@
 
     <!-- TAB 3: BARCODE LABELS STUDIO -->
     <div id="tab-labels" class="tab-content">
-      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderLabelsGrid()" style="max-width: 280px;">
           <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 220px;">
@@ -351,11 +391,11 @@
         </div>
         <div style="display:flex; gap:10px;">
           <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
-          <button class="btn btn-primary" onclick="window.print()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
+          <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
         </div>
       </div>
 
-      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+      <div class="selection-bar-container" style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="width:18px; height:18px; cursor:pointer;">
         <label for="selectAllCheckbox" style="font-weight: 600;" id="lblSelectAll">تحديد الكل (Select All)</label>
         <span id="selectedCountBadge" style="color: var(--text-muted); font-size:0.85rem;">(المحدد: 0)</span>
@@ -385,8 +425,8 @@
           <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالتفصيل...">
         </div>
         <div class="form-group">
-          <label id="lblUnitModal">3. الوحدة (Unit)</label>
-          <input type="text" id="modalInputUnit" class="input-field" placeholder="EA, Set, Roll, Can...">
+          <label id="lblUnitModal">3. الوحدة (Unit) - (حبة $\rightarrow$ Pieces تلقائياً)</label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="حبة, قطعة, EA, Set, Meter, Litre...">
         </div>
         <div class="form-group">
           <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location)</label>
@@ -409,6 +449,28 @@
 
   <script>
     const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V2";
+
+    // Unit Conversion Mapping Dictionary (Normalizes Arabic inputs to standard recommended units)
+    function normalizeUnit(rawUnit) {
+      if (!rawUnit) return "Pieces";
+      const u = rawUnit.toString().trim().toLowerCase();
+
+      // "حبة" / "قطعة" -> "Pieces"
+      if (u === "حبة" || u === "حبه" || u === "قطعة" || u === "قطعه" || u === "حبة/قطعة" || u === "piece" || u === "pieces" || u === "ea" || u === "pill") {
+        return "Pieces";
+      }
+      if (u === "متر" || u === "meter" || u === "m") return "Meter";
+      if (u === "طقم" || u === "set") return "Set";
+      if (u === "لتر" || u === "litre" || u === "liter" || u === "l") return "Litre";
+      if (u === "برميل" || u === "drum") return "Drum";
+      if (u === "جالون" || u === "gallon") return "Gallon";
+      if (u === "علبة" || u === "عبوة" || u === "can") return "Can";
+      if (u === "زوج" || u === "pair") return "Pair";
+      if (u === "صندوق" || u === "كرتون" || u === "box" || u === "carton") return "Box";
+      if (u === "لفة" || u === "roll") return "Roll";
+
+      return rawUnit;
+    }
 
     // Bilingual Dictionary
     let currentLang = "ar";
@@ -497,13 +559,13 @@
 
     // Initial Dataset
     const initialDataset = [
-      { code: "7272446", name: "لفة سلك 10*4 100 يارد", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components" },
-      { code: "76152", name: "قطاعة القفل 180", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
-      { code: "761962", name: "سولينأئد فالف فرانتير", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts" },
-      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items" },
-      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
-      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires" },
-      { code: "68764", name: "مستعمل مضخة حريق صغيره", unit: "EA", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety" }
+      { code: "7272446", name: "لفة سلك 10*4 100 يارد", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components" },
+      { code: "76152", name: "قطاعة القفل 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
+      { code: "761962", name: "سولينأئد فالف فرانتير", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts" },
+      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items" },
+      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
+      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires" },
+      { code: "68764", name: "مستعمل مضخة حريق صغيره", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety" }
     ];
 
     let warehouseItems = [];
@@ -517,7 +579,6 @@
 
     function closeAddModal() {
       document.getElementById('addMaterialModal').classList.remove('active');
-      // Clear inputs
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputName').value = '';
       document.getElementById('modalInputUnit').value = '';
@@ -529,7 +590,8 @@
     function saveMaterialFromModal() {
       const code = document.getElementById('modalInputCode').value.trim();
       const name = document.getElementById('modalInputName').value.trim();
-      const unit = document.getElementById('modalInputUnit').value.trim() || "EA";
+      const rawUnit = document.getElementById('modalInputUnit').value.trim();
+      const unit = normalizeUnit(rawUnit);
       const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
       const classification = document.getElementById('modalInputClassification').value.trim() || "General";
 
@@ -600,12 +662,43 @@
       document.getElementById('labelsSearch').placeholder = t.searchPlaceholder;
     }
 
+    // Clean Label-Only Print Handler
+    function triggerCleanPrint() {
+      // Switch view to Barcode Labels Studio if not already open
+      const labelsTab = document.getElementById('tab-labels');
+      if (!labelsTab.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
+        labelsTab.classList.add('active');
+        document.getElementById('tab3Title').classList.add('active');
+      }
+
+      // If items are selected, temporarily mark unselected cards to hide them during print
+      const cards = document.querySelectorAll('.sticker-card');
+      if (selectedCodes.size > 0) {
+        cards.forEach(card => {
+          const code = card.getAttribute('data-code');
+          if (!selectedCodes.has(code)) {
+            card.classList.add('unselected-for-print');
+          } else {
+            card.classList.remove('unselected-for-print');
+          }
+        });
+      } else {
+        cards.forEach(card => card.classList.remove('unselected-for-print'));
+      }
+
+      window.print();
+    }
+
     // Initialize App
     function initData() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         try {
           warehouseItems = JSON.parse(stored);
+          // Normalize existing stored units
+          warehouseItems.forEach(i => i.unit = normalizeUnit(i.unit));
         } catch (e) {
           warehouseItems = [...initialDataset];
         }
@@ -641,7 +734,7 @@
         {
           "كود المادة (Material Code)": "1001",
           "اسم المادة (Material Name)": "صمام أمان ديزل 2 بوصة",
-          "الوحدة (Unit)": "EA",
+          "الوحدة (Unit)": "حبة",
           "الموقع (Location)": "Main Warehouse",
           "التصنيف (Classification)": "Fuel Equipment"
         }
@@ -671,7 +764,8 @@
           jsonData.forEach(row => {
             const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || "").trim();
             const name = String(row["اسم المادة (Material Name)"] || row["Name"] || row["Material Name"] || "").trim();
-            const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "EA").trim();
+            const rawUnit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
+            const unit = normalizeUnit(rawUnit);
             const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
             const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
 
@@ -787,7 +881,7 @@
         tr.innerHTML = `
           <td><strong>${item.code}</strong></td>
           <td>${item.name}</td>
-          <td>${item.unit || 'EA'}</td>
+          <td>${item.unit || 'Pieces'}</td>
           <td>${item.location || '-'}</td>
           <td>${item.classification || '-'}</td>
           <td>
@@ -816,6 +910,7 @@
         const isChecked = selectedCodes.has(item.code);
         const card = document.createElement('div');
         card.className = 'sticker-card';
+        card.setAttribute('data-code', item.code);
         card.innerHTML = `
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
@@ -825,7 +920,7 @@
           <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
             <div><label>${currentLang === 'ar' ? 'الكود' : 'Code'}</label><span>${item.code}</span></div>
-            <div><label>${currentLang === 'ar' ? 'الوحدة' : 'Unit'}</label><span>${item.unit || 'EA'}</span></div>
+            <div><label>${currentLang === 'ar' ? 'الوحدة' : 'Unit'}</label><span>${item.unit || 'Pieces'}</span></div>
             <div><label>${currentLang === 'ar' ? 'التصنيف' : 'Class'}</label><span>${item.classification || '-'}</span></div>
           </div>
           <div class="barcode-container">
