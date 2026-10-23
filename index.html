@@ -249,7 +249,7 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Zero Horizontal Scroll & True Content-Aware Table */
+    /* Zero Horizontal Scroll & True Content-Aware LTR Table */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -260,20 +260,19 @@
     }
     .excel-table {
       width: 100%;
-      table-layout: auto; /* Columns scale based on content */
+      table-layout: auto;
       border-collapse: collapse;
       direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 8px 12px; /* Minor space from border */
+      padding: 8px 12px;
       border: 1px solid #2b3a67;
       font-size: 0.78rem;
-      white-space: nowrap; /* Hug text tightly */
+      white-space: nowrap;
       text-align: left;
     }
-    /* Allow wrapping only on wider descriptive columns if space gets tight, keeping small columns strictly compact */
-    .excel-table td.wrap-cell, .excel-table th.wrap-cell {
+    .excel-table th.wrap-cell, .excel-table td.wrap-cell {
       white-space: normal;
       word-break: break-word;
     }
@@ -451,22 +450,22 @@
         <table class="excel-table">
           <thead>
             <tr>
-              <th colspan="1" style="text-align:center;">Selection</th>
-              <th colspan="5" style="text-align:center;">Inventory Data</th>
-              <th colspan="5" style="text-align:center;">Actions</th>
+              <th colspan="1" style="text-align:center;" id="thGroupSelection">Selection</th>
+              <th colspan="5" style="text-align:center;" id="thGroupData">Inventory Data</th>
+              <th colspan="5" style="text-align:center;" id="thGroupActions">Actions</th>
             </tr>
             <tr>
               <th style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
-              <th>Material Code</th>
-              <th class="wrap-cell">Material Name</th>
-              <th>Unit</th>
-              <th class="wrap-cell">Warehouse / Location</th>
-              <th class="wrap-cell">Classification</th>
-              <th style="text-align:center;">Print</th>
-              <th style="text-align:center;">Generate</th>
-              <th style="text-align:center;">Ungenerate</th>
-              <th style="text-align:center;">Edit</th>
-              <th style="text-align:center;">Delete</th>
+              <th id="thCode">Material Code</th>
+              <th class="wrap-cell" id="thName">Material Name</th>
+              <th id="thUnit">Unit</th>
+              <th class="wrap-cell" id="thLocation">Warehouse / Location</th>
+              <th class="wrap-cell" id="thClass">Classification</th>
+              <th style="text-align:center;" id="thPrint">Print</th>
+              <th style="text-align:center;" id="thGenerate">Generate</th>
+              <th style="text-align:center;" id="thUngenerate">Ungenerate</th>
+              <th style="text-align:center;" id="thEdit">Edit</th>
+              <th style="text-align:center;" id="thDelete">Delete</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -622,12 +621,12 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V31";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V12";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V32";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V13";
 
     let nameMemory = {};
     let classificationMemory = {};
-    let studioItemCodes = new Set(); // Persistent studio set
+    let studioItemCodes = new Set();
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -789,7 +788,21 @@
         printLbl2: "2. Grid Layout Preset",
         printLbl3: "3. Page Orientation",
         printCancelBtn: "Cancel",
-        printSaveBtn: "💾 Save Settings & Apply"
+        printSaveBtn: "💾 Save Settings & Apply",
+        // Table Headers
+        thGroupSelection: "Selection",
+        thGroupData: "Inventory Data",
+        thGroupActions: "Actions",
+        thCode: "Material Code",
+        thName: "Material Name",
+        thUnit: "Unit",
+        thLocation: "Warehouse / Location",
+        thClass: "Classification",
+        thPrint: "Print",
+        thGenerate: "Generate",
+        thUngenerate: "Ungenerate",
+        thEdit: "Edit",
+        thDelete: "Delete"
       },
       ar: {
         toggleBtn: "English",
@@ -824,12 +837,12 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        btnGenerateSelectedInv: "Generate Selected",
+        btnGenerateSelectedInv: "توليد المحددة",
         btnClearStudio: "إفراغ الاستوديو",
-        btnPrintStudio: "Print",
+        btnPrintStudio: "طباعة",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblBarcodeLang: "لغة الملصق:",
-        searchPlaceholder: "Search by code or name...",
+        searchPlaceholder: "البحث بالكود أو الاسم...",
         cardCode: "الكود",
         cardUnit: "الوحدة",
         cardClass: "التصنيف",
@@ -838,7 +851,21 @@
         printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
         printLbl3: "3. اتجاه الصفحة (Page Orientation)",
         printCancelBtn: "إلغاء",
-        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
+        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة",
+        // Table Headers
+        thGroupSelection: "التحديد",
+        thGroupData: "بيانات المخزون",
+        thGroupActions: "الإجراءات",
+        thCode: "كود المادة",
+        thName: "اسم المادة",
+        thUnit: "الوحدة",
+        thLocation: "المستودع / الموقع",
+        thClass: "التصنيف",
+        thPrint: "طباعة",
+        thGenerate: "توليد",
+        thUngenerate: "إلغاء",
+        thEdit: "تعديل",
+        thDelete: "حذف"
       }
     };
 
@@ -1080,11 +1107,25 @@
       setTxt('btnConfigPrintText', t.btnConfigPrint);
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
       
+      // Table Header Translations
+      setTxt('thGroupSelection', t.thGroupSelection);
+      setTxt('thGroupData', t.thGroupData);
+      setTxt('thGroupActions', t.thGroupActions);
+      setTxt('thCode', t.thCode);
+      setTxt('thName', t.thName);
+      setTxt('thUnit', t.thUnit);
+      setTxt('thLocation', t.thLocation);
+      setTxt('thClass', t.thClass);
+      setTxt('thPrint', t.thPrint);
+      setTxt('thGenerate', t.thGenerate);
+      setTxt('thUngenerate', t.thUngenerate);
+      setTxt('thEdit', t.thEdit);
+      setTxt('thDelete', t.thDelete);
+      
       const invSearch = document.getElementById('inventorySearch');
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
     }
 
-    // Generate single item in background and update button state to green
     function generateSingleLabel(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
@@ -1092,7 +1133,6 @@
       renderInventoryTable();
     }
 
-    // Ungenerate single item and reset button state
     function ungenerateSingleLabel(code) {
       studioItemCodes.delete(code);
       saveStudioToStorage();
@@ -1100,7 +1140,6 @@
       renderInventoryTable();
     }
 
-    // Direct Print single item label
     function printSingleItemLabel(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
@@ -1117,7 +1156,6 @@
       }, 300);
     }
 
-    // Batch generate selected items from inventory table in background
     function generateSelectedInventoryItems() {
       const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
       if (checkedBoxes.length === 0) {
@@ -1434,7 +1472,7 @@
       filtered.forEach(item => {
         const isGenerated = studioItemCodes.has(item.code);
         const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
-        const genBtnText = isGenerated ? "✓ Gen" : "🏷️ Gen";
+        const genBtnText = isGenerated ? (currentLang === 'ar' ? "✓ مُولَّد" : "✓ Gen") : (currentLang === 'ar' ? "🏷️ توليد" : "🏷️ Gen");
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1464,8 +1502,8 @@
 
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-          <h3>Label Studio is Empty</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">Click on the (Gen) button beside any item in the inventory register to display its label here.</p>
+          <h3>${labelLang === 'ar' ? 'استوديو الملصقات فارغ' : 'Label Studio is Empty'}</h3>
+          <p style="margin-top: 8px; font-size: 0.85rem;">${labelLang === 'ar' ? 'انقر على زر (توليد) بجانب أي مادة لعرض ملصقها هنا.' : 'Click on the (Gen) button beside any item in the inventory register to display its label here.'}</p>
         </div>`;
         return;
       }
@@ -1482,7 +1520,7 @@
 
       if (filteredCodes.length === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-          <h3>No matching labels found</h3>
+          <h3>${labelLang === 'ar' ? 'لم يتم العثور على ملصقات مطابقة' : 'No matching labels found'}</h3>
         </div>`;
         return;
       }
@@ -1536,7 +1574,6 @@
         `;
         grid.appendChild(card);
 
-        // Render Barcode linked to Material Code
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
@@ -1547,7 +1584,6 @@
           });
         } catch (e) {}
 
-        // Render QR Code linked strictly to Product Data Payload
         try {
           const qrPayload = `Code: ${item.code}\nName: ${item.nameEn || item.nameAr}\nUnit: ${item.unit}\nWarehouse: ${item.location}\nClass: ${item.classificationEn || item.classificationAr}`;
           
@@ -1564,7 +1600,7 @@
     }
 
     function deleteSingleItem(code) {
-      if (confirm(`Are you sure you want to delete item (${code})?`)) {
+      if (confirm(currentLang === 'ar' ? `هل أنت متأكد من حذف المادة (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         studioItemCodes.delete(code);
         saveStudioToStorage();
