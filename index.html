@@ -186,7 +186,7 @@
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
-    /* Label Cards Grid - Default 2x4 Layout */
+    /* Label Cards Grid - Locked strictly to 2x4 Layout on Studio Page */
     .labels-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -195,39 +195,41 @@
     .sticker-card {
       background: white;
       color: #0f172a;
-      border-radius: 10px;
-      padding: 12px;
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      min-height: 135px;
+      min-height: 145px;
+      border: 1px solid #cbd5e1;
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
     .del-btn:hover { background: #fca5a5; }
 
-    .sticker-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.2; }
+    .sticker-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.2; }
     .meta-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
+      gap: 4px;
       background: #f8fafc;
-      padding: 4px;
-      border-radius: 4px;
+      padding: 6px;
+      border-radius: 6px;
       margin-bottom: 6px;
       text-align: center;
+      border: 1px solid #e2e8f0;
     }
-    .meta-box label { font-size: 0.5rem; color: #64748b; display: block; }
-    .meta-box span { font-size: 0.65rem; font-weight: 700; color: #1e293b; }
+    .meta-box label { font-size: 0.6rem; color: #64748b; display: block; font-weight: 600; }
+    .meta-box span { font-size: 0.75rem; font-weight: 700; color: #1e293b; }
 
     .custom-link-badge {
       background: #e0f2fe;
       color: #0369a1;
       padding: 3px 6px;
       border-radius: 4px;
-      font-size: 0.6rem;
+      font-size: 0.65rem;
       margin-bottom: 6px;
       word-break: break-all;
       display: flex;
@@ -236,20 +238,20 @@
     }
     .custom-link-badge a { color: #0284c7; text-decoration: underline; }
 
-    /* Code Sections: Barcode on Left, QR Code on Right */
+    /* Code Sections: Barcode on Left (similar to right side height/balance), QR on Right */
     .codes-flex-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-top: 1px dashed #cbd5e1;
-      padding-top: 6px;
+      padding-top: 8px;
       gap: 12px;
     }
     .barcode-section { flex: 1; text-align: left; }
-    .barcode-section svg { max-width: 100%; height: 32px; }
-    .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 40px; }
-    .qrcode-section svg { width: 38px !important; height: 38px !important; }
-    .qrcode-label { font-size: 0.45rem; color: #64748b; margin-top: 1px; font-weight: 600; }
+    .barcode-section svg { width: 100%; max-width: 170px; height: 38px; }
+    .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 45px; }
+    .qrcode-section svg { width: 42px !important; height: 42px !important; }
+    .qrcode-label { font-size: 0.5rem; color: #64748b; margin-top: 1px; font-weight: 600; }
 
     /* Zero Horizontal Scroll & True Content-Aware LTR Table */
     .table-card {
@@ -315,7 +317,7 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
-    /* Strict Print Page Rule Holder */
+    /* Strict Print Page Rule Holder (Independent of studio screen view) */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
@@ -636,14 +638,14 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V40";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V21";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V41";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V22";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
     let checkedItemCodes = new Set();
-    let selectedStudioCodes = new Set(); // Starts empty so labels are not auto-selected
+    let selectedStudioCodes = new Set(); // Starts unselected by default
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -923,14 +925,7 @@
       const preset = document.getElementById('cfgGridPreset').value;
       const orientation = document.getElementById('cfgOrientation').value;
 
-      let cols = 2;
-      let minHeight = "135px";
-
-      if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
-      else if (preset === "12_labels") { cols = 3; minHeight = "110px"; }
-      else if (preset === "21_labels") { cols = 3; minHeight = "85px"; }
-      else if (preset === "5_labels_row") { cols = 5; minHeight = "120px"; }
-
+      // Studio layout strictly locked to 2x4 layout view on screen, print can follow user preference if configured
       const styleTag = document.getElementById('dynamicPrintStyles');
       styleTag.innerHTML = `
         @media print {
@@ -939,11 +934,11 @@
             margin: 8mm;
           }
           .labels-grid {
-            grid-template-columns: repeat(${cols}, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
             gap: 10px !important;
           }
           .sticker-card {
-            min-height: ${minHeight} !important;
+            min-height: 135px !important;
           }
           .sticker-card.unselected-print {
             display: none !important;
@@ -1153,7 +1148,7 @@
 
     function generateSingleLabel(code) {
       studioItemCodes.add(code);
-      // DO NOT auto-select in studio (leave unchecked by default)
+      // Leaves unchecked by default
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
@@ -1229,7 +1224,6 @@
 
       checkedItemCodes.forEach(code => {
         studioItemCodes.add(code);
-        // DO NOT auto-select in studio
       });
       saveStudioToStorage();
       renderLabelsGrid();
@@ -1325,7 +1319,6 @@
         try {
           const arr = JSON.parse(stored);
           studioItemCodes = new Set(arr);
-          // Do not auto-populate selectedStudioCodes so they start unselected
         } catch (e) {
           studioItemCodes = new Set();
         }
@@ -1675,7 +1668,7 @@
           }
         }
 
-        // Structure: Barcode on Left, QR Code on Right
+        // Structure: Barcode on Left (similar to user sample reference), QR Code on Right
         card.innerHTML = `
           <div class="sticker-header">
             <div style="display: flex; align-items: center; gap: 6px;">
@@ -1706,9 +1699,9 @@
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
-            height: 32,
+            height: 38,
             displayValue: true,
-            fontSize: 9,
+            fontSize: 10,
             margin: 2
           });
         } catch (e) {}
