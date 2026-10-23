@@ -24,6 +24,7 @@
       --danger: #ef4444;
       --danger-hover: #dc2626;
       --success: #10b981;
+      --success-hover: #059669;
       --warning: #f59e0b;
     }
 
@@ -33,14 +34,13 @@
     /* Top Navigation Header */
     header {
       background-color: #080e21;
-      padding: 16px 24px;
+      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--border-color);
       flex-wrap: wrap;
       gap: 16px;
-      width: 100%;
     }
     .brand-title { display: flex; align-items: center; gap: 12px; }
     .brand-logo {
@@ -48,19 +48,18 @@
       border-radius: 10px; display: flex; align-items: center; justify-content: center;
       font-size: 1.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(58, 134, 255, 0.4);
     }
-    .brand-text h1 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .brand-text p { font-size: 0.75rem; color: var(--text-muted); }
+    .brand-text h1 { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .brand-text p { font-size: 0.8rem; color: var(--text-muted); }
 
-    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
     /* Navigation Bar */
     .nav-bar {
       background-color: #0e1735;
-      padding: 0 24px;
+      padding: 0 32px;
       display: flex;
       gap: 24px;
       border-bottom: 1px solid var(--border-color);
-      width: 100%;
     }
     .nav-tab {
       padding: 14px 8px;
@@ -73,18 +72,17 @@
     }
     .nav-tab:hover, .nav-tab.active { color: var(--text-main); border-bottom-color: var(--accent-blue); }
 
-    /* Main Fluid Container - No Left/Right Scrolling */
-    .container { width: 100%; max-width: 100%; margin: 20px auto; padding: 0 20px; }
-    .tab-content { display: none; width: 100%; }
+    /* Main Container */
+    .container { max-width: 1400px; margin: 24px auto; padding: 0 24px; width: 100%; }
+    .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     /* KPI Cards Grid */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
       margin-bottom: 24px;
-      width: 100%;
     }
     .kpi-card {
       background: var(--bg-card);
@@ -112,27 +110,26 @@
       border-radius: 16px;
       padding: 24px;
       margin-bottom: 24px;
-      width: 100%;
     }
 
     /* Buttons */
     .btn {
-      padding: 8px 14px;
+      padding: 10px 18px;
       border-radius: 8px;
       border: none;
       font-weight: 600;
-      font-size: 0.825rem;
+      font-size: 0.875rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s;
     }
     .btn-primary { background: var(--accent-blue); color: white; }
     .btn-primary:hover { background: #2563eb; }
     .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: #059669; }
+    .btn-success:hover { background: var(--success-hover); }
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: var(--danger-hover); }
     .btn-warning { background: var(--warning); color: white; }
@@ -145,10 +142,10 @@
       background: #0e1735;
       border: 1px solid var(--border-color);
       color: white;
-      padding: 9px 12px;
+      padding: 10px 12px;
       border-radius: 8px;
       outline: none;
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       width: 100%;
     }
     .input-field:focus { border-color: var(--accent-blue); }
@@ -173,7 +170,7 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      width: 100%; max-width: 550px;
+      width: 100%; max-width: 600px;
       padding: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       max-height: 90vh;
@@ -191,27 +188,25 @@
     /* Label Cards Grid */
     .labels-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      width: 100%;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
     }
     .sticker-card {
       background: white;
       color: #0f172a;
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      width: 100%;
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     .del-btn:hover { background: #fca5a5; }
 
-    .sticker-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.25; }
+    .sticker-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; line-height: 1.3; }
     .meta-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -219,19 +214,19 @@
       background: #f8fafc;
       padding: 6px;
       border-radius: 6px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       text-align: center;
     }
-    .meta-box label { font-size: 0.55rem; color: #64748b; display: block; }
-    .meta-box span { font-size: 0.7rem; font-weight: 700; color: #1e293b; }
+    .meta-box label { font-size: 0.6rem; color: #64748b; display: block; }
+    .meta-box span { font-size: 0.75rem; font-weight: 700; color: #1e293b; }
 
     .custom-link-badge {
       background: #e0f2fe;
       color: #0369a1;
       padding: 4px 8px;
       border-radius: 6px;
-      font-size: 0.65rem;
-      margin-bottom: 6px;
+      font-size: 0.7rem;
+      margin-bottom: 8px;
       word-break: break-all;
       display: flex;
       align-items: center;
@@ -245,44 +240,41 @@
       align-items: center;
       justify-content: space-between;
       border-top: 1px dashed #cbd5e1;
-      padding-top: 6px;
-      gap: 8px;
+      padding-top: 8px;
+      gap: 10px;
     }
     .barcode-section { flex: 1; text-align: center; }
-    .barcode-section svg { max-width: 100%; height: 32px; }
+    .barcode-section svg { max-width: 100%; height: 35px; }
     .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .qrcode-section svg { width: 40px !important; height: 40px !important; }
-    .qrcode-label { font-size: 0.5rem; color: #64748b; margin-top: 2px; font-weight: 600; }
+    .qrcode-section svg { width: 45px !important; height: 45px !important; }
+    .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Fully Fluid Spreadsheet Table Styles (No Horizontal Scroll) */
+    /* Responsive Inventory Table with Dynamic Font Scaling for User Display */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       width: 100%;
-      overflow-x: hidden;
+      overflow-x: auto;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .excel-table {
       width: 100%;
-      table-layout: fixed;
       border-collapse: collapse;
       direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 10px 8px;
+      padding: 10px 12px;
       border: 1px solid #2b3a67;
-      font-size: 0.8rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: clamp(0.7rem, 0.85vw, 0.875rem);
       white-space: nowrap;
     }
     .excel-table th {
       background: #0e1735;
       color: var(--accent-cyan);
       font-weight: 700;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
       text-align: center;
     }
     .excel-table tbody tr {
@@ -296,33 +288,24 @@
       background-color: #243054;
     }
 
-    /* Precise Column Width Allocation for 100% Display Fit */
-    .col-select { width: 4%; text-align: center; }
-    .col-code { width: 12%; }
-    .col-name { width: 24%; }
-    .col-unit { width: 10%; }
-    .col-location { width: 20%; }
-    .col-class { width: 12%; }
-    .col-action-btn { width: 4.5%; text-align: center; }
-
     .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
-      border-radius: 5px;
-      padding: 4px 6px;
+      border-radius: 6px;
+      padding: 6px 10px;
       cursor: pointer;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 3px;
-      width: 100%;
+      gap: 4px;
     }
     .action-sub-btn:hover { background: var(--accent-blue); }
     .action-sub-btn.del { background: #fee2e2; color: #dc2626; }
     .action-sub-btn.del:hover { background: #fca5a5; }
+    .action-sub-btn.success { background: var(--success); color: white; }
+    .action-sub-btn.success:hover { background: var(--success-hover); }
 
     /* Strict Print Page Rule Holder */
     @media print {
@@ -369,7 +352,7 @@
 
   <!-- Top Header Navigation -->
   <header>
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
       
       <div class="brand-title">
@@ -382,13 +365,13 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة</span></button>
+      <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
 
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
-      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">قالب اكسل</span></button>
-      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد</span></button>
-      <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون</span></button>
-      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">نسخة احتياطية</span></button>
+      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
+      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
+      <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون الحالي</span></button>
+      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
     </div>
   </header>
 
@@ -437,7 +420,7 @@
           <h2 id="chartHeaderTitle">توزيع جميع التصنيفات (All Classifications Overview)</h2>
           <p style="font-size:0.8rem; color:var(--text-muted);" id="chartHeaderSub">رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل</p>
         </div>
-        <div style="height: 320px; position: relative;">
+        <div style="height: 340px; position: relative;">
           <canvas id="allClassificationsChart"></canvas>
         </div>
       </div>
@@ -445,15 +428,15 @@
 
     <!-- TAB 2: INVENTORY REGISTER -->
     <div id="tab-inventory" class="tab-content">
-      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
-          <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 260px;">
-          <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 220px;">
+      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 300px;">
+          <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 250px;">
             <option value="" id="optAllClass1">جميع التصنيفات</option>
           </select>
         </div>
         <div>
-          <button class="btn btn-primary" onclick="generateSelectedInventoryItems()">🏷️ <span id="btnGenerateSelectedInvText">توليد المحددة (Generate Selected)</span></button>
+          <button class="btn btn-primary" onclick="generateSelectedInventoryItems()">🏷️ <span id="btnGenerateSelectedInvText">Generate Selected</span></button>
         </div>
       </div>
 
@@ -463,19 +446,20 @@
             <tr>
               <th colspan="1" style="background:#080e21; text-align:center;">Selection</th>
               <th colspan="5" style="background:#0e1735; text-align:center;">Inventory Data</th>
-              <th colspan="4" style="background:#080e21; text-align:center;">Actions</th>
+              <th colspan="5" style="background:#080e21; text-align:center;">Actions</th>
             </tr>
             <tr>
-              <th class="col-select"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
-              <th class="col-code">Code</th>
-              <th class="col-name">Name</th>
-              <th class="col-unit">Unit</th>
-              <th class="col-location">Location</th>
-              <th class="col-class">Class</th>
-              <th class="col-action-btn">Print</th>
-              <th class="col-action-btn">Gen</th>
-              <th class="col-action-btn">Edit</th>
-              <th class="col-action-btn">Del</th>
+              <th style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
+              <th>Material Code</th>
+              <th>Material Name</th>
+              <th>Unit</th>
+              <th>Warehouse / Location</th>
+              <th>Classification</th>
+              <th style="text-align:center;">Print</th>
+              <th style="text-align:center;">Generate</th>
+              <th style="text-align:center;">Ungenerate</th>
+              <th style="text-align:center;">Edit</th>
+              <th style="text-align:center;">Delete</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -487,26 +471,26 @@
 
     <!-- TAB 3: BARCODE LABELS STUDIO -->
     <div id="tab-labels" class="tab-content">
-      <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
-          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث في الملصقات..." oninput="renderLabelsGrid()" style="max-width: 220px;">
-          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 180px;">
+      <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث في الملصقات المولدّة..." oninput="renderLabelsGrid()" style="max-width: 250px;">
+          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 200px;">
             <option value="" id="optAllClassLabels">جميع التصنيفات</option>
           </select>
 
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <label id="lblBarcodeLangText" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">اللغة:</label>
-            <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 6px;">
-              <option value="ar">عربي</option>
-              <option value="en">English</option>
+            <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
+            <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
+              <option value="ar">العربية (Arabic)</option>
+              <option value="en">English (إنجليزي)</option>
             </select>
           </div>
         </div>
 
-        <div style="display:flex; gap:8px; flex-wrap: wrap;">
-          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ المقاسات</button>
-          <button class="btn btn-danger" onclick="clearLabelStudio()" id="btnClearStudioText">🗑️ إفراغ</button>
-          <button class="btn btn-success" onclick="triggerCleanPrint()" id="btnPrintStudioText">🖨️ طباعة الكل</button>
+        <div style="display:flex; gap:10px; flex-wrap: wrap;">
+          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
+          <button class="btn btn-danger" onclick="clearLabelStudio()" id="btnClearStudioText">🗑️ إفراغ الاستوديو</button>
+          <button class="btn btn-success" onclick="triggerCleanPrint()" id="btnPrintStudioText">🖨️ Print</button>
         </div>
       </div>
 
@@ -631,8 +615,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V24";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V5";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V25";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V6";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -755,11 +739,11 @@
         toggleBtn: "English",
         appTitleText: "نظام إدارة لوجستيات وإستعلامات المخزون",
         appSubTitleText: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
-        btnAddMaterial: "+ إضافة مادة",
-        btnTemplate: "قالب اكسل",
-        btnImport: "استيراد",
-        btnDownloadInv: "تحميل المخزون",
-        btnBackup: "نسخة احتياطية",
+        btnAddMaterial: "+ إضافة مادة جديدة",
+        btnTemplate: "تحميل قالب اكسل",
+        btnImport: "استيراد بيانات اكسل",
+        btnDownloadInv: "تحميل المخزون الحالي",
+        btnBackup: "حفظ النسخة الاحتياطية",
         tab1: "📊 نظرة عامة والملخص",
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
@@ -784,11 +768,11 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        btnGenerateSelectedInv: "توليد المحددة (Generate Selected)",
-        btnClearStudio: "🗑️ إفراغ",
-        btnPrintStudio: "🖨️ طباعة الكل",
-        btnConfigPrint: "⚙️ المقاسات",
-        lblBarcodeLang: "اللغة:",
+        btnGenerateSelectedInv: "Generate Selected",
+        btnClearStudio: "🗑️ إفراغ الاستوديو",
+        btnPrintStudio: "🖨️ Print",
+        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
+        lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
         cardCode: "الكود",
         cardUnit: "الوحدة",
@@ -804,11 +788,11 @@
         toggleBtn: "العربية",
         appTitleText: "Logistics & Inventory Management System",
         appSubTitleText: "Central Equipment, Parts & Classification Control Center",
-        btnAddMaterial: "+ Add Material",
-        btnTemplate: "Template",
-        btnImport: "Import",
-        btnDownloadInv: "Inventory",
-        btnBackup: "Backup",
+        btnAddMaterial: "+ Add New Material",
+        btnTemplate: "Download Template",
+        btnImport: "Import Excel Data",
+        btnDownloadInv: "Download Inventory",
+        btnBackup: "Save Backup",
         tab1: "📊 Overview & Summary",
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
@@ -834,10 +818,10 @@
         chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
         btnGenerateSelectedInv: "Generate Selected",
-        btnClearStudio: "🗑️ Clear",
-        btnPrintStudio: "🖨️ Print All",
-        btnConfigPrint: "⚙️ Sizes",
-        lblBarcodeLang: "Lang:",
+        btnClearStudio: "Clear Studio",
+        btnPrintStudio: "Print",
+        btnConfigPrint: "⚙️ Page & Label Size",
+        lblBarcodeLang: "Label Lang:",
         searchPlaceholder: "Search by code or name...",
         cardCode: "Code",
         cardUnit: "Unit",
@@ -1093,12 +1077,20 @@
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
     }
 
-    // Add specific item to label studio in the background without changing tabs
+    // Generate single item in background and update button state to green
     function generateSingleLabel(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
       renderLabelsGrid();
-      alert(currentLang === 'ar' ? `تم توليد ملصق المادة (${code}) بنجاح في استوديو الملصقات!` : `Label for item (${code}) generated successfully in Label Studio!`);
+      renderInventoryTable();
+    }
+
+    // Ungenerate single item and reset button state
+    function ungenerateSingleLabel(code) {
+      studioItemCodes.delete(code);
+      saveStudioToStorage();
+      renderLabelsGrid();
+      renderInventoryTable();
     }
 
     // Direct Print single item label
@@ -1131,6 +1123,7 @@
       });
       saveStudioToStorage();
       renderLabelsGrid();
+      renderInventoryTable();
       alert(currentLang === 'ar' ? `تم توليد (${checkedBoxes.length}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedBoxes.length}) labels in Label Studio!`);
     }
 
@@ -1146,6 +1139,7 @@
         studioItemCodes.clear();
         saveStudioToStorage();
         renderLabelsGrid();
+        renderInventoryTable();
       }
     }
 
@@ -1431,18 +1425,23 @@
       tbody.innerHTML = '';
 
       filtered.forEach(item => {
+        const isGenerated = studioItemCodes.has(item.code);
+        const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
+        const genBtnText = isGenerated ? "✓ Generated" : "🏷️ Generate";
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="col-select"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
-          <td class="col-code" title="${item.code}"><strong>${item.code}</strong></td>
-          <td class="col-name" title="${translateName(item, currentLang)}">${translateName(item, currentLang)}</td>
-          <td class="col-unit" title="${translateUnit(item.unit, currentLang)}">${translateUnit(item.unit, currentLang)}</td>
-          <td class="col-location" title="${translateLocation(item.location, currentLang)}">${translateLocation(item.location, currentLang)}</td>
-          <td class="col-class" title="${translateClassification(item, currentLang)}">${translateClassification(item, currentLang)}</td>
-          <td class="col-action-btn"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
-          <td class="col-action-btn"><button class="action-sub-btn" onclick="generateSingleLabel('${item.code}')">🏷️</button></td>
-          <td class="col-action-btn"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️</button></td>
-          <td class="col-action-btn"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕</button></td>
+          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
+          <td><strong>${item.code}</strong></td>
+          <td>${translateName(item, currentLang)}</td>
+          <td>${translateUnit(item.unit, currentLang)}</td>
+          <td>${translateLocation(item.location, currentLang)}</td>
+          <td>${translateClassification(item, currentLang)}</td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️ Print</button></td>
+          <td style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn warning" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺ Ungenerate</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️ Edit</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕ Delete</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1459,7 +1458,7 @@
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
           <h3>استوديو الملصقات فارغ</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على زر التوليد (🏷️) بجانب أي مادة في جدول المخزون لإظهار ملصقها هنا.</p>
+          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على زر (Generate) بجانب أي مادة في جدول المخزون لإظهار ملصقها هنا.</p>
         </div>`;
         return;
       }
@@ -1508,8 +1507,8 @@
 
         card.innerHTML = `
           <div class="sticker-header">
-            <span style="font-size:0.7rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <button class="del-btn" title="إزالة من الاستوديو" onclick="removeFromStudio('${item.code}')">✕</button>
+            <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
+            <button class="del-btn" title="إزالة من الاستوديو" onclick="ungenerateSingleLabel('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${translatedName}</div>
           <div class="meta-box">
@@ -1534,10 +1533,10 @@
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
-            height: 32,
+            height: 35,
             displayValue: true,
-            fontSize: 9,
-            margin: 1
+            fontSize: 10,
+            margin: 2
           });
         } catch (e) {}
 
@@ -1555,12 +1554,6 @@
           });
         } catch (e) {}
       });
-    }
-
-    function removeFromStudio(code) {
-      studioItemCodes.delete(code);
-      saveStudioToStorage();
-      renderLabelsGrid();
     }
 
     function deleteSingleItem(code) {
