@@ -126,16 +126,17 @@
       gap: 6px;
       transition: all 0.2s;
     }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: var(--accent-blue); color: white; }
-    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
     .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: #059669; }
+    .btn-success:hover:not(:disabled) { background: #059669; }
     .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-danger:hover:not(:disabled) { background: var(--danger-hover); }
     .btn-warning { background: var(--warning); color: white; }
-    .btn-warning:hover { background: #d97706; }
+    .btn-warning:hover:not(:disabled) { background: #d97706; }
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
-    .btn-outline:hover { background: rgba(255,255,255,0.05); }
+    .btn-outline:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 
     /* Form Fields */
     .input-field {
@@ -441,8 +442,9 @@
             <option value="" id="optAllClass1">All Classifications</option>
           </select>
         </div>
-        <div>
-          <button class="btn btn-primary" onclick="generateSelectedInventoryItems()">🏷️ <span id="btnGenerateSelectedInvText">Generate Selected</span></button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" id="btnBatchGenerate" onclick="generateSelectedInventoryItems()" disabled>🏷️ <span id="btnGenerateSelectedInvText">Generate</span></button>
+          <button class="btn btn-warning" id="btnBatchDiscard" onclick="discardSelectedInventoryItems()" disabled>↺ <span id="btnDiscardSelectedInvText">Discard</span></button>
         </div>
       </div>
 
@@ -463,7 +465,7 @@
               <th class="wrap-cell" id="thClass">Classification</th>
               <th style="text-align:center;" id="thPrint">Print</th>
               <th style="text-align:center;" id="thGenerate">Generate</th>
-              <th style="text-align:center;" id="thUngenerate">Ungenerate</th>
+              <th style="text-align:center;" id="thDiscard">Discard</th>
               <th style="text-align:center;" id="thEdit">Edit</th>
               <th style="text-align:center;" id="thDelete">Delete</th>
             </tr>
@@ -621,8 +623,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V32";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V13";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V34";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V15";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -774,7 +776,8 @@
         chartHeaderTitle: "Classifications Breakdown",
         chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
-        btnGenerateSelectedInv: "Generate Selected",
+        btnGenerateSelectedInv: "Generate",
+        btnDiscardSelectedInv: "Discard",
         btnClearStudio: "Clear Studio",
         btnPrintStudio: "Print",
         btnConfigPrint: "⚙️ Page & Label Size",
@@ -800,7 +803,7 @@
         thClass: "Classification",
         thPrint: "Print",
         thGenerate: "Generate",
-        thUngenerate: "Ungenerate",
+        thDiscard: "Discard",
         thEdit: "Edit",
         thDelete: "Delete"
       },
@@ -837,7 +840,8 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        btnGenerateSelectedInv: "توليد المحددة",
+        btnGenerateSelectedInv: "توليد",
+        btnDiscardSelectedInv: "إلغاء",
         btnClearStudio: "إفراغ الاستوديو",
         btnPrintStudio: "طباعة",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
@@ -863,7 +867,7 @@
         thClass: "التصنيف",
         thPrint: "طباعة",
         thGenerate: "توليد",
-        thUngenerate: "إلغاء",
+        thDiscard: "إلغاء",
         thEdit: "تعديل",
         thDelete: "حذف"
       }
@@ -1102,6 +1106,7 @@
       setTxt('chartHeaderSub', t.chartHeaderSub);
       
       setTxt('btnGenerateSelectedInvText', t.btnGenerateSelectedInv);
+      setTxt('btnDiscardSelectedInvText', t.btnDiscardSelectedInv);
       setTxt('btnClearStudioText', t.btnClearStudio);
       setTxt('btnPrintStudioText', t.btnPrintStudio);
       setTxt('btnConfigPrintText', t.btnConfigPrint);
@@ -1118,7 +1123,7 @@
       setTxt('thClass', t.thClass);
       setTxt('thPrint', t.thPrint);
       setTxt('thGenerate', t.thGenerate);
-      setTxt('thUngenerate', t.thUngenerate);
+      setTxt('thDiscard', t.thDiscard);
       setTxt('thEdit', t.thEdit);
       setTxt('thDelete', t.thDelete);
       
@@ -1141,8 +1146,15 @@
     }
 
     function printSingleItemLabel(code) {
+      if (!studioItemCodes.has(code)) {
+        alert(currentLang === 'ar' ? "يرجى توليد ملصق هذه المادة أولاً لطباعتها." : "Please generate this item's label first before printing.");
+        return;
+      }
+      
+      // Keep only this item in the studio temporarily so print targets only this label
+      const previousStudio = new Set(studioItemCodes);
+      studioItemCodes.clear();
       studioItemCodes.add(code);
-      saveStudioToStorage();
       renderLabelsGrid();
       
       const labelsTab = document.getElementById('tab-labels');
@@ -1153,13 +1165,32 @@
 
       setTimeout(() => {
         window.print();
+        // Restore studio state
+        studioItemCodes = previousStudio;
+        saveStudioToStorage();
+        renderLabelsGrid();
       }, 300);
+    }
+
+    function checkInventorySelection() {
+      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
+      const genBtn = document.getElementById('btnBatchGenerate');
+      const discBtn = document.getElementById('btnBatchDiscard');
+      const count = checkedBoxes.length;
+
+      if (count > 1) {
+        genBtn.removeAttribute('disabled');
+        discBtn.removeAttribute('disabled');
+      } else {
+        genBtn.setAttribute('disabled', 'true');
+        discBtn.setAttribute('disabled', 'true');
+      }
     }
 
     function generateSelectedInventoryItems() {
       const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
-      if (checkedBoxes.length === 0) {
-        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل من جدول المخزون أولاً." : "Please select at least one item from the inventory table first.");
+      if (checkedBoxes.length <= 1) {
+        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادة واحدة لتفعيل زر التوليد الجماعي." : "Please select more than one item to use batch generation.");
         return;
       }
 
@@ -1172,11 +1203,28 @@
       alert(currentLang === 'ar' ? `تم توليد (${checkedBoxes.length}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedBoxes.length}) labels in Label Studio!`);
     }
 
+    function discardSelectedInventoryItems() {
+      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
+      if (checkedBoxes.length <= 1) {
+        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادة واحدة لتفعيل زر الإلغاء الجماعي." : "Please select more than one item to use batch discard.");
+        return;
+      }
+
+      checkedBoxes.forEach(cb => {
+        studioItemCodes.delete(cb.value);
+      });
+      saveStudioToStorage();
+      renderLabelsGrid();
+      renderInventoryTable();
+      alert(currentLang === 'ar' ? `تم إلغاء توليد (${checkedBoxes.length}) ملصق من الاستوديو!` : `Successfully discarded (${checkedBoxes.length}) labels from Studio!`);
+    }
+
     function toggleSelectAllInventory(masterCb) {
       const checkboxes = document.querySelectorAll('.table-checkbox');
       checkboxes.forEach(cb => {
         cb.checked = masterCb.checked;
       });
+      checkInventorySelection();
     }
 
     function clearLabelStudio() {
@@ -1190,7 +1238,7 @@
 
     function triggerCleanPrint() {
       if (studioItemCodes.size === 0) {
-        alert(currentLang === 'ar' ? "استوديو الملصقات فارغ." : "Label Studio is empty.");
+        alert(currentLang === 'ar' ? "استوديو الملصقات فارغ. يرجى توليد ملصقات لطباعتها." : "Label Studio is empty. Please generate labels first to print them.");
         return;
       }
       window.print();
@@ -1473,10 +1521,11 @@
         const isGenerated = studioItemCodes.has(item.code);
         const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
         const genBtnText = isGenerated ? (currentLang === 'ar' ? "✓ مُولَّد" : "✓ Gen") : (currentLang === 'ar' ? "🏷️ توليد" : "🏷️ Gen");
+        const discardBtnText = currentLang === 'ar' ? "إلغاء" : "Discard";
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
+          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}" onchange="checkInventorySelection()"></td>
           <td><strong>${item.code}</strong></td>
           <td class="wrap-cell">${translateName(item, currentLang)}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
@@ -1484,12 +1533,13 @@
           <td class="wrap-cell">${translateClassification(item, currentLang)}</td>
           <td style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
           <td style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
-          <td style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">${discardBtnText}</button></td>
           <td style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️</button></td>
           <td style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕</button></td>
         `;
         tbody.appendChild(tr);
       });
+      checkInventorySelection();
     }
 
     function renderLabelsGrid() {
