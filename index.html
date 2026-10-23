@@ -551,11 +551,14 @@
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يترك فارغاً للمستودع الرئيسي]</label>
-          <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="المستودع الرئيسي / مستودع المنطقة الجنوبية">
-          <datalist id="modalWarehouseList">
-            <!-- Dynamic Datalist Options -->
-          </datalist>
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [اتركه فارغاً ليتم تعيينه تلقائياً]</label>
+          <select id="modalInputLocation" class="input-field">
+            <option value="Main Warehouse / Southern Region Warehouse">المستودع الرئيسي / مستودع المنطقة الجنوبية (Main Warehouse / Southern Region Warehouse) - [الافتراضي]</option>
+            <option value="Southern Region Warehouse">مستودع المنطقة الجنوبية (Southern Region Warehouse)</option>
+            <option value="Hail Region Warehouse">مستودع منطقة حائل (Hail Region Warehouse)</option>
+            <option value="Eastern Region Warehouse">مستودع المنطقة الشرقية (Eastern Region Warehouse)</option>
+            <option value="Main Warehouse">المستودع الرئيسي (Main Warehouse)</option>
+          </select>
         </div>
 
         <div class="form-row">
@@ -585,10 +588,29 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V15";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V16";
 
     let nameMemory = {};
     let classificationMemory = {};
+
+    // Warehouse Bilingual Translation Map
+    const warehouseMap = {
+      "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
+      "مستودع المنطقة الجنوبية": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
+      
+      "hail region warehouse": { ar: "مستودع منطقة حائل", en: "Hail Region Warehouse" },
+      "مستودع منطقة حائل": { ar: "مستودع منطقة حائل", en: "Hail Region Warehouse" },
+      
+      "eastern region warehouse": { ar: "مستودع المنطقة الشرقية", en: "Eastern Region Warehouse" },
+      "مستودع المنطقة الشرقية": { ar: "مستودع المنطقة الشرقية", en: "Eastern Region Warehouse" },
+      
+      "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
+      "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
+      
+      "main warehouse / southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" },
+      "main warehouse/southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" },
+      "المستودع الرئيسي / مستودع المنطقة الجنوبية": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" }
+    };
 
     const unitMap = {
       "pieces": { ar: "قطعة", en: "Pieces" },
@@ -630,11 +652,12 @@
     }
 
     function translateLocation(l, lang) {
-      const defaultLoc = "المستودع الرئيسي / مستودع المنطقة الجنوبية";
-      const defaultLocEn = "Main Warehouse/Southern Region Warehouse";
-      if (!l || l.trim() === "") return lang === 'ar' ? defaultLoc : defaultLocEn;
-      if (l.includes("Main Warehouse") || l.includes("المستودع الرئيسي")) {
-        return lang === 'ar' ? defaultLoc : defaultLocEn;
+      const defaultLoc = "Main Warehouse / Southern Region Warehouse";
+      if (!l || l.trim() === "") return warehouseMap[defaultLoc.toLowerCase()][lang];
+      
+      const key = l.toString().trim().toLowerCase();
+      if (warehouseMap[key]) {
+        return warehouseMap[key][lang];
       }
       return l;
     }
@@ -702,7 +725,7 @@
         lblName: "2. اسم المادة بالعربي (Arabic Name)",
         lblNameEn: "اسم المادة بالانجليزي (English Name)",
         lblUnit: "3. الوحدة (Unit)",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [اتركه فارغاً للمستودع الرئيسي الافتراضي]",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
         lblClass: "5. التصنيف بالعربي (Arabic Classification)",
         lblClassEn: "التصنيف بالانجليزي (English Classification)",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
@@ -757,7 +780,7 @@
         lblName: "2. Arabic Name",
         lblNameEn: "English Name",
         lblUnit: "3. Unit",
-        lblLocation: "4. Warehouse / Location [Leave blank for default Main Warehouse]",
+        lblLocation: "4. Warehouse / Location [Defaults to Main Warehouse if left unselected]",
         lblClass: "5. Arabic Classification",
         lblClassEn: "English Classification",
         lblCustomData: "6. Custom Link / Data (Optional)",
@@ -798,13 +821,13 @@
 
     const initialDataset = [
       { code: "795", nameAr: "ورق طباعة صراف آلي", nameEn: "ATM Paper Roll", unit: "Pieces", location: "Southern Region Warehouse", classificationAr: "قرطاسية", classificationEn: "Stationery", customData: "" },
-      { code: "7272446", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "المكونات الكهربائية", classificationEn: "Electrical Components", customData: "" },
-      { code: "76152", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
-      { code: "761962", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "معدات مضخات الوقود وقطع الغيار", classificationEn: "Fuel Pump Equipment & Spare Parts", customData: "" },
-      { code: "76457", nameAr: "ستارة BLACK DOT PVC مقاس 58*125 سم", nameEn: "BLACK DOT PVC 58*125CM Medium Curtain", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "مواد التجزئة والمبيعات", classificationEn: "Retail / Sales Items", customData: "" },
-      { code: "766398", nameAr: "مفتاح ابو جلمبو 18 بوصه", nameEn: "Adjustable Wrench 18 Inch", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
-      { code: "7272475", nameAr: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameEn: "X-Line Tropic G Tire - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "الإطارات", classificationEn: "Tires", customData: "" },
-      { code: "68764", nameAr: "مستعمل مضخة حريق صغيره", nameEn: "Used Small Fire Pump", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "معدات الإطفاء والسلامة", classificationEn: "Firefighting & Safety", customData: "" }
+      { code: "7272446", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "المكونات الكهربائية", classificationEn: "Electrical Components", customData: "" },
+      { code: "76152", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
+      { code: "761962", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "معدات مضخات الوقود وقطع الغيار", classificationEn: "Fuel Pump Equipment & Spare Parts", customData: "" },
+      { code: "76457", nameAr: "ستارة BLACK DOT PVC مقاس 58*125 سم", nameEn: "BLACK DOT PVC 58*125CM Medium Curtain", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "مواد التجزئة والمبيعات", classificationEn: "Retail / Sales Items", customData: "" },
+      { code: "766398", nameAr: "مفتاح ابو جلمبو 18 بوصه", nameEn: "Adjustable Wrench 18 Inch", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
+      { code: "7272475", nameAr: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameEn: "X-Line Tropic G Tire - R22.5/385/65", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "الإطارات", classificationEn: "Tires", customData: "" },
+      { code: "68764", nameAr: "مستعمل مضخة حريق صغيره", nameEn: "Used Small Fire Pump", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "معدات الإطفاء والسلامة", classificationEn: "Firefighting & Safety", customData: "" }
     ];
 
     let warehouseItems = [];
@@ -864,7 +887,7 @@
       document.getElementById('modalInputNameAr').value = '';
       document.getElementById('modalInputNameEn').value = '';
       document.getElementById('modalInputUnit').value = 'Pieces';
-      document.getElementById('modalInputLocation').value = '';
+      document.getElementById('modalInputLocation').value = 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = '';
       document.getElementById('modalInputClassificationEn').value = '';
       document.getElementById('modalInputCustomData').value = '';
@@ -881,7 +904,7 @@
       document.getElementById('modalInputNameAr').value = item.nameAr || item.name || '';
       document.getElementById('modalInputNameEn').value = item.nameEn || item.name || '';
       document.getElementById('modalInputUnit').value = item.unit || 'Pieces';
-      document.getElementById('modalInputLocation').value = item.location || '';
+      document.getElementById('modalInputLocation').value = item.location || 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = item.classificationAr || item.classification || '';
       document.getElementById('modalInputClassificationEn').value = item.classificationEn || item.classification || '';
       document.getElementById('modalInputCustomData').value = item.customData || '';
@@ -899,7 +922,7 @@
       const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
       const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
       
-      const defaultWarehouse = "Main Warehouse/Southern Region Warehouse";
+      const defaultWarehouse = "Main Warehouse / Southern Region Warehouse";
       const locationInput = document.getElementById('modalInputLocation').value.trim();
       const location = locationInput !== "" ? locationInput : defaultWarehouse;
 
@@ -957,7 +980,32 @@
       document.getElementById('barcodeLangSelect').value = currentLang;
 
       applyTranslations();
+      populateWarehouseDropdown();
       saveAndRefresh();
+    }
+
+    function populateWarehouseDropdown() {
+      const select = document.getElementById('modalInputLocation');
+      const currentValue = select.value;
+      
+      const warehouses = [
+        "Main Warehouse / Southern Region Warehouse",
+        "Southern Region Warehouse",
+        "Hail Region Warehouse",
+        "Eastern Region Warehouse",
+        "Main Warehouse"
+      ];
+
+      select.innerHTML = '';
+      warehouses.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w;
+        opt.textContent = translateLocation(w, currentLang);
+        if (w === currentValue || (!currentValue && w === "Main Warehouse / Southern Region Warehouse")) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
     }
 
     function applyTranslations() {
@@ -1069,6 +1117,7 @@
             if (!i.nameEn) i.nameEn = i.name || "";
             if (!i.classificationAr) i.classificationAr = i.classification || "عام";
             if (!i.classificationEn) i.classificationEn = i.classification || "General";
+            if (!i.location) i.location = "Main Warehouse / Southern Region Warehouse";
             
             if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
             if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
@@ -1087,6 +1136,7 @@
       document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
       applyTranslations();
+      populateWarehouseDropdown();
       saveAndRefresh();
     }
 
@@ -1115,7 +1165,7 @@
           "اسم المادة بالعربي (Arabic Name)": "صمام أمان ديزل 2 بوصة",
           "اسم المادة بالانجليزي (English Name)": "Diesel Safety Valve 2 Inch",
           "الوحدة (Unit)": "قطعة",
-          "الموقع (Location)": "المستودع الرئيسي",
+          "الموقع (Location)": "Main Warehouse / Southern Region Warehouse",
           "التصنيف بالعربي (Arabic Classification)": "العدد والأدوات",
           "التصنيف بالانجليزي (English Classification)": "Tools",
           "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
@@ -1147,7 +1197,7 @@
             const nameAr = String(row["اسم المادة بالعربي (Arabic Name)"] || row["Arabic Name"] || row["Name"] || "").trim();
             const nameEn = String(row["اسم المادة بالانجليزي (English Name)"] || row["English Name"] || nameAr).trim();
             const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
-            const location = String(row["الموقع (Location)"] || row["Location"] || "").trim() || "Main Warehouse/Southern Region Warehouse";
+            const location = String(row["الموقع (Location)"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
             const classificationAr = String(row["التصنيف بالعربي (Arabic Classification)"] || row["Arabic Classification"] || row["Classification"] || "").trim() || "عام";
             const classificationEn = String(row["التصنيف بالانجليزي (English Classification)"] || row["English Classification"] || classificationAr).trim() || "General";
             const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || "").trim();
@@ -1177,15 +1227,6 @@
     }
 
     function populateDatalists() {
-      const dlWarehouse = document.getElementById('modalWarehouseList');
-      const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
-      dlWarehouse.innerHTML = '';
-      uniqueWarehouses.forEach(w => {
-        const opt = document.createElement('option');
-        opt.value = w;
-        dlWarehouse.appendChild(opt);
-      });
-
       const dlClassAr = document.getElementById('modalClassificationArList');
       const uniqueClassesAr = [...new Set(warehouseItems.map(i => i.classificationAr).filter(Boolean))];
       dlClassAr.innerHTML = '';
