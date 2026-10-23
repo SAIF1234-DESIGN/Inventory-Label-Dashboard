@@ -523,7 +523,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V8";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V9";
 
     // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
@@ -807,7 +807,7 @@
       document.documentElement.lang = currentLang;
       document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
       
-      // Synchronize label lang selector with dashboard lang by default upon switch
+      // Automatically synchronize barcode label language selector to match dashboard language change
       document.getElementById('barcodeLangSelect').value = currentLang;
 
       applyTranslations();
