@@ -191,7 +191,7 @@
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .card-checkbox { width: 18px; height: 18px; cursor: pointer; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; display:flex; align-items:center; justify-content:center; }
     .del-btn:hover { background: #fca5a5; }
 
     .sticker-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; line-height: 1.4; }
@@ -474,7 +474,7 @@
     </div>
   </div>
 
-  <!-- ADD MATERIAL POPUP MODAL -->
+  <!-- ADD / EDIT MATERIAL POPUP MODAL -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -522,6 +522,9 @@
 
   <script>
     const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V10";
+    
+    // Tracks if we are editing an existing item
+    let editingCode = null;
 
     // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
@@ -607,6 +610,7 @@
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
         modalTitle: "✏️ إضافة تفاصيل المادة (Add Material Details)",
+        editMaterialTitle: "✏️ تعديل تفاصيل المادة (Edit Material)",
         lblCode: "1. كود المادة (Material Code)",
         lblName: "2. اسم المادة (Material Name)",
         lblUnit: "3. الوحدة (Unit)",
@@ -614,6 +618,7 @@
         lblClass: "5. التصنيف (Classification)",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
+        btnSaveChanges: "حفظ التعديلات (Save Changes)",
         btnCancelModal: "إلغاء",
         kpi1Title: "إجمالي المواد المسجلة",
         kpi1Sub: "إجمالي الأصناف بالمخازن",
@@ -644,7 +649,9 @@
         printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
         printLbl3: "3. اتجاه الصفحة (Page Orientation)",
         printCancelBtn: "إلغاء",
-        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
+        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة",
+        msgSaved: "تم الحفظ بنجاح!",
+        msgCodeExists: "هذا الكود مسجل مسبقاً لمادة أخرى!"
       },
       en: {
         toggleBtn: "العربية",
@@ -659,6 +666,7 @@
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
         modalTitle: "✏️ Add Material Details",
+        editMaterialTitle: "✏️ Edit Material Details",
         lblCode: "1. Material Code",
         lblName: "2. Material Name",
         lblUnit: "3. Unit",
@@ -666,6 +674,7 @@
         lblClass: "5. Classification",
         lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
+        btnSaveChanges: "Save Changes",
         btnCancelModal: "Cancel",
         kpi1Title: "Total Registered Items",
         kpi1Sub: "Total items in stock",
@@ -696,7 +705,9 @@
         printLbl2: "2. Grid Layout Preset",
         printLbl3: "3. Page Orientation",
         printCancelBtn: "Cancel",
-        printSaveBtn: "💾 Save Settings & Apply"
+        printSaveBtn: "💾 Save Settings & Apply",
+        msgSaved: "Saved successfully!",
+        msgCodeExists: "This material code already exists!"
       }
     };
 
@@ -762,22 +773,51 @@
       `;
     }
 
-    // Modal Control Functions
+    // Modal Control Functions (Add / Edit)
     function openAddModal() {
-      document.getElementById('addMaterialModal').classList.add('active');
-    }
-
-    function closeAddModal() {
-      document.getElementById('addMaterialModal').classList.remove('active');
+      editingCode = null; // Indicates we are adding a new item
+      const t = translations[currentLang];
+      
+      document.getElementById('modalHeaderTitle').textContent = t.modalTitle;
+      document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
+      
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputName').value = '';
       document.getElementById('modalInputUnit').value = '';
       document.getElementById('modalInputLocation').value = '';
       document.getElementById('modalInputClassification').value = '';
       document.getElementById('modalInputCustomData').value = '';
+      
+      document.getElementById('addMaterialModal').classList.add('active');
+    }
+    
+    function openEditModal(code) {
+      const item = warehouseItems.find(i => i.code === code);
+      if (!item) return;
+
+      editingCode = code; // Indicates we are editing an existing item
+      const t = translations[currentLang];
+      
+      document.getElementById('modalHeaderTitle').textContent = t.editMaterialTitle;
+      document.getElementById('btnSaveModalText').textContent = t.btnSaveChanges;
+
+      // Populate current data
+      document.getElementById('modalInputCode').value = item.code;
+      document.getElementById('modalInputName').value = item.name;
+      document.getElementById('modalInputUnit').value = item.unit;
+      document.getElementById('modalInputLocation').value = item.location;
+      document.getElementById('modalInputClassification').value = item.classification;
+      document.getElementById('modalInputCustomData').value = item.customData;
+
+      document.getElementById('addMaterialModal').classList.add('active');
     }
 
-    // Save Material from Modal
+    function closeAddModal() {
+      document.getElementById('addMaterialModal').classList.remove('active');
+      editingCode = null;
+    }
+
+    // Save Material (Handles both Add & Edit)
     function saveMaterialFromModal() {
       const code = document.getElementById('modalInputCode').value.trim();
       const name = document.getElementById('modalInputName').value.trim();
@@ -786,15 +826,43 @@
       const classification = document.getElementById('modalInputClassification').value.trim() || "General";
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
+      const t = translations[currentLang];
+
       if (!code || !name) {
         alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
         return;
       }
 
-      warehouseItems.unshift({ code, name, unit, location, classification, customData });
+      if (editingCode) {
+        // We are EDITING
+        // Prevent assigning a code that already belongs to another item
+        if (code !== editingCode && warehouseItems.some(i => i.code === code)) {
+          alert(t.msgCodeExists);
+          return;
+        }
+
+        const itemIndex = warehouseItems.findIndex(i => i.code === editingCode);
+        if (itemIndex > -1) {
+          warehouseItems[itemIndex] = { code, name, unit, location, classification, customData };
+          
+          // Update selected items if the user changed the item's primary code
+          if (code !== editingCode && selectedCodes.has(editingCode)) {
+            selectedCodes.delete(editingCode);
+            selectedCodes.add(code);
+          }
+        }
+      } else {
+        // We are ADDING
+        if (warehouseItems.some(i => i.code === code)) {
+          alert(t.msgCodeExists);
+          return;
+        }
+        warehouseItems.unshift({ code, name, unit, location, classification, customData });
+      }
+
       saveAndRefresh();
       closeAddModal();
-      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
+      alert(t.msgSaved);
     }
 
     // Language Switcher Function
@@ -831,14 +899,21 @@
       setTxt('tab2Title', t.tab2);
       setTxt('tab3Title', t.tab3);
       
-      setTxt('modalHeaderTitle', t.modalTitle);
+      // Modal titles adjust based on state (Editing or Adding)
+      if (editingCode) {
+        setTxt('modalHeaderTitle', t.editMaterialTitle);
+        setTxt('btnSaveModalText', t.btnSaveChanges);
+      } else {
+        setTxt('modalHeaderTitle', t.modalTitle);
+        setTxt('btnSaveModalText', t.btnSaveModal);
+      }
+      
       setTxt('lblCodeModal', t.lblCode);
       setTxt('lblNameModal', t.lblName);
       setTxt('lblUnitModal', t.lblUnit);
       setTxt('lblLocationModal', t.lblLocation);
       setTxt('lblClassModal', t.lblClass);
       setTxt('lblCustomDataModal', t.lblCustomData);
-      setTxt('btnSaveModalText', t.btnSaveModal);
       setTxt('btnCancelModal', t.btnCancelModal);
 
       setTxt('printModalTitleText', t.printModalTitle);
@@ -993,13 +1068,16 @@
             const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
 
             if (code && name) {
-              warehouseItems.unshift({ code, name, unit, location, classification, customData });
-              newItemsCount++;
+              // Ignore if code already exists to prevent duplicate override via import
+              if (!warehouseItems.some(i => i.code === code)) {
+                warehouseItems.unshift({ code, name, unit, location, classification, customData });
+                newItemsCount++;
+              }
             }
           });
 
           saveAndRefresh();
-          alert(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة بنجاح!` : `Successfully imported (${newItemsCount}) items!`);
+          alert(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة جديدة بنجاح!` : `Successfully imported (${newItemsCount}) new items!`);
         } catch (err) {
           alert("Error parsing file.");
         }
@@ -1136,7 +1214,10 @@
           <td>${translateLocation(item.location, currentLang)}</td>
           <td>${translateClassification(item.classification, currentLang)}</td>
           <td>
-            <button class="del-btn" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-outline" style="border-color: var(--accent-blue); color: var(--accent-blue); padding: 4px 10px;" title="تعديل المادة / Edit" onclick="openEditModal('${item.code}')">✏️</button>
+              <button class="del-btn" title="حذف المادة / Delete" onclick="deleteSingleItem('${item.code}')">✕</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1185,7 +1266,10 @@
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
             <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <button class="del-btn" onclick="deleteSingleItem('${item.code}')">✕</button>
+            <div style="display:flex; gap:6px;">
+              <button class="del-btn" style="background:#e0f2fe; color:#0284c7; font-size:14px;" title="تعديل المادة / Edit" onclick="openEditModal('${item.code}')">✏️</button>
+              <button class="del-btn" title="حذف المادة / Delete" onclick="deleteSingleItem('${item.code}')">✕</button>
+            </div>
           </div>
           <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
