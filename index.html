@@ -350,6 +350,7 @@
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
+      <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون الحالي</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
       <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintText">طباعة ملصقات الشحنات</span></button>
     </div>
@@ -551,7 +552,7 @@
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [اتركه فارغاً ليتم تعيينه تلقائياً]</label>
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]</label>
           <select id="modalInputLocation" class="input-field">
             <option value="Main Warehouse / Southern Region Warehouse">المستودع الرئيسي / مستودع المنطقة الجنوبية (Main Warehouse / Southern Region Warehouse) - [الافتراضي]</option>
             <option value="Southern Region Warehouse">مستودع المنطقة الجنوبية (Southern Region Warehouse)</option>
@@ -588,12 +589,11 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V16";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V17";
 
     let nameMemory = {};
     let classificationMemory = {};
 
-    // Warehouse Bilingual Translation Map
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
       "مستودع المنطقة الجنوبية": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -714,6 +714,7 @@
         btnAddMaterial: "+ إضافة مادة جديدة",
         btnTemplate: "تحميل قالب اكسل",
         btnImport: "استيراد بيانات اكسل",
+        btnDownloadInv: "تحميل المخزون الحالي",
         btnBackup: "حفظ النسخة الاحتياطية",
         btnPrint: "طباعة ملصقات الشحنات",
         tab1: "📊 نظرة عامة والملخص",
@@ -769,6 +770,7 @@
         btnAddMaterial: "+ Add New Material",
         btnTemplate: "Download Template",
         btnImport: "Import Excel Data",
+        btnDownloadInv: "Download Inventory",
         btnBackup: "Save Backup",
         btnPrint: "Print Labels",
         tab1: "📊 Overview & Summary",
@@ -1022,6 +1024,7 @@
       setTxt('btnAddMaterialText', t.btnAddMaterial);
       setTxt('btnTemplateText', t.btnTemplate);
       setTxt('btnImportText', t.btnImport);
+      setTxt('btnDownloadInvText', t.btnDownloadInv);
       setTxt('btnBackupText', t.btnBackup);
       setTxt('btnPrintText', t.btnPrint);
       
@@ -1178,6 +1181,30 @@
       XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
     }
 
+    // Download Available Inventory Excel Feature
+    function downloadAvailableInventoryExcel() {
+      if (warehouseItems.length === 0) {
+        alert(currentLang === 'ar' ? "لا توجد مواد مخصصة للتحميل في المخزون." : "No available inventory items to download.");
+        return;
+      }
+
+      const exportData = warehouseItems.map(item => ({
+        "Material Code": item.code,
+        "Arabic Name": item.nameAr || "",
+        "English Name": item.nameEn || "",
+        "Unit": item.unit || "",
+        "Warehouse / Location": item.location || "",
+        "Arabic Classification": item.classificationAr || "",
+        "English Classification": item.classificationEn || "",
+        "Custom Data / Link": item.customData || ""
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Available Inventory");
+      XLSX.writeFile(workbook, `Available_Inventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
     function importExcelFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1193,14 +1220,14 @@
 
           let newItemsCount = 0;
           jsonData.forEach(row => {
-            const code = String(row["كود المادة (Material Code)"] || row["Code"] || "").trim();
+            const code = String(row["كود المادة (Material Code)"] || row["Material Code"] || row["Code"] || "").trim();
             const nameAr = String(row["اسم المادة بالعربي (Arabic Name)"] || row["Arabic Name"] || row["Name"] || "").trim();
             const nameEn = String(row["اسم المادة بالانجليزي (English Name)"] || row["English Name"] || nameAr).trim();
             const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
-            const location = String(row["الموقع (Location)"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
+            const location = String(row["الموقع (Location)"] || row["Warehouse / Location"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
             const classificationAr = String(row["التصنيف بالعربي (Arabic Classification)"] || row["Arabic Classification"] || row["Classification"] || "").trim() || "عام";
             const classificationEn = String(row["التصنيف بالانجليزي (English Classification)"] || row["English Classification"] || classificationAr).trim() || "General";
-            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || "").trim();
+            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
             if (code && (nameAr || nameEn)) {
               warehouseItems.unshift({
