@@ -494,8 +494,8 @@
           <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
         </div>
         <div class="form-group">
-          <label id="lblNameModal">2. اسم المادة (Material Name)</label>
-          <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالتفصيل...">
+          <label id="lblNameModal">2. اسم المادة (Material Name / Bilingual or Single)</label>
+          <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالعربي أو الإنجليزي...">
         </div>
         <div class="form-group">
           <label id="lblUnitModal">3. الوحدة (Unit)</label>
@@ -528,9 +528,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V11";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V12";
 
-    // Comprehensive Bilingual Dictionaries for Units, Names, Classifications & Locations
+    // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
       "pieces": { ar: "قطعة", en: "Pieces" },
       "قطعة": { ar: "قطعة", en: "Pieces" },
@@ -577,23 +577,35 @@
       "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
     };
 
-    // Name Map for Material Names translation support
-    const nameMap = {
-      "لفة سلك 10*4 100 يارد": { ar: "لفة سلك 10*4 100 يارد", en: "Wire Roll 10*4 100 Yards" },
-      "wire roll 10*4 100 yards": { ar: "لفة سلك 10*4 100 يارد", en: "Wire Roll 10*4 100 Yards" },
-      "قطاعة القفل 180": { ar: "قطاعة القفل 180", en: "Lock Cutter 180" },
-      "lock cutter 180": { ar: "قطاعة القفل 180", en: "Lock Cutter 180" },
-      "سولينأئد فالف فرانتير": { ar: "سولينأئد فالف فرانتير", en: "Frontier Solenoid Valve" },
-      "frontier solenoid valve": { ar: "سولينأئد فالف فرانتير", en: "Frontier Solenoid Valve" },
-      "black dot pvc 58*125cm medium ستارة": { ar: "BLACK DOT PVC 58*125CM MEDIUM ستارة", en: "Black Dot PVC 58*125cm Medium Curtain" },
-      "black dot pvc 58*125cm medium curtain": { ar: "BLACK DOT PVC 58*125CM MEDIUM ستارة", en: "Black Dot PVC 58*125cm Medium Curtain" },
-      "مفتاح ابو جلمبو 18 بوصه": { ar: "مفتاح ابو جلمبو 18 بوصه", en: "Adjustable Wrench 18 Inch" },
-      "adjustable wrench 18 inch": { ar: "مفتاح ابو جلمبو 18 بوصه", en: "Adjustable Wrench 18 Inch" },
-      "كفر اكس لاين تروبيق جي - r22.5/385/65": { ar: "كفر اكس لاين تروبيق جي - R22.5/385/65", en: "X-Line Tropic G Tire - R22.5/385/65" },
-      "x-line tropic g tire - r22.5/385/65": { ar: "كفر اكس لاين تروبيق جي - R22.5/385/65", en: "X-Line Tropic G Tire - R22.5/385/65" },
-      "مستعمل مضخة حريق صغيره": { ar: "مستعمل مضخة حريق صغيره", en: "Used Small Fire Pump" },
-      "used small fire pump": { ar: "مستعمل مضخة حريق صغيره", en: "Used Small Fire Pump" }
-    };
+    // Global Dynamic Name Mapping Store (Supports user-added & imported items dynamically)
+    let dynamicNameMap = {};
+
+    function registerBilingualName(nameInput) {
+      if (!nameInput) return;
+      const clean = nameInput.toString().trim();
+      if (!clean) return;
+
+      // If it contains a separator like '|' or '/' we can split ar/en (e.g. "صمام / Valve")
+      if (clean.includes('|')) {
+        const parts = clean.split('|').map(p => p.trim());
+        dynamicNameMap[clean.toLowerCase()] = { ar: parts[0], en: parts[1] || parts[0] };
+      } else if (clean.includes('/')) {
+        const parts = clean.split('/').map(p => p.trim());
+        dynamicNameMap[clean.toLowerCase()] = { ar: parts[0], en: parts[1] || parts[0] };
+      } else {
+        // Single language entry: automatically store as both or map appropriately
+        dynamicNameMap[clean.toLowerCase()] = { ar: clean, en: clean };
+      }
+    }
+
+    function translateName(n, lang) {
+      if (!n) return "";
+      const key = n.toString().trim().toLowerCase();
+      if (dynamicNameMap[key]) {
+        return dynamicNameMap[key][lang];
+      }
+      return n;
+    }
 
     function translateUnit(u, lang) {
       if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
@@ -614,13 +626,6 @@
       const key = l.toString().trim().toLowerCase();
       if (locationMap[key]) return locationMap[key][lang];
       return l;
-    }
-
-    function translateName(n, lang) {
-      if (!n) return "";
-      const key = n.toString().trim().toLowerCase();
-      if (nameMap[key]) return nameMap[key][lang];
-      return n;
     }
 
     // Comprehensive Bilingual Dictionary for UI
@@ -843,8 +848,9 @@
         return;
       }
 
+      registerBilingualName(name);
+
       if (originalCode) {
-        // Edit Mode
         const index = warehouseItems.findIndex(i => i.code === originalCode);
         if (index !== -1) {
           warehouseItems[index] = { code, name, unit, location, classification, customData };
@@ -855,7 +861,6 @@
         }
         alert(currentLang === 'ar' ? "تم تحديث بيانات المادة بنجاح!" : "Material updated successfully!");
       } else {
-        // Add Mode
         warehouseItems.unshift({ code, name, unit, location, classification, customData });
         alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
       }
@@ -981,12 +986,15 @@
           warehouseItems = JSON.parse(stored);
           warehouseItems.forEach(i => {
             if (!i.customData) i.customData = "";
+            registerBilingualName(i.name);
           });
         } catch (e) {
           warehouseItems = [...initialDataset];
+          warehouseItems.forEach(i => registerBilingualName(i.name));
         }
       } else {
         warehouseItems = [...initialDataset];
+        warehouseItems.forEach(i => registerBilingualName(i.name));
       }
       document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
@@ -1056,6 +1064,7 @@
             const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
 
             if (code && name) {
+              registerBilingualName(name);
               warehouseItems.unshift({ code, name, unit, location, classification, customData });
               newItemsCount++;
             }
