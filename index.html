@@ -260,19 +260,22 @@
     }
     .excel-table {
       width: 100%;
-      table-layout: auto; /* True Content-Aware Sizing */
+      table-layout: auto; /* Columns scale based on content */
       border-collapse: collapse;
       direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 10px 12px; /* Minor space from border */
+      padding: 8px 12px; /* Minor space from border */
       border: 1px solid #2b3a67;
       font-size: 0.78rem;
-      word-break: break-word;
-      white-space: normal;
-      overflow-wrap: break-word;
+      white-space: nowrap; /* Hug text tightly */
       text-align: left;
+    }
+    /* Allow wrapping only on wider descriptive columns if space gets tight, keeping small columns strictly compact */
+    .excel-table td.wrap-cell, .excel-table th.wrap-cell {
+      white-space: normal;
+      word-break: break-word;
     }
     .excel-table th {
       background: #0e1735;
@@ -291,22 +294,19 @@
       background-color: #243054;
     }
 
-    /* Specific column sizing allowances */
-    .col-select { width: 40px; text-align: center; white-space: nowrap; }
-    .col-action { width: 80px; text-align: center; white-space: nowrap; }
-
     .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
       border-radius: 4px;
-      padding: 5px 8px;
+      padding: 4px 8px;
       cursor: pointer;
       font-size: 0.7rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      white-space: nowrap;
     }
     .action-sub-btn:hover { background: var(--accent-blue); }
     .action-sub-btn.del { background: #fee2e2; color: #dc2626; }
@@ -456,17 +456,17 @@
               <th colspan="5" style="text-align:center;">Actions</th>
             </tr>
             <tr>
-              <th class="col-select" style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
+              <th style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
               <th>Material Code</th>
-              <th>Material Name</th>
+              <th class="wrap-cell">Material Name</th>
               <th>Unit</th>
-              <th>Warehouse / Location</th>
-              <th>Classification</th>
-              <th class="col-action" style="text-align:center;">Print</th>
-              <th class="col-action" style="text-align:center;">Generate</th>
-              <th class="col-action" style="text-align:center;">Ungenerate</th>
-              <th class="col-action" style="text-align:center;">Edit</th>
-              <th class="col-action" style="text-align:center;">Delete</th>
+              <th class="wrap-cell">Warehouse / Location</th>
+              <th class="wrap-cell">Classification</th>
+              <th style="text-align:center;">Print</th>
+              <th style="text-align:center;">Generate</th>
+              <th style="text-align:center;">Ungenerate</th>
+              <th style="text-align:center;">Edit</th>
+              <th style="text-align:center;">Delete</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -622,8 +622,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V30";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V11";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V31";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V12";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -1438,17 +1438,17 @@
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="col-select" style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
+          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
           <td><strong>${item.code}</strong></td>
-          <td>${translateName(item, currentLang)}</td>
+          <td class="wrap-cell">${translateName(item, currentLang)}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
-          <td>${translateLocation(item.location, currentLang)}</td>
-          <td>${translateClassification(item, currentLang)}</td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
-          <td class="col-action" style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕</button></td>
+          <td class="wrap-cell">${translateLocation(item.location, currentLang)}</td>
+          <td class="wrap-cell">${translateClassification(item, currentLang)}</td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
+          <td style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕</button></td>
         `;
         tbody.appendChild(tr);
       });
