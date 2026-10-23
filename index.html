@@ -143,12 +143,6 @@
       width: 100%;
     }
     .input-field:focus { border-color: var(--accent-blue); }
-    
-    .dual-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
 
     /* Modal Popup Styles */
     .modal-overlay {
@@ -163,7 +157,7 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      width: 100%; max-width: 650px;
+      width: 100%; max-width: 550px;
       padding: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       max-height: 90vh;
@@ -197,7 +191,7 @@
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .card-checkbox { width: 18px; height: 18px; cursor: pointer; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; display:flex; align-items:center; justify-content:center; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
     .del-btn:hover { background: #fca5a5; }
 
     .sticker-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; line-height: 1.4; }
@@ -304,8 +298,10 @@
     </div>
 
     <div class="header-actions">
+      <!-- Add Material Button -->
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
 
+      <!-- File Import / Download Actions -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
@@ -379,7 +375,7 @@
         <table>
           <thead>
             <tr>
-              <th id="thCode">كود المادة (Code)</th>
+              <th id="thCode">كود المادة (Material Code)</th>
               <th id="thName">اسم المادة (Material Name)</th>
               <th id="thUnit">الوحدة (Unit)</th>
               <th id="thLocation">الموقع (Warehouse / Location)</th>
@@ -478,7 +474,7 @@
     </div>
   </div>
 
-  <!-- ADD / EDIT MATERIAL POPUP MODAL (DUAL INPUTS UPGRADE) -->
+  <!-- ADD MATERIAL POPUP MODAL -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -486,53 +482,36 @@
         <button class="modal-close" onclick="closeAddModal()">✕</button>
       </div>
       <div class="modal-grid">
-        
         <div class="form-group">
           <label id="lblCodeModal">1. كود المادة (Material Code)</label>
           <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
         </div>
-
-        <div class="dual-grid">
-          <div class="form-group">
-            <label id="lblNameArModal">2. اسم المادة (عربي)</label>
-            <input type="text" id="modalInputNameAr" class="input-field" placeholder="اكتب اسم المادة بالعربية...">
-          </div>
-          <div class="form-group">
-            <label id="lblNameEnModal">3. Material Name (English)</label>
-            <input type="text" id="modalInputNameEn" class="input-field" placeholder="Type material name in English...">
-          </div>
-        </div>
-
-        <div class="dual-grid">
-          <div class="form-group">
-            <label id="lblClassArModal">4. التصنيف (عربي)</label>
-            <input type="text" id="modalInputClassAr" list="modalClassificationListAr" class="input-field" placeholder="العدد، أدوات، إلخ...">
-            <datalist id="modalClassificationListAr"></datalist>
-          </div>
-          <div class="form-group">
-            <label id="lblClassEnModal">5. Category (English)</label>
-            <input type="text" id="modalInputClassEn" list="modalClassificationListEn" class="input-field" placeholder="Tools, Electrical, etc...">
-            <datalist id="modalClassificationListEn"></datalist>
-          </div>
-        </div>
-
-        <div class="dual-grid">
-          <div class="form-group">
-            <label id="lblUnitModal">6. الوحدة (Unit)</label>
-            <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre...">
-          </div>
-          <div class="form-group">
-            <label id="lblLocationModal">7. الموقع (Warehouse)</label>
-            <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="اختيار المستودع...">
-            <datalist id="modalWarehouseList"></datalist>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label id="lblCustomDataModal">8. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
+          <label id="lblNameModal">2. اسم المادة (Material Name)</label>
+          <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالتفصيل...">
+        </div>
+        <div class="form-group">
+          <label id="lblUnitModal">3. الوحدة (Unit)</label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
+        </div>
+        <div class="form-group">
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location)</label>
+          <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="اختر أو اكتب اسم المستودع...">
+          <datalist id="modalWarehouseList">
+            <!-- Dynamic Datalist Options -->
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label id="lblClassModal">5. التصنيف (Classification)</label>
+          <input type="text" id="modalInputClassification" list="modalClassificationList" class="input-field" placeholder="Tools, Filters, Electrical...">
+          <datalist id="modalClassificationList">
+            <!-- Dynamic Datalist Options -->
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label id="lblCustomDataModal">6. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
           <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com أو ملاحظة...">
         </div>
-
         <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
           <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">إلغاء</button>
           <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">حفظ المادة (Save Item)</span></button>
@@ -542,46 +521,77 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V11_DUAL_LANG";
-    const LEGACY_STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V10";
-    
-    let editingCode = null;
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V10";
 
-    // Legacy Fallback Dictionary (Used only for migrating old data and standard unit/location fields)
+    // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
-      "pieces": { ar: "قطعة", en: "Pieces" }, "قطعة": { ar: "قطعة", en: "Pieces" },
-      "roll": { ar: "لفة", en: "Roll" }, "لفة": { ar: "لفة", en: "Roll" },
-      "litre": { ar: "لتر", en: "Litre" }, "لتر": { ar: "لتر", en: "Litre" }
+      "pieces": { ar: "قطعة", en: "Pieces" },
+      "قطعة": { ar: "قطعة", en: "Pieces" },
+      "حبة": { ar: "قطعة", en: "Pieces" },
+      "roll": { ar: "لفة", en: "Roll" },
+      "لفة": { ar: "لفة", en: "Roll" },
+      "set": { ar: "طقم", en: "Set" },
+      "طقم": { ar: "طقم", en: "Set" },
+      "litre": { ar: "لتر", en: "Litre" },
+      "لتر": { ar: "لتر", en: "Litre" },
+      "drum": { ar: "برميل", en: "Drum" },
+      "برميل": { ar: "برميل", en: "Drum" },
+      "gallon": { ar: "جالون", en: "Gallon" },
+      "جالون": { ar: "جالون", en: "Gallon" },
+      "can": { ar: "علبة", en: "Can" },
+      "علبة": { ar: "علبة", en: "Can" },
+      "pair": { ar: "زوج", en: "Pair" },
+      "زوج": { ar: "زوج", en: "Pair" },
+      "box": { ar: "صندوق", en: "Box" },
+      "صندوق": { ar: "صندوق", en: "Box" },
+      "meter": { ar: "متر", en: "Meter" },
+      "متر": { ar: "متر", en: "Meter" }
     };
 
-    const legacyClassificationMap = {
+    const classificationMap = {
       "electrical components": { ar: "المكونات الكهربائية", en: "Electrical Components" },
       "المكونات الكهربائية": { ar: "المكونات الكهربائية", en: "Electrical Components" },
       "tools": { ar: "العدد والأدوات", en: "Tools" },
       "العدد والأدوات": { ar: "العدد والأدوات", en: "Tools" },
       "fuel pump equipment & spare parts": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
-      " retail / sales items": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
+      "معدات مضخات الوقود وقطع الغيار": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
+      "retail / sales items": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
+      "مواد التجزئة والمبيعات": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
       "tires": { ar: "الإطارات", en: "Tires" },
-      "firefighting & safety": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" }
+      "الإطارات": { ar: "الإطارات", en: "Tires" },
+      "firefighting & safety": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" },
+      "معدات الإطفاء والسلامة": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" }
     };
 
     const locationMap = {
       "main warehouse/southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
-      "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
+      "المستودع الرئيسي / مستودع المنطقة الجنوبية": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
+      "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
+      "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
     };
 
     function translateUnit(u, lang) {
       if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
       const key = u.toString().trim().toLowerCase();
-      return unitMap[key] ? unitMap[key][lang] : u;
+      if (unitMap[key]) return unitMap[key][lang];
+      return u;
     }
-    
+
+    function translateClassification(c, lang) {
+      if (!c) return lang === 'ar' ? "عام" : "General";
+      const key = c.toString().trim().toLowerCase();
+      if (classificationMap[key]) return classificationMap[key][lang];
+      return c;
+    }
+
     function translateLocation(l, lang) {
       if (!l) return lang === 'ar' ? "المستودع الرئيسي" : "Main Warehouse";
       const key = l.toString().trim().toLowerCase();
-      return locationMap[key] ? locationMap[key][lang] : l;
+      if (locationMap[key]) return locationMap[key][lang];
+      return l;
     }
 
+    // Comprehensive Bilingual Dictionary for UI
     let currentLang = "ar";
     const translations = {
       ar: {
@@ -597,17 +607,13 @@
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
         modalTitle: "✏️ إضافة تفاصيل المادة (Add Material Details)",
-        editMaterialTitle: "✏️ تعديل تفاصيل المادة (Edit Material)",
         lblCode: "1. كود المادة (Material Code)",
-        lblNameAr: "2. اسم المادة (عربي)",
-        lblNameEn: "3. Material Name (English)",
-        lblClassAr: "4. التصنيف (عربي)",
-        lblClassEn: "5. Category (English)",
-        lblUnit: "6. الوحدة (Unit)",
-        lblLocation: "7. الموقع / المستودع (Warehouse)",
-        lblCustomData: "8. بيانات إضافية أو رابط (Custom Data)",
+        lblName: "2. اسم المادة (Material Name)",
+        lblUnit: "3. الوحدة (Unit)",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
+        lblClass: "5. التصنيف (Classification)",
+        lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
-        btnSaveChanges: "حفظ التعديلات (Save Changes)",
         btnCancelModal: "إلغاء",
         kpi1Title: "إجمالي المواد المسجلة",
         kpi1Sub: "إجمالي الأصناف بالمخازن",
@@ -615,32 +621,30 @@
         kpi2Sub: "جميع الفئات المسجلة",
         kpi3Title: "المستودعات المسجلة",
         kpi3Sub: "مواقع التخزين المستهدفة",
-        chartHeaderTitle: "توزيع جميع التصنيفات (Overview)",
-        chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف",
+        chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
+        chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        thCode: "الكود (Code)",
+        thCode: "كود المادة (Material Code)",
         thName: "اسم المادة (Material Name)",
         thUnit: "الوحدة (Unit)",
-        thLocation: "الموقع (Location)",
+        thLocation: "الموقع (Warehouse / Location)",
         thClass: "التصنيف (Classification)",
         thActions: "الإجراءات",
         btnDeleteSelected: "حذف المحددة",
         btnPrintSelected: "طباعة المحدد",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
-        lblSelectAll: "تحديد الكل",
+        lblSelectAll: "تحديد الكل (Select All)",
         lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
         cardCode: "الكود",
         cardUnit: "الوحدة",
         cardClass: "التصنيف",
         printModalTitle: "⚙️ إعدادات مقاس الصفحة والملصقات",
-        printLbl1: "1. نوع ورقة الطباعة",
-        printLbl2: "2. نمط عدد الملصقات",
-        printLbl3: "3. اتجاه الصفحة",
+        printLbl1: "1. نوع ورقة الطباعة (Page Size)",
+        printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
+        printLbl3: "3. اتجاه الصفحة (Page Orientation)",
         printCancelBtn: "إلغاء",
-        printSaveBtn: "💾 حفظ وتطبيق",
-        msgSaved: "تم الحفظ بنجاح!",
-        msgCodeExists: "هذا الكود مسجل مسبقاً لمادة أخرى!"
+        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
       },
       en: {
         toggleBtn: "العربية",
@@ -655,17 +659,13 @@
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
         modalTitle: "✏️ Add Material Details",
-        editMaterialTitle: "✏️ Edit Material Details",
         lblCode: "1. Material Code",
-        lblNameAr: "2. Arabic Name (اسم عربي)",
-        lblNameEn: "3. English Name (Material Name)",
-        lblClassAr: "4. Arabic Category (تصنيف)",
-        lblClassEn: "5. English Category (Classification)",
-        lblUnit: "6. Unit",
-        lblLocation: "7. Warehouse / Location",
-        lblCustomData: "8. Custom Link / Data",
+        lblName: "2. Material Name",
+        lblUnit: "3. Unit",
+        lblLocation: "4. Warehouse / Location",
+        lblClass: "5. Classification",
+        lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
-        btnSaveChanges: "Save Changes",
         btnCancelModal: "Cancel",
         kpi1Title: "Total Registered Items",
         kpi1Sub: "Total items in stock",
@@ -676,10 +676,10 @@
         chartHeaderTitle: "Classifications Breakdown",
         chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
-        thCode: "Code",
+        thCode: "Material Code",
         thName: "Material Name",
         thUnit: "Unit",
-        thLocation: "Location",
+        thLocation: "Warehouse / Location",
         thClass: "Classification",
         thActions: "Actions",
         btnDeleteSelected: "Delete Selected",
@@ -696,23 +696,38 @@
         printLbl2: "2. Grid Layout Preset",
         printLbl3: "3. Page Orientation",
         printCancelBtn: "Cancel",
-        printSaveBtn: "💾 Save Settings",
-        msgSaved: "Saved successfully!",
-        msgCodeExists: "This material code already exists!"
+        printSaveBtn: "💾 Save Settings & Apply"
       }
     };
+
+    // Initial Dataset
+    const initialDataset = [
+      { code: "7272446", name: "لفة سلك 10*4 100 يارد", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components", customData: "" },
+      { code: "76152", name: "قطاعة القفل 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
+      { code: "761962", name: "سولينأئد فالف فرانتير", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts", customData: "" },
+      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items", customData: "" },
+      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
+      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires", customData: "" },
+      { code: "68764", name: "مستعمل مضخة حريق صغيره", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety", customData: "" }
+    ];
 
     let warehouseItems = [];
     let selectedCodes = new Set();
     let chartInstance = null;
 
     // Print Settings Modals
-    function openPrintSettingsModal() { document.getElementById('printSettingsModal').classList.add('active'); }
-    function closePrintSettingsModal() { document.getElementById('printSettingsModal').classList.remove('active'); }
+    function openPrintSettingsModal() {
+      document.getElementById('printSettingsModal').classList.add('active');
+    }
+
+    function closePrintSettingsModal() {
+      document.getElementById('printSettingsModal').classList.remove('active');
+    }
 
     function applyPrintSettingsAndClose() {
       updatePrintConfigPreview();
       closePrintSettingsModal();
+      alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة وتحديث المخطط بنجاح!" : "Print size settings saved successfully!");
     }
 
     function updatePrintConfigPreview() {
@@ -720,122 +735,69 @@
       const preset = document.getElementById('cfgGridPreset').value;
       const orientation = document.getElementById('cfgOrientation').value;
 
-      let cols = 2; let minHeight = "120px";
+      let cols = 2;
+      let minHeight = "120px";
+
       if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
       else if (preset === "10_labels") { cols = 2; minHeight = "110px"; }
       else if (preset === "12_labels") { cols = 3; minHeight = "110px"; }
       else if (preset === "21_labels") { cols = 3; minHeight = "85px"; }
       else if (preset === "single_thermal") { cols = 1; minHeight = "180px"; }
 
-      document.getElementById('dynamicPrintStyles').innerHTML = `
+      const styleTag = document.getElementById('dynamicPrintStyles');
+      styleTag.innerHTML = `
         @media print {
-          @page { size: ${pageSize} ${orientation}; margin: 8mm; }
-          .labels-grid { grid-template-columns: repeat(${cols}, 1fr) !important; gap: 10px !important; }
-          .sticker-card { min-height: ${minHeight} !important; }
+          @page {
+            size: ${pageSize} ${orientation};
+            margin: 8mm;
+          }
+          .labels-grid {
+            grid-template-columns: repeat(${cols}, 1fr) !important;
+            gap: 10px !important;
+          }
+          .sticker-card {
+            min-height: ${minHeight} !important;
+          }
         }
       `;
     }
 
-    // Modal Control Functions (Add / Edit)
+    // Modal Control Functions
     function openAddModal() {
-      editingCode = null;
-      const t = translations[currentLang];
-      
-      document.getElementById('modalHeaderTitle').textContent = t.modalTitle;
-      document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
-      
-      document.getElementById('modalInputCode').value = '';
-      document.getElementById('modalInputNameAr').value = '';
-      document.getElementById('modalInputNameEn').value = '';
-      document.getElementById('modalInputClassAr').value = '';
-      document.getElementById('modalInputClassEn').value = '';
-      document.getElementById('modalInputUnit').value = '';
-      document.getElementById('modalInputLocation').value = '';
-      document.getElementById('modalInputCustomData').value = '';
-      
-      document.getElementById('addMaterialModal').classList.add('active');
-    }
-    
-    function openEditModal(code) {
-      const item = warehouseItems.find(i => i.code === code);
-      if (!item) return;
-
-      editingCode = code;
-      const t = translations[currentLang];
-      
-      document.getElementById('modalHeaderTitle').textContent = t.editMaterialTitle;
-      document.getElementById('btnSaveModalText').textContent = t.btnSaveChanges;
-
-      // Populate dual-data
-      document.getElementById('modalInputCode').value = item.code;
-      document.getElementById('modalInputNameAr').value = item.nameAr;
-      document.getElementById('modalInputNameEn').value = item.nameEn;
-      document.getElementById('modalInputClassAr').value = item.classAr;
-      document.getElementById('modalInputClassEn').value = item.classEn;
-      document.getElementById('modalInputUnit').value = item.unit;
-      document.getElementById('modalInputLocation').value = item.location;
-      document.getElementById('modalInputCustomData').value = item.customData;
-
       document.getElementById('addMaterialModal').classList.add('active');
     }
 
     function closeAddModal() {
       document.getElementById('addMaterialModal').classList.remove('active');
-      editingCode = null;
+      document.getElementById('modalInputCode').value = '';
+      document.getElementById('modalInputName').value = '';
+      document.getElementById('modalInputUnit').value = '';
+      document.getElementById('modalInputLocation').value = '';
+      document.getElementById('modalInputClassification').value = '';
+      document.getElementById('modalInputCustomData').value = '';
     }
 
-    // Save Material - Handles Both Add & Edit
+    // Save Material from Modal
     function saveMaterialFromModal() {
       const code = document.getElementById('modalInputCode').value.trim();
-      
-      // Dual Name
-      const nameAr = document.getElementById('modalInputNameAr').value.trim();
-      const nameEn = document.getElementById('modalInputNameEn').value.trim();
-      const finalNameAr = nameAr || nameEn || "بدون اسم";
-      const finalNameEn = nameEn || nameAr || "Unnamed";
-
-      // Dual Classification
-      const classAr = document.getElementById('modalInputClassAr').value.trim();
-      const classEn = document.getElementById('modalInputClassEn').value.trim();
-      const finalClassAr = classAr || classEn || "عام";
-      const finalClassEn = classEn || classAr || "General";
-
+      const name = document.getElementById('modalInputName').value.trim();
       const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
       const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
+      const classification = document.getElementById('modalInputClassification').value.trim() || "General";
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
-      const t = translations[currentLang];
-
-      if (!code) {
-        alert("Please enter a Material Code. / يرجى إدخال كود المادة.");
+      if (!code || !name) {
+        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
         return;
       }
 
-      if (editingCode) {
-        if (code !== editingCode && warehouseItems.some(i => i.code === code)) {
-          alert(t.msgCodeExists); return;
-        }
-
-        const itemIndex = warehouseItems.findIndex(i => i.code === editingCode);
-        if (itemIndex > -1) {
-          warehouseItems[itemIndex] = { code, nameAr: finalNameAr, nameEn: finalNameEn, classAr: finalClassAr, classEn: finalClassEn, unit, location, customData };
-          if (code !== editingCode && selectedCodes.has(editingCode)) {
-            selectedCodes.delete(editingCode);
-            selectedCodes.add(code);
-          }
-        }
-      } else {
-        if (warehouseItems.some(i => i.code === code)) {
-          alert(t.msgCodeExists); return;
-        }
-        warehouseItems.unshift({ code, nameAr: finalNameAr, nameEn: finalNameEn, classAr: finalClassAr, classEn: finalClassEn, unit, location, customData });
-      }
-
+      warehouseItems.unshift({ code, name, unit, location, classification, customData });
       saveAndRefresh();
       closeAddModal();
-      alert(t.msgSaved);
+      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
     }
 
+    // Language Switcher Function
     function toggleLanguage() {
       currentLang = currentLang === "ar" ? "en" : "ar";
       document.documentElement.lang = currentLang;
@@ -849,6 +811,8 @@
 
     function applyTranslations() {
       const t = translations[currentLang];
+      
+      // Safe text injector to prevent crashing if elements are dynamically overwritten
       const setTxt = (id, txt) => {
         const el = document.getElementById(id);
         if (el) el.textContent = txt;
@@ -867,22 +831,14 @@
       setTxt('tab2Title', t.tab2);
       setTxt('tab3Title', t.tab3);
       
-      if (editingCode) {
-        setTxt('modalHeaderTitle', t.editMaterialTitle);
-        setTxt('btnSaveModalText', t.btnSaveChanges);
-      } else {
-        setTxt('modalHeaderTitle', t.modalTitle);
-        setTxt('btnSaveModalText', t.btnSaveModal);
-      }
-      
+      setTxt('modalHeaderTitle', t.modalTitle);
       setTxt('lblCodeModal', t.lblCode);
-      setTxt('lblNameArModal', t.lblNameAr);
-      setTxt('lblNameEnModal', t.lblNameEn);
-      setTxt('lblClassArModal', t.lblClassAr);
-      setTxt('lblClassEnModal', t.lblClassEn);
+      setTxt('lblNameModal', t.lblName);
       setTxt('lblUnitModal', t.lblUnit);
       setTxt('lblLocationModal', t.lblLocation);
+      setTxt('lblClassModal', t.lblClass);
       setTxt('lblCustomDataModal', t.lblCustomData);
+      setTxt('btnSaveModalText', t.btnSaveModal);
       setTxt('btnCancelModal', t.btnCancelModal);
 
       setTxt('printModalTitleText', t.printModalTitle);
@@ -914,17 +870,20 @@
       setTxt('lblSelectAll', t.lblSelectAll);
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
       
+      // Update placeholders safely
       const invSearch = document.getElementById('inventorySearch');
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
       const lblSearch = document.getElementById('labelsSearch');
       if (lblSearch) lblSearch.placeholder = t.searchPlaceholder;
     }
 
+    // Triggered explicitly when User changes language strictly inside Label Studio
     function updateLabelStudioLang() {
       populateCategoryDropdowns();
       renderLabelsGrid();
     }
 
+    // Clean Label-Only Print Handler
     function triggerCleanPrint() {
       const labelsTab = document.getElementById('tab-labels');
       if (!labelsTab.classList.contains('active')) {
@@ -938,50 +897,34 @@
       if (selectedCodes.size > 0) {
         cards.forEach(card => {
           const code = card.getAttribute('data-code');
-          if (!selectedCodes.has(code)) card.classList.add('unselected-for-print');
-          else card.classList.remove('unselected-for-print');
+          if (!selectedCodes.has(code)) {
+            card.classList.add('unselected-for-print');
+          } else {
+            card.classList.remove('unselected-for-print');
+          }
         });
       } else {
         cards.forEach(card => card.classList.remove('unselected-for-print'));
       }
+
       window.print();
     }
 
-    // Auto-Migration and Initialization
+    // Initialize App
     function initData() {
-      const v11Stored = localStorage.getItem(STORAGE_KEY);
-      const v10Stored = localStorage.getItem(LEGACY_STORAGE_KEY);
-
-      if (v11Stored) {
-        // Load latest dual-lang data
-        warehouseItems = JSON.parse(v11Stored);
-      } 
-      else if (v10Stored) {
-        // Upgrade Legacy V10 Data (Single Name) to V11 Dual-Lang Format automatically
-        let oldItems = JSON.parse(v10Stored);
-        warehouseItems = oldItems.map(i => {
-          const keyClass = i.classification ? i.classification.toString().trim().toLowerCase() : "";
-          const classAr = legacyClassificationMap[keyClass] ? legacyClassificationMap[keyClass].ar : (i.classification || "عام");
-          const classEn = legacyClassificationMap[keyClass] ? legacyClassificationMap[keyClass].en : (i.classification || "General");
-          
-          return {
-            code: i.code,
-            nameAr: i.name, 
-            nameEn: i.name, // Copies the existing single name to both AR and EN initially
-            classAr: classAr,
-            classEn: classEn,
-            unit: i.unit,
-            location: i.location,
-            customData: i.customData || ""
-          };
-        });
-        localStorage.removeItem(LEGACY_STORAGE_KEY); // Clean up old data
-      } 
-      else {
-        // Blank start
-        warehouseItems = [];
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          warehouseItems = JSON.parse(stored);
+          warehouseItems.forEach(i => {
+            if (!i.customData) i.customData = "";
+          });
+        } catch (e) {
+          warehouseItems = [...initialDataset];
+        }
+      } else {
+        warehouseItems = [...initialDataset];
       }
-
       document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
       applyTranslations();
@@ -998,30 +941,35 @@
       renderLabelsGrid();
     }
 
+    // Navigation Switch
     function switchNav(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
+
       document.getElementById(tabId).classList.add('active');
       el.classList.add('active');
     }
 
+    // Download Excel Template
     function downloadExcelTemplate() {
-      const templateData = [{
-        "كود المادة (Material Code)": "1001",
-        "اسم عربي (Name AR)": "صمام أمان",
-        "اسم انجليزي (Name EN)": "Safety Valve",
-        "تصنيف عربي (Class AR)": "أدوات",
-        "تصنيف انجليزي (Class EN)": "Tools",
-        "الوحدة (Unit)": "قطعة",
-        "الموقع (Location)": "المستودع الرئيسي",
-        "رابط إضافي (Link)": "https://example.com"
-      }];
+      const templateData = [
+        {
+          "كود المادة (Material Code)": "1001",
+          "اسم المادة (Material Name)": "صمام أمان ديزل 2 بوصة",
+          "الوحدة (Unit)": "قطعة",
+          "الموقع (Location)": "المستودع الرئيسي",
+          "التصنيف (Classification)": "العدد والأدوات",
+          "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
+        }
+      ];
+
       const worksheet = XLSX.utils.json_to_sheet(templateData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Warehouse Items");
-      XLSX.writeFile(workbook, "Warehouse_Bilingual_Template.xlsx");
+      XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
     }
 
+    // Import Excel File
     function importExcelFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1031,69 +979,71 @@
         try {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
-          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-          let count = 0;
+          let newItemsCount = 0;
           jsonData.forEach(row => {
-            const code = String(row["كود المادة (Material Code)"] || row["Code"] || "").trim();
-            const nameAr = String(row["اسم عربي (Name AR)"] || row["Name AR"] || row["Name"] || "").trim();
-            const nameEn = String(row["اسم انجليزي (Name EN)"] || row["Name EN"] || row["Name"] || "").trim();
-            const classAr = String(row["تصنيف عربي (Class AR)"] || row["Class AR"] || "عام").trim();
-            const classEn = String(row["تصنيف انجليزي (Class EN)"] || row["Class EN"] || "General").trim();
+            const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || "").trim();
+            const name = String(row["اسم المادة (Material Name)"] || row["Name"] || row["Material Name"] || "").trim();
             const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
             const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
-            const customData = String(row["رابط إضافي (Link)"] || row["Link"] || "").trim();
+            const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
+            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
 
-            if (code && (nameAr || nameEn)) {
-              if (!warehouseItems.some(i => i.code === code)) {
-                warehouseItems.unshift({ code, nameAr, nameEn, classAr, classEn, unit, location, customData });
-                count++;
-              }
+            if (code && name) {
+              warehouseItems.unshift({ code, name, unit, location, classification, customData });
+              newItemsCount++;
             }
           });
+
           saveAndRefresh();
-          alert(`تم استيراد (${count}) مادة بنجاح! / Imported (${count}) items!`);
-        } catch (err) { alert("Error parsing file."); }
+          alert(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة بنجاح!` : `Successfully imported (${newItemsCount}) items!`);
+        } catch (err) {
+          alert("Error parsing file.");
+        }
       };
       reader.readAsArrayBuffer(file);
     }
 
+    // Populate Datalists for Warehouses & Classifications
     function populateDatalists() {
       const dlWarehouse = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
       dlWarehouse.innerHTML = '';
       uniqueWarehouses.forEach(w => {
-        const opt = document.createElement('option'); opt.value = w; dlWarehouse.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = w;
+        dlWarehouse.appendChild(opt);
       });
 
-      const dlClassAr = document.getElementById('modalClassificationListAr');
-      const uniqueClassesAr = [...new Set(warehouseItems.map(i => i.classAr).filter(Boolean))];
-      dlClassAr.innerHTML = '';
-      uniqueClassesAr.forEach(c => {
-        const opt = document.createElement('option'); opt.value = c; dlClassAr.appendChild(opt);
-      });
-
-      const dlClassEn = document.getElementById('modalClassificationListEn');
-      const uniqueClassesEn = [...new Set(warehouseItems.map(i => i.classEn).filter(Boolean))];
-      dlClassEn.innerHTML = '';
-      uniqueClassesEn.forEach(c => {
-        const opt = document.createElement('option'); opt.value = c; dlClassEn.appendChild(opt);
+      const dlClass = document.getElementById('modalClassificationList');
+      const uniqueClasses = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
+      dlClass.innerHTML = '';
+      uniqueClasses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        dlClass.appendChild(opt);
       });
     }
 
+    // Update KPIs
     function updateKPIs() {
       document.getElementById('kpiTotalItems').textContent = warehouseItems.length;
-      const categories = new Set(warehouseItems.map(i => currentLang === 'ar' ? i.classAr : i.classEn).filter(Boolean));
+
+      const categories = new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean));
       document.getElementById('kpiTotalCategories').textContent = categories.size;
+
       const locations = new Set(warehouseItems.map(i => translateLocation(i.location, currentLang)).filter(Boolean));
       document.getElementById('kpiLocations').textContent = locations.size;
     }
 
+    // Render Chart
     function renderAllClassificationsChart() {
       const counts = {};
       warehouseItems.forEach(i => {
-        const cls = currentLang === 'ar' ? i.classAr : i.classEn;
+        const cls = translateClassification(i.classification, currentLang);
         counts[cls] = (counts[cls] || 0) + 1;
       });
 
@@ -1109,45 +1059,68 @@
           labels: labels,
           datasets: [{
             label: currentLang === 'ar' ? 'عدد الأصناف' : 'Item Count',
-            data: data, backgroundColor: '#3a86ff', borderRadius: 6
+            data: data,
+            backgroundColor: '#3a86ff',
+            borderRadius: 6
           }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
           scales: {
             x: { ticks: { color: '#8d99ae' }, grid: { display: false } },
-            y: { ticks: { color: '#8d99ae', stepSize: 1, precision: 0 }, grid: { color: '#2b3a67' }, beginAtZero: true }
+            y: {
+              ticks: {
+                color: '#8d99ae',
+                stepSize: 1,
+                precision: 0
+              },
+              grid: { color: '#2b3a67' },
+              beginAtZero: true
+            }
           }
         }
       });
     }
 
+    // Populate Categories (Preserving Static IDs for translation)
     function populateCategoryDropdowns() {
-      const categories = [...new Set(warehouseItems.map(i => currentLang === 'ar' ? i.classAr : i.classEn).filter(Boolean))];
+      const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
+      
       const invSel = document.getElementById('inventoryCategoryFilter');
+      // Recreate "All Classifications" option while restoring the `id` so translations don't break
       invSel.innerHTML = `<option value="" id="optAllClass1">${translations[currentLang].optAllClass}</option>`;
       categories.forEach(c => {
-        const opt = document.createElement('option'); opt.value = c; opt.textContent = c; invSel.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        invSel.appendChild(opt);
       });
 
+      // For labels studio category filter, match label language selector
       const labelLang = document.getElementById('barcodeLangSelect').value;
-      const labelCategories = [...new Set(warehouseItems.map(i => labelLang === 'ar' ? i.classAr : i.classEn).filter(Boolean))];
+      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, labelLang)).filter(Boolean))];
       const lblSel = document.getElementById('labelsCategoryFilter');
+      // Recreate "All Classifications" option with `id`
       lblSel.innerHTML = `<option value="" id="optAllClass2">${translations[labelLang].optAllClass}</option>`;
       labelCategories.forEach(c => {
-        const opt = document.createElement('option'); opt.value = c; opt.textContent = c; lblSel.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        lblSel.appendChild(opt);
       });
     }
 
+    // Render Table
     function renderInventoryTable() {
       const search = document.getElementById('inventorySearch').value.toLowerCase();
       const cat = document.getElementById('inventoryCategoryFilter').value;
 
       const filtered = warehouseItems.filter(i => {
-        const itemClass = currentLang === 'ar' ? i.classAr : i.classEn;
-        const itemName = currentLang === 'ar' ? i.nameAr : i.nameEn;
-        const matchSearch = i.code.toLowerCase().includes(search) || itemName.toLowerCase().includes(search);
-        const matchCat = !cat || itemClass === cat;
+        const translatedClass = translateClassification(i.classification, currentLang);
+        const matchSearch = i.code.toLowerCase().includes(search) || i.name.toLowerCase().includes(search);
+        const matchCat = !cat || translatedClass === cat;
         return matchSearch && matchCat;
       });
 
@@ -1155,41 +1128,37 @@
       tbody.innerHTML = '';
 
       filtered.forEach(item => {
-        const displayName = currentLang === 'ar' ? item.nameAr : item.nameEn;
-        const displayClass = currentLang === 'ar' ? item.classAr : item.classEn;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${item.code}</strong></td>
-          <td>${displayName}</td>
+          <td>${item.name}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
           <td>${translateLocation(item.location, currentLang)}</td>
-          <td>${displayClass}</td>
+          <td>${translateClassification(item.classification, currentLang)}</td>
           <td>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-outline" style="border-color: var(--accent-blue); color: var(--accent-blue); padding: 4px 10px;" title="تعديل المادة / Edit" onclick="openEditModal('${item.code}')">✏️</button>
-              <button class="del-btn" title="حذف المادة / Delete" onclick="deleteSingleItem('${item.code}')">✕</button>
-            </div>
+            <button class="del-btn" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
+    // Render Barcode Cards Grid (Using Label Language Selector)
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
       const labelLang = document.getElementById('barcodeLangSelect').value;
 
       const filtered = warehouseItems.filter(i => {
-        const itemClass = labelLang === 'ar' ? i.classAr : i.classEn;
-        const itemName = labelLang === 'ar' ? i.nameAr : i.nameEn;
-        const matchSearch = i.code.toLowerCase().includes(search) || itemName.toLowerCase().includes(search);
-        const matchCat = !cat || itemClass === cat;
+        const translatedClass = translateClassification(i.classification, labelLang);
+        const matchSearch = i.code.toLowerCase().includes(search) || i.name.toLowerCase().includes(search);
+        const matchCat = !cat || translatedClass === cat;
         return matchSearch && matchCat;
       });
 
       const grid = document.getElementById('labelsGridContainer');
       grid.innerHTML = '';
+
       const t = translations[labelLang];
 
       filtered.forEach(item => {
@@ -1199,31 +1168,30 @@
         card.setAttribute('data-code', item.code);
 
         const translatedUnit = translateUnit(item.unit, labelLang);
+        const translatedClass = translateClassification(item.classification, labelLang);
         const translatedLocation = translateLocation(item.location, labelLang);
-        const displayName = labelLang === 'ar' ? item.nameAr : item.nameEn;
-        const displayClass = labelLang === 'ar' ? i.classAr : i.classEn;
 
         let customDataHtml = '';
         if (item.customData && item.customData.trim() !== '') {
           const isUrl = item.customData.startsWith('http://') || item.customData.startsWith('https://');
-          if (isUrl) customDataHtml = `<div class="custom-link-badge">🔗 <a href="${item.customData}" target="_blank">${item.customData}</a></div>`;
-          else customDataHtml = `<div class="custom-link-badge">📌 <span>${item.customData}</span></div>`;
+          if (isUrl) {
+            customDataHtml = `<div class="custom-link-badge">🔗 <a href="${item.customData}" target="_blank">${item.customData}</a></div>`;
+          } else {
+            customDataHtml = `<div class="custom-link-badge">📌 <span>${item.customData}</span></div>`;
+          }
         }
 
         card.innerHTML = `
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
             <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <div style="display:flex; gap:6px;">
-              <button class="del-btn" style="background:#e0f2fe; color:#0284c7; font-size:14px;" title="تعديل المادة / Edit" onclick="openEditModal('${item.code}')">✏️</button>
-              <button class="del-btn" title="حذف المادة / Delete" onclick="deleteSingleItem('${item.code}')">✕</button>
-            </div>
+            <button class="del-btn" onclick="deleteSingleItem('${item.code}')">✕</button>
           </div>
-          <div class="sticker-title">${displayName}</div>
+          <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
             <div><label>${t.cardCode}</label><span>${item.code}</span></div>
             <div><label>${t.cardUnit}</label><span>${translatedUnit}</span></div>
-            <div><label>${t.cardClass}</label><span>${displayClass}</span></div>
+            <div><label>${t.cardClass}</label><span>${translatedClass}</span></div>
           </div>
           ${customDataHtml}
           <div class="barcode-container">
@@ -1233,13 +1201,20 @@
         grid.appendChild(card);
 
         try {
-          JsBarcode(`#barcode-${item.code}`, item.code, { format: "CODE128", height: 40, displayValue: true, fontSize: 11, margin: 2 });
+          JsBarcode(`#barcode-${item.code}`, item.code, {
+            format: "CODE128",
+            height: 40,
+            displayValue: true,
+            fontSize: 11,
+            margin: 2
+          });
         } catch (e) {}
       });
 
       document.getElementById('selectedCountBadge').textContent = `(${labelLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
     }
 
+    // Selection Handling
     function toggleSelect(code) {
       if (selectedCodes.has(code)) selectedCodes.delete(code);
       else selectedCodes.add(code);
@@ -1247,11 +1222,15 @@
     }
 
     function toggleSelectAll(masterCb) {
-      if (masterCb.checked) warehouseItems.forEach(i => selectedCodes.add(i.code));
-      else selectedCodes.clear();
+      if (masterCb.checked) {
+        warehouseItems.forEach(i => selectedCodes.add(i.code));
+      } else {
+        selectedCodes.clear();
+      }
       renderLabelsGrid();
     }
 
+    // Delete Single Item
     function deleteSingleItem(code) {
       if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
@@ -1269,14 +1248,18 @@
       }
     }
 
+    // Export Backup JSON
     function exportBackupJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(warehouseItems, null, 2));
       const anchor = document.createElement('a');
       anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `warehouse_bilingual_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      anchor.setAttribute("download", `warehouse_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
     }
 
+    // Init App
     initData();
   </script>
 </body>
