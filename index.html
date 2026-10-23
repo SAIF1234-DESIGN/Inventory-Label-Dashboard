@@ -284,7 +284,7 @@
 
   <!-- Top Header Navigation -->
   <header>
-    <!-- Left Top Right Corner: Dashboard Language Toggle Button -->
+    <!-- Left Top Corner: Dashboard Language Toggle Button -->
     <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
       
@@ -402,7 +402,7 @@
             <option value="" id="optAllClass2">جميع التصنيفات</option>
           </select>
           
-          <!-- Dedicated Barcode Label Language Selector -->
+          <!-- Independent Barcode Label Language Selector -->
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
             <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
@@ -523,7 +523,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V7";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V8";
 
     // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
@@ -806,6 +806,10 @@
       currentLang = currentLang === "ar" ? "en" : "ar";
       document.documentElement.lang = currentLang;
       document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+      
+      // Synchronize label lang selector with dashboard lang by default upon switch
+      document.getElementById('barcodeLangSelect').value = currentLang;
+
       applyTranslations();
       saveAndRefresh();
     }
@@ -911,6 +915,7 @@
       } else {
         warehouseItems = [...initialDataset];
       }
+      document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
       applyTranslations();
       saveAndRefresh();
@@ -994,7 +999,6 @@
 
     // Populate Datalists for Warehouses & Classifications
     function populateDatalists() {
-      // Warehouse Datalist
       const dlWarehouse = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
       dlWarehouse.innerHTML = '';
@@ -1004,7 +1008,6 @@
         dlWarehouse.appendChild(opt);
       });
 
-      // Classification Datalist
       const dlClass = document.getElementById('modalClassificationList');
       const uniqueClasses = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
       dlClass.innerHTML = '';
@@ -1071,22 +1074,34 @@
       });
     }
 
-    // Populate Categories
+    // Populate Categories (Using Dashboard Language)
     function populateCategoryDropdowns() {
       const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
       
-      ['inventoryCategoryFilter', 'labelsCategoryFilter'].forEach(id => {
-        const sel = document.getElementById(id);
-        const currVal = sel.value;
-        sel.innerHTML = `<option value="">${translations[currentLang].optAllClass}</option>`;
-        categories.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          sel.appendChild(opt);
-        });
-        sel.value = currVal;
+      const invSel = document.getElementById('inventoryCategoryFilter');
+      const currInvVal = invSel.value;
+      invSel.innerHTML = `<option value="">${translations[currentLang].optAllClass}</option>`;
+      categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        invSel.appendChild(opt);
       });
+      invSel.value = currInvVal;
+
+      // For labels studio category filter, match label language selector
+      const labelLang = document.getElementById('barcodeLangSelect').value;
+      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, labelLang)).filter(Boolean))];
+      const lblSel = document.getElementById('labelsCategoryFilter');
+      const currLblVal = lblSel.value;
+      lblSel.innerHTML = `<option value="">${translations[labelLang].optAllClass}</option>`;
+      labelCategories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        lblSel.appendChild(opt);
+      });
+      lblSel.value = currLblVal;
     }
 
     // Render Table
@@ -1120,7 +1135,7 @@
       });
     }
 
-    // Render Barcode Cards Grid
+    // Render Barcode Cards Grid (Using Label Language Selector)
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
