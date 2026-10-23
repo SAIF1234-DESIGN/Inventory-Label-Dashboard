@@ -428,8 +428,8 @@
             <option value="" id="optAllClass1">جميع التصنيفات</option>
           </select>
         </div>
-        <div>
-          <button class="btn btn-primary" onclick="printSelectedInventoryItems()">🖨️ <span id="btnPrintSelectedInvText">طباعة المواد المحددة (Print Selected)</span></button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" onclick="generateSelectedInventoryItems()">🏷️ <span id="btnGenerateSelectedInvText">توليد المواد المحددة (Generate Selected)</span></button>
         </div>
       </div>
 
@@ -449,7 +449,7 @@
               <th>Warehouse / Location</th>
               <th>Classification</th>
               <th style="text-align:center;">Print</th>
-              <th style="text-align:center;">Generate Label</th>
+              <th style="text-align:center;">Generate</th>
               <th style="text-align:center;">Edit</th>
               <th style="text-align:center;">Delete</th>
             </tr>
@@ -465,6 +465,11 @@
     <div id="tab-labels" class="tab-content">
       <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث في الملصقات المولدّة..." oninput="renderLabelsGrid()" style="max-width: 250px;">
+          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 200px;">
+            <option value="" id="optAllClassLabels">جميع التصنيفات</option>
+          </select>
+
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
             <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
@@ -477,7 +482,7 @@
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
           <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
           <button class="btn btn-danger" onclick="clearLabelStudio()">🗑️ <span id="btnClearStudioText">إفراغ الاستوديو</span></button>
-          <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintStudioText">طباعة الملصقات</span></button>
+          <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintStudioText">طباعة الكل</span></button>
         </div>
       </div>
 
@@ -602,8 +607,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V22";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V3";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V23";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V4";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -755,9 +760,9 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        btnPrintSelectedInv: "طباعة المواد المحددة (Print Selected)",
+        btnGenerateSelectedInv: "توليد المواد المحددة (Generate Selected)",
         btnClearStudio: "إفراغ الاستوديو",
-        btnPrintStudio: "طباعة الملصقات",
+        btnPrintStudio: "طباعة الكل",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
@@ -804,9 +809,9 @@
         chartHeaderTitle: "Classifications Breakdown",
         chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
-        btnPrintSelectedInv: "Print Selected Items",
+        btnGenerateSelectedInv: "Generate Selected Items",
         btnClearStudio: "Clear Studio",
-        btnPrintStudio: "Print Labels",
+        btnPrintStudio: "Print All",
         btnConfigPrint: "⚙️ Page & Label Size",
         lblBarcodeLang: "Label Lang:",
         searchPlaceholder: "Search by code or name...",
@@ -1054,7 +1059,7 @@
       setTxt('chartHeaderTitle', t.chartHeaderTitle);
       setTxt('chartHeaderSub', t.chartHeaderSub);
       
-      setTxt('btnPrintSelectedInvText', t.btnPrintSelectedInv);
+      setTxt('btnGenerateSelectedInvText', t.btnGenerateSelectedInv);
       setTxt('btnClearStudioText', t.btnClearStudio);
       setTxt('btnPrintStudioText', t.btnPrintStudio);
       setTxt('btnConfigPrintText', t.btnConfigPrint);
@@ -1072,7 +1077,7 @@
       alert(currentLang === 'ar' ? `تم توليد ملصق المادة (${code}) بنجاح في استوديو الملصقات!` : `Label for item (${code}) generated successfully in Label Studio!`);
     }
 
-    // Print single item label directly
+    // Direct Print single item label
     function printSingleItemLabel(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
@@ -1089,8 +1094,8 @@
       }, 300);
     }
 
-    // Batch print selected items from inventory table
-    function printSelectedInventoryItems() {
+    // Batch generate selected items from inventory table in background
+    function generateSelectedInventoryItems() {
       const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
       if (checkedBoxes.length === 0) {
         alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل من جدول المخزون أولاً." : "Please select at least one item from the inventory table first.");
@@ -1102,12 +1107,7 @@
       });
       saveStudioToStorage();
       renderLabelsGrid();
-
-      const labelsTab = document.getElementById('tab-labels');
-      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-      document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
-      labelsTab.classList.add('active');
-      document.getElementById('tab3Title').classList.add('active');
+      alert(currentLang === 'ar' ? `تم توليد (${checkedBoxes.length}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedBoxes.length}) labels in Label Studio!`);
     }
 
     function toggleSelectAllInventory(masterCb) {
@@ -1129,13 +1129,6 @@
       if (studioItemCodes.size === 0) {
         alert(currentLang === 'ar' ? "استوديو الملصقات فارغ." : "Label Studio is empty.");
         return;
-      }
-      const labelsTab = document.getElementById('tab-labels');
-      if (!labelsTab.classList.contains('active')) {
-        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
-        labelsTab.classList.add('active');
-        document.getElementById('tab3Title').classList.add('active');
       }
       window.print();
     }
@@ -1385,6 +1378,17 @@
         opt.textContent = c;
         invSel.appendChild(opt);
       });
+
+      const labelLang = document.getElementById('barcodeLangSelect').value;
+      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i, labelLang)).filter(Boolean))];
+      const lblSel = document.getElementById('labelsCategoryFilter');
+      lblSel.innerHTML = `<option value="" id="optAllClassLabels">${translations[labelLang].optAllClass}</option>`;
+      labelCategories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        lblSel.appendChild(opt);
+      });
     }
 
     function renderInventoryTable() {
@@ -1421,7 +1425,10 @@
     }
 
     function renderLabelsGrid() {
+      const search = document.getElementById('labelsSearch').value.toLowerCase();
+      const cat = document.getElementById('labelsCategoryFilter').value;
       const labelLang = document.getElementById('barcodeLangSelect').value;
+
       const grid = document.getElementById('labelsGridContainer');
       grid.innerHTML = '';
 
@@ -1433,9 +1440,26 @@
         return;
       }
 
+      const filteredCodes = Array.from(studioItemCodes).filter(code => {
+        const item = warehouseItems.find(i => i.code === code);
+        if (!item) return false;
+        const translatedClass = translateClassification(item, labelLang);
+        const translatedName = translateName(item, labelLang).toLowerCase();
+        const matchSearch = item.code.toLowerCase().includes(search) || translatedName.includes(search);
+        const matchCat = !cat || translatedClass === cat;
+        return matchSearch && matchCat;
+      });
+
+      if (filteredCodes.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          <h3>لا توجد نتائج مطابقة للبحث</h3>
+        </div>`;
+        return;
+      }
+
       const t = translations[labelLang];
 
-      studioItemCodes.forEach(code => {
+      filteredCodes.forEach(code => {
         const item = warehouseItems.find(i => i.code === code);
         if (!item) return;
 
