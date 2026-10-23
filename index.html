@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة لوجستيات وإستعلامات المخزون | Logistics & Inventory Management System</title>
+  <title>Logistics & Inventory Management System</title>
   <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- JsBarcode for barcode rendering -->
@@ -129,7 +129,7 @@
     .btn-primary { background: var(--accent-blue); color: white; }
     .btn-primary:hover { background: #2563eb; }
     .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: var(--success-hover); }
+    .btn-success:hover { background: #059669; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: var(--danger-hover); }
     .btn-warning { background: var(--warning); color: white; }
@@ -249,32 +249,34 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Responsive Inventory Table with Dynamic Font Scaling for User Display */
+    /* Maximum Fit Inventory Table (Zero Horizontal Scroll - Table Layout Fixed) */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       width: 100%;
-      overflow-x: auto;
+      overflow-x: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .excel-table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
-      direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 10px 12px;
+      padding: 8px 6px;
       border: 1px solid #2b3a67;
-      font-size: clamp(0.7rem, 0.85vw, 0.875rem);
+      font-size: 0.75rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
     .excel-table th {
       background: #0e1735;
       color: var(--accent-cyan);
       font-weight: 700;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
       text-align: center;
     }
     .excel-table tbody tr {
@@ -288,18 +290,28 @@
       background-color: #243054;
     }
 
+    /* Fixed Column Width Allocation for 100% Screen Fit */
+    .col-select { width: 4%; text-align: center; }
+    .col-code { width: 12%; }
+    .col-name { width: 25%; }
+    .col-unit { width: 9%; }
+    .col-location { width: 22%; }
+    .col-class { width: 12%; }
+    .col-action { width: 4%; text-align: center; }
+
     .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
-      border-radius: 6px;
-      padding: 6px 10px;
+      border-radius: 4px;
+      padding: 4px 4px;
       cursor: pointer;
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      width: 100%;
     }
     .action-sub-btn:hover { background: var(--accent-blue); }
     .action-sub-btn.del { background: #fee2e2; color: #dc2626; }
@@ -353,33 +365,33 @@
   <!-- Top Header Navigation -->
   <header>
     <div style="display: flex; align-items: center; gap: 16px;">
-      <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
+      <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">العربية</span></button>
       
       <div class="brand-title">
         <div class="brand-logo">📦</div>
         <div class="brand-text">
-          <h1 id="appTitleText">نظام إدارة لوجستيات وإستعلامات المخزون</h1>
-          <p id="appSubTitleText">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
+          <h1 id="appTitleText">Logistics & Inventory Management System</h1>
+          <p id="appSubTitleText">Central Equipment, Parts & Classification Control Center</p>
         </div>
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
+      <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ Add New Material</span></button>
 
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
-      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
-      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
-      <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون الحالي</span></button>
-      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
+      <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">Download Template</span></button>
+      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">Import Excel Data</span></button>
+      <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">Download Inventory</span></button>
+      <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">Save Backup</span></button>
     </div>
   </header>
 
   <!-- Navigation Bar -->
   <div class="nav-bar">
-    <div class="nav-tab active" id="tab1Title" onclick="switchNav('tab-overview', this)">📊 نظرة عامة والملخص</div>
-    <div class="nav-tab" id="tab2Title" onclick="switchNav('tab-inventory', this)">📋 سجل المواد والمخزون</div>
-    <div class="nav-tab" id="tab3Title" onclick="switchNav('tab-labels', this)">🏷️ مولد طباعة الباركود</div>
+    <div class="nav-tab active" id="tab1Title" onclick="switchNav('tab-overview', this)">📊 Overview & Summary</div>
+    <div class="nav-tab" id="tab2Title" onclick="switchNav('tab-inventory', this)">📋 Inventory Register</div>
+    <div class="nav-tab" id="tab3Title" onclick="switchNav('tab-labels', this)">🏷️ Barcode Labels Studio</div>
   </div>
 
   <div class="container">
@@ -389,27 +401,27 @@
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3 id="kpi1Title">إجمالي المواد المسجلة</h3>
+            <h3 id="kpi1Title">Total Registered Items</h3>
             <div class="value" id="kpiTotalItems">0</div>
-            <div class="subtext" id="kpi1Sub">إجمالي الأصناف بالمخازن</div>
+            <div class="subtext" id="kpi1Sub">Total items in stock</div>
           </div>
           <div class="kpi-icon">📦</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3 id="kpi2Title">التصنيفات المعتمدة</h3>
+            <h3 id="kpi2Title">Approved Classifications</h3>
             <div class="value" id="kpiTotalCategories">0</div>
-            <div class="subtext" id="kpi2Sub">جميع الفئات المسجلة</div>
+            <div class="subtext" id="kpi2Sub">All registered categories</div>
           </div>
           <div class="kpi-icon">📚</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-info">
-            <h3 id="kpi3Title">المستودعات المسجلة</h3>
+            <h3 id="kpi3Title">Registered Warehouses</h3>
             <div class="value" id="kpiLocations">0</div>
-            <div class="subtext" id="kpi3Sub">مواقع التخزين المستهدفة</div>
+            <div class="subtext" id="kpi3Sub">Target storage locations</div>
           </div>
           <div class="kpi-icon">🏢</div>
         </div>
@@ -417,8 +429,8 @@
 
       <div class="chart-container">
         <div style="margin-bottom: 16px;">
-          <h2 id="chartHeaderTitle">توزيع جميع التصنيفات (All Classifications Overview)</h2>
-          <p style="font-size:0.8rem; color:var(--text-muted);" id="chartHeaderSub">رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل</p>
+          <h2 id="chartHeaderTitle">Classifications Breakdown</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);" id="chartHeaderSub">Bar chart displaying total items per classification category</p>
         </div>
         <div style="height: 340px; position: relative;">
           <canvas id="allClassificationsChart"></canvas>
@@ -430,9 +442,9 @@
     <div id="tab-inventory" class="tab-content">
       <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 300px;">
+          <input type="text" id="inventorySearch" class="input-field" placeholder="Search by code or name..." oninput="renderInventoryTable()" style="max-width: 300px;">
           <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 250px;">
-            <option value="" id="optAllClass1">جميع التصنيفات</option>
+            <option value="" id="optAllClass1">All Classifications</option>
           </select>
         </div>
         <div>
@@ -449,17 +461,17 @@
               <th colspan="5" style="background:#080e21; text-align:center;">Actions</th>
             </tr>
             <tr>
-              <th style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
-              <th>Material Code</th>
-              <th>Material Name</th>
-              <th>Unit</th>
-              <th>Warehouse / Location</th>
-              <th>Classification</th>
-              <th style="text-align:center;">Print</th>
-              <th style="text-align:center;">Generate</th>
-              <th style="text-align:center;">Ungenerate</th>
-              <th style="text-align:center;">Edit</th>
-              <th style="text-align:center;">Delete</th>
+              <th class="col-select" style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
+              <th class="col-code">Material Code</th>
+              <th class="col-name">Material Name</th>
+              <th class="col-unit">Unit</th>
+              <th class="col-location">Warehouse / Location</th>
+              <th class="col-class">Classification</th>
+              <th class="col-action" style="text-align:center;">Print</th>
+              <th class="col-action" style="text-align:center;">Generate</th>
+              <th class="col-action" style="text-align:center;">Ungenerate</th>
+              <th class="col-action" style="text-align:center;">Edit</th>
+              <th class="col-action" style="text-align:center;">Delete</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -473,23 +485,23 @@
     <div id="tab-labels" class="tab-content">
       <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث في الملصقات المولدّة..." oninput="renderLabelsGrid()" style="max-width: 250px;">
+          <input type="text" id="labelsSearch" class="input-field" placeholder="Search in generated labels..." oninput="renderLabelsGrid()" style="max-width: 250px;">
           <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 200px;">
-            <option value="" id="optAllClassLabels">جميع التصنيفات</option>
+            <option value="" id="optAllClassLabels">All Classifications</option>
           </select>
 
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
+            <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Label Lang:</label>
             <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
-              <option value="ar">العربية (Arabic)</option>
               <option value="en">English (إنجليزي)</option>
+              <option value="ar">العربية (Arabic)</option>
             </select>
           </div>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
-          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
-          <button class="btn btn-danger" onclick="clearLabelStudio()" id="btnClearStudioText">🗑️ إفراغ الاستوديو</button>
+          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ Page & Label Size</button>
+          <button class="btn btn-danger" onclick="clearLabelStudio()" id="btnClearStudioText">🗑️ Clear Studio</button>
           <button class="btn btn-success" onclick="triggerCleanPrint()" id="btnPrintStudioText">🖨️ Print</button>
         </div>
       </div>
@@ -505,12 +517,12 @@
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title" id="printModalTitleText">⚙️ إعدادات مقاس الصفحة والملصقات</div>
+        <div class="modal-title" id="printModalTitleText">⚙️ Page & Label Size Configurator</div>
         <button class="modal-close" onclick="closePrintSettingsModal()">✕</button>
       </div>
       <div class="modal-grid">
         <div class="form-group">
-          <label id="printLbl1Text">1. نوع ورقة الطباعة (Page Size)</label>
+          <label id="printLbl1Text">1. Page Size</label>
           <select id="cfgPageSize" class="input-field" onchange="updatePrintConfigPreview()">
             <option value="A4">A4 Sheet (210mm × 297mm)</option>
             <option value="Letter">Letter Sheet (8.5" × 11")</option>
@@ -520,27 +532,27 @@
         </div>
 
         <div class="form-group">
-          <label id="printLbl2Text">2. نمط عدد الملصقات في الصفحة (Grid Preset)</label>
+          <label id="printLbl2Text">2. Grid Layout Preset</label>
           <select id="cfgGridPreset" class="input-field" onchange="updatePrintConfigPreview()">
-            <option value="8_labels">8 الملصقات في الصفحة (2 columns × 4 rows)</option>
-            <option value="10_labels">10 الملصقات في الصفحة (2 columns × 5 rows)</option>
-            <option value="12_labels">12 ملصق في الصفحة (3 columns × 4 rows)</option>
-            <option value="21_labels">21 ملصق قياسي (3 columns × 7 rows)</option>
-            <option value="single_thermal">ملصق حراري واحد لكل صفحة (Single Thermal Sticker)</option>
+            <option value="8_labels">8 Labels per page (2 columns × 4 rows)</option>
+            <option value="10_labels">10 Labels per page (2 columns × 5 rows)</option>
+            <option value="12_labels">12 Labels per page (3 columns × 4 rows)</option>
+            <option value="21_labels">21 Standard labels (3 columns × 7 rows)</option>
+            <option value="single_thermal">Single Thermal Sticker per page</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label id="printLbl3Text">3. اتجاه الصفحة (Page Orientation)</label>
+          <label id="printLbl3Text">3. Page Orientation</label>
           <select id="cfgOrientation" class="input-field" onchange="updatePrintConfigPreview()">
-            <option value="portrait">عمودي (Portrait)</option>
-            <option value="landscape">أفقي (Landscape)</option>
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
           </select>
         </div>
 
         <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-outline" onclick="closePrintSettingsModal()" id="printCancelBtnText">إلغاء</button>
-          <button class="btn btn-success" onclick="applyPrintSettingsAndClose()" id="printSaveBtnText">💾 حفظ الإعدادات وتطبيق الطباعة</button>
+          <button class="btn btn-outline" onclick="closePrintSettingsModal()" id="printCancelBtnText">Cancel</button>
+          <button class="btn btn-success" onclick="applyPrintSettingsAndClose()" id="printSaveBtnText">💾 Save Settings & Apply</button>
         </div>
       </div>
     </div>
@@ -550,73 +562,73 @@
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title" id="modalHeaderTitle">✏️ إضافة تفاصيل المادة (Add Material Details)</div>
+        <div class="modal-title" id="modalHeaderTitle">✏️ Add Material Details</div>
         <button class="modal-close" onclick="closeAddModal()">✕</button>
       </div>
       <div class="modal-grid">
         <input type="hidden" id="modalEditOriginalCode" value="">
         
         <div class="form-group">
-          <label id="lblCodeModal">1. كود المادة (Material Code)</label>
-          <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
+          <label id="lblCodeModal">1. Material Code</label>
+          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446">
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblNameModal">2. اسم المادة بالعربي (Arabic Name)</label>
-            <input type="text" id="modalInputNameAr" class="input-field" placeholder="اسم المادة بالعربي..." oninput="autoFillNameEn(this.value)">
+            <label id="lblNameModal">2. Arabic Name</label>
+            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)">
           </div>
           <div class="form-group">
-            <label id="lblNameModalEn">اسم المادة بالانجليزي (English Name)</label>
-            <input type="text" id="modalInputNameEn" class="input-field" placeholder="Material Name in English..." oninput="autoFillNameAr(this.value)">
+            <label id="lblNameModalEn">English Name</label>
+            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)">
           </div>
         </div>
 
         <div class="form-group">
-          <label id="lblUnitModal">3. الوحدة (Unit)</label>
+          <label id="lblUnitModal">3. Unit</label>
           <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي تلقائياً إذا ترك فارغاً]</label>
+          <label id="lblLocationModal">4. Warehouse / Location [Defaults to Main Warehouse if left unselected]</label>
           <select id="modalInputLocation" class="input-field">
-            <option value="Main Warehouse / Southern Region Warehouse">المستودع الرئيسي / مستودع المنطقة الجنوبية (Main Warehouse / Southern Region Warehouse) - [الافتراضي]</option>
-            <option value="Southern Region Warehouse">مستودع المنطقة الجنوبية (Southern Region Warehouse)</option>
-            <option value="Hail Region Warehouse">مستودع منطقة حائل (Hail Region Warehouse)</option>
-            <option value="Eastern Region Warehouse">مستودع المنطقة الشرقية (Eastern Region Warehouse)</option>
-            <option value="Main Warehouse">المستودع الرئيسي (Main Warehouse)</option>
+            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse - [Default]</option>
+            <option value="Southern Region Warehouse">Southern Region Warehouse</option>
+            <option value="Hail Region Warehouse">Hail Region Warehouse</option>
+            <option value="Eastern Region Warehouse">Eastern Region Warehouse</option>
+            <option value="Main Warehouse">Main Warehouse</option>
           </select>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblClassModal">5. التصنيف بالعربي (Arabic Classification)</label>
-            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="التصنيف بالعربي..." oninput="autoFillClassEn(this.value)">
+            <label id="lblClassModal">5. Arabic Classification</label>
+            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)">
             <datalist id="modalClassificationArList"></datalist>
           </div>
           <div class="form-group">
-            <label id="lblClassModalEn">التصنيف بالانجليزي (English Classification)</label>
-            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="Classification in English..." oninput="autoFillClassAr(this.value)">
+            <label id="lblClassModalEn">English Classification</label>
+            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)">
             <datalist id="modalClassificationEnList"></datalist>
           </div>
         </div>
 
         <div class="form-group">
-          <label id="lblCustomDataModal">6. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
-          <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com أو ملاحظة...">
+          <label id="lblCustomDataModal">6. Custom Link / Data (Optional)</label>
+          <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com or note...">
         </div>
 
         <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">إلغاء</button>
-          <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">حفظ المادة (Save Item)</span></button>
+          <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">Cancel</button>
+          <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">Save Item</span></button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V25";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V6";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V26";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V7";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -733,57 +745,8 @@
       }
     }
 
-    let currentLang = "ar";
+    let currentLang = "en"; // Default Landing Language set to English
     const translations = {
-      ar: {
-        toggleBtn: "English",
-        appTitleText: "نظام إدارة لوجستيات وإستعلامات المخزون",
-        appSubTitleText: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
-        btnAddMaterial: "+ إضافة مادة جديدة",
-        btnTemplate: "تحميل قالب اكسل",
-        btnImport: "استيراد بيانات اكسل",
-        btnDownloadInv: "تحميل المخزون الحالي",
-        btnBackup: "حفظ النسخة الاحتياطية",
-        tab1: "📊 نظرة عامة والملخص",
-        tab2: "📋 سجل المواد والمخزون",
-        tab3: "🏷️ مولد طباعة الباركود",
-        modalTitleAdd: "✏️ إضافة تفاصيل المادة (Add Material Details)",
-        modalTitleEdit: "✏️ تعديل تفاصيل المادة (Edit Material Details)",
-        lblCode: "1. كود المادة (Material Code)",
-        lblName: "2. اسم المادة بالعربي (Arabic Name)",
-        lblNameEn: "اسم المادة بالانجليزي (English Name)",
-        lblUnit: "3. الوحدة (Unit)",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
-        lblClass: "5. التصنيف بالعربي (Arabic Classification)",
-        lblClassEn: "التصنيف بالانجليزي (English Classification)",
-        lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
-        btnSaveModal: "حفظ المادة (Save Item)",
-        btnCancelModal: "إلغاء",
-        kpi1Title: "إجمالي المواد المسجلة",
-        kpi1Sub: "إجمالي الأصناف بالمخازن",
-        kpi2Title: "التصنيفات المعتمدة",
-        kpi2Sub: "جميع الفئات المسجلة",
-        kpi3Title: "المستودعات المسجلة",
-        kpi3Sub: "مواقع التخزين المستهدفة",
-        chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
-        chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
-        optAllClass: "جميع التصنيفات",
-        btnGenerateSelectedInv: "Generate Selected",
-        btnClearStudio: "🗑️ إفراغ الاستوديو",
-        btnPrintStudio: "🖨️ Print",
-        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
-        lblBarcodeLang: "لغة الملصق:",
-        searchPlaceholder: "ابحث بكود المادة أو الاسم...",
-        cardCode: "الكود",
-        cardUnit: "الوحدة",
-        cardClass: "التصنيف",
-        printModalTitle: "⚙️ إعدادات مقاس الصفحة والملصقات",
-        printLbl1: "1. نوع ورقة الطباعة (Page Size)",
-        printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
-        printLbl3: "3. اتجاه الصفحة (Page Orientation)",
-        printCancelBtn: "إلغاء",
-        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
-      },
       en: {
         toggleBtn: "العربية",
         appTitleText: "Logistics & Inventory Management System",
@@ -832,6 +795,55 @@
         printLbl3: "3. Page Orientation",
         printCancelBtn: "Cancel",
         printSaveBtn: "💾 Save Settings & Apply"
+      },
+      ar: {
+        toggleBtn: "English",
+        appTitleText: "نظام إدارة لوجستيات وإستعلامات المخزون",
+        appSubTitleText: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
+        btnAddMaterial: "+ إضافة مادة جديدة",
+        btnTemplate: "تحميل قالب اكسل",
+        btnImport: "استيراد بيانات اكسل",
+        btnDownloadInv: "تحميل المخزون الحالي",
+        btnBackup: "حفظ النسخة الاحتياطية",
+        tab1: "📊 نظرة عامة والملخص",
+        tab2: "📋 سجل المواد والمخزون",
+        tab3: "🏷️ مولد طباعة الباركود",
+        modalTitleAdd: "✏️ إضافة تفاصيل المادة (Add Material Details)",
+        modalTitleEdit: "✏️ تعديل تفاصيل المادة (Edit Material Details)",
+        lblCode: "1. كود المادة (Material Code)",
+        lblName: "2. اسم المادة بالعربي (Arabic Name)",
+        lblNameEn: "اسم المادة بالانجليزي (English Name)",
+        lblUnit: "3. الوحدة (Unit)",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
+        lblClass: "5. التصنيف بالعربي (Arabic Classification)",
+        lblClassEn: "التصنيف بالانجليزي (English Classification)",
+        lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
+        btnSaveModal: "حفظ المادة (Save Item)",
+        btnCancelModal: "إلغاء",
+        kpi1Title: "إجمالي المواد المسجلة",
+        kpi1Sub: "إجمالي الأصناف بالمخازن",
+        kpi2Title: "التصنيفات المعتمدة",
+        kpi2Sub: "جميع الفئات المسجلة",
+        kpi3Title: "المستودعات المسجلة",
+        kpi3Sub: "مواقع التخزين المستهدفة",
+        chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
+        chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
+        optAllClass: "جميع التصنيفات",
+        btnGenerateSelectedInv: "Generate Selected",
+        btnClearStudio: "إفراغ الاستوديو",
+        btnPrintStudio: "Print",
+        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
+        lblBarcodeLang: "لغة الملصق:",
+        searchPlaceholder: "Search by code or name...",
+        cardCode: "الكود",
+        cardUnit: "الوحدة",
+        cardClass: "التصنيف",
+        printModalTitle: "⚙️ إعدادات مقاس الصفحة والملصقات",
+        printLbl1: "1. نوع ورقة الطباعة (Page Size)",
+        printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
+        printLbl3: "3. اتجاه الصفحة (Page Orientation)",
+        printCancelBtn: "إلغاء",
+        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
       }
     };
 
@@ -1223,14 +1235,14 @@
     function downloadExcelTemplate() {
       const templateData = [
         {
-          "كود المادة (Material Code)": "1001",
-          "اسم المادة بالعربي (Arabic Name)": "صمام أمان ديزل 2 بوصة",
-          "اسم المادة بالانجليزي (English Name)": "Diesel Safety Valve 2 Inch",
-          "الوحدة (Unit)": "قطعة",
-          "الموقع (Location)": "Main Warehouse / Southern Region Warehouse",
-          "التصنيف بالعربي (Arabic Classification)": "العدد والأدوات",
-          "التصنيف بالانجليزي (English Classification)": "Tools",
-          "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
+          "Material Code": "1001",
+          "Arabic Name": "صمام أمان ديزل 2 بوصة",
+          "English Name": "Diesel Safety Valve 2 Inch",
+          "Unit": "Pieces",
+          "Warehouse / Location": "Main Warehouse / Southern Region Warehouse",
+          "Arabic Classification": "العدد والأدوات",
+          "English Classification": "Tools",
+          "Custom Data / Link": "https://example.com"
         }
       ];
 
@@ -1278,14 +1290,14 @@
 
           let newItemsCount = 0;
           jsonData.forEach(row => {
-            const code = String(row["كود المادة (Material Code)"] || row["Material Code"] || row["Code"] || "").trim();
-            const nameAr = String(row["اسم المادة بالعربي (Arabic Name)"] || row["Arabic Name"] || row["Name"] || "").trim();
-            const nameEn = String(row["اسم المادة بالانجليزي (English Name)"] || row["English Name"] || nameAr).trim();
-            const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
-            const location = String(row["الموقع (Location)"] || row["Warehouse / Location"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
-            const classificationAr = String(row["التصنيف بالعربي (Arabic Classification)"] || row["Arabic Classification"] || row["Classification"] || "").trim() || "عام";
-            const classificationEn = String(row["التصنيف بالانجليزي (English Classification)"] || row["English Classification"] || classificationAr).trim() || "General";
-            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data / Link"] || row["Custom Data"] || "").trim();
+            const code = String(row["Material Code"] || row["Code"] || "").trim();
+            const nameAr = String(row["Arabic Name"] || row["Name"] || "").trim();
+            const nameEn = String(row["English Name"] || nameAr).trim();
+            const unit = String(row["Unit"] || "Pieces").trim();
+            const location = String(row["Warehouse / Location"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
+            const classificationAr = String(row["Arabic Classification"] || row["Classification"] || "").trim() || "General";
+            const classificationEn = String(row["English Classification"] || classificationAr).trim() || "General";
+            const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
             if (code && (nameAr || nameEn)) {
               warehouseItems.unshift({
@@ -1303,7 +1315,7 @@
           });
 
           saveAndRefresh();
-          alert(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة بنجاح!` : `Successfully imported (${newItemsCount}) items!`);
+          alert(`Successfully imported (${newItemsCount}) items!`);
         } catch (err) {
           alert("Error parsing file.");
         }
@@ -1431,17 +1443,17 @@
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
-          <td><strong>${item.code}</strong></td>
-          <td>${translateName(item, currentLang)}</td>
-          <td>${translateUnit(item.unit, currentLang)}</td>
-          <td>${translateLocation(item.location, currentLang)}</td>
-          <td>${translateClassification(item, currentLang)}</td>
-          <td style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️ Print</button></td>
-          <td style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
-          <td style="text-align:center;"><button class="action-sub-btn warning" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺ Ungenerate</button></td>
-          <td style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️ Edit</button></td>
-          <td style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕ Delete</button></td>
+          <td class="col-select" style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
+          <td class="col-code" title="${item.code}"><strong>${item.code}</strong></td>
+          <td class="col-name" title="${translateName(item, currentLang)}">${translateName(item, currentLang)}</td>
+          <td class="col-unit" title="${translateUnit(item.unit, currentLang)}">${translateUnit(item.unit, currentLang)}</td>
+          <td class="col-location" title="${translateLocation(item.location, currentLang)}">${translateLocation(item.location, currentLang)}</td>
+          <td class="col-class" title="${translateClassification(item, currentLang)}">${translateClassification(item, currentLang)}</td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️ Print</button></td>
+          <td class="col-action" style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺ Ungen</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️ Edit</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕ Del</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1457,8 +1469,8 @@
 
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-          <h3>استوديو الملصقات فارغ</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على زر (Generate) بجانب أي مادة في جدول المخزون لإظهار ملصقها هنا.</p>
+          <h3>Label Studio is Empty</h3>
+          <p style="margin-top: 8px; font-size: 0.85rem;">Click on the (Generate) button beside any item in the inventory register to display its label here.</p>
         </div>`;
         return;
       }
@@ -1475,7 +1487,7 @@
 
       if (filteredCodes.length === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-          <h3>لا توجد نتائج مطابقة للبحث</h3>
+          <h3>No matching labels found</h3>
         </div>`;
         return;
       }
@@ -1508,7 +1520,7 @@
         card.innerHTML = `
           <div class="sticker-header">
             <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <button class="del-btn" title="إزالة من الاستوديو" onclick="ungenerateSingleLabel('${item.code}')">✕</button>
+            <button class="del-btn" title="Remove from Studio" onclick="ungenerateSingleLabel('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${translatedName}</div>
           <div class="meta-box">
@@ -1557,7 +1569,7 @@
     }
 
     function deleteSingleItem(code) {
-      if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
+      if (confirm(`Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         studioItemCodes.delete(code);
         saveStudioToStorage();
