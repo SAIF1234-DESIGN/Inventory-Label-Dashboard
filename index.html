@@ -485,8 +485,8 @@
           <input type="text" id="modalInputName" class="input-field" placeholder="اسم المادة بالتفصيل...">
         </div>
         <div class="form-group">
-          <label id="lblUnitModal">3. الوحدة (Unit) - (حبة $\rightarrow$ Pieces تلقائياً)</label>
-          <input type="text" id="modalInputUnit" class="input-field" placeholder="حبة, قطعة, EA, Set, Meter, Litre...">
+          <label id="lblUnitModal">3. الوحدة (Unit)</label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
         </div>
         <div class="form-group">
           <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location)</label>
@@ -512,30 +512,77 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V4";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V5";
 
-    // Unit Conversion Mapping Dictionary
-    function normalizeUnit(rawUnit) {
-      if (!rawUnit) return "Pieces";
-      const u = rawUnit.toString().trim().toLowerCase();
+    // Bilingual Dictionaries for Units & Classifications
+    const unitMap = {
+      "pieces": { ar: "قطعة", en: "Pieces" },
+      "قطعة": { ar: "قطعة", en: "Pieces" },
+      "حبة": { ar: "قطعة", en: "Pieces" },
+      "roll": { ar: "لفة", en: "Roll" },
+      "لفة": { ar: "لفة", en: "Roll" },
+      "set": { ar: "طقم", en: "Set" },
+      "طقم": { ar: "طقم", en: "Set" },
+      "litre": { ar: "لتر", en: "Litre" },
+      "لتر": { ar: "لتر", en: "Litre" },
+      "drum": { ar: "برميل", en: "Drum" },
+      "برميل": { ar: "برميل", en: "Drum" },
+      "gallon": { ar: "جالون", en: "Gallon" },
+      "جالون": { ar: "جالون", en: "Gallon" },
+      "can": { ar: "علبة", en: "Can" },
+      "علبة": { ar: "علبة", en: "Can" },
+      "pair": { ar: "زوج", en: "Pair" },
+      "زوج": { ar: "زوج", en: "Pair" },
+      "box": { ar: "صندوق", en: "Box" },
+      "صندوق": { ar: "صندوق", en: "Box" },
+      "meter": { ar: "متر", en: "Meter" },
+      "متر": { ar: "متر", en: "Meter" }
+    };
 
-      if (u === "حبة" || u === "حبه" || u === "قطعة" || u === "قطعه" || u === "حبة/قطعة" || u === "piece" || u === "pieces" || u === "ea" || u === "pill") {
-        return "Pieces";
-      }
-      if (u === "متر" || u === "meter" || u === "m") return "Meter";
-      if (u === "طقم" || u === "set") return "Set";
-      if (u === "لتر" || u === "litre" || u === "liter" || u === "l") return "Litre";
-      if (u === "برميل" || u === "drum") return "Drum";
-      if (u === "جالون" || u === "gallon") return "Gallon";
-      if (u === "علبة" || u === "عبوة" || u === "can") return "Can";
-      if (u === "زوج" || u === "pair") return "Pair";
-      if (u === "صندوق" || u === "كرتون" || u === "box" || u === "carton") return "Box";
-      if (u === "لفة" || u === "roll") return "Roll";
+    const classificationMap = {
+      "electrical components": { ar: "المكونات الكهربائية", en: "Electrical Components" },
+      "المكونات الكهربائية": { ar: "المكونات الكهربائية", en: "Electrical Components" },
+      "tools": { ar: "العدد والأدوات", en: "Tools" },
+      "العدد والأدوات": { ar: "العدد والأدوات", en: "Tools" },
+      "fuel pump equipment & spare parts": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
+      "معدات مضخات الوقود وقطع الغيار": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
+      "retail / sales items": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
+      "مواد التجزئة والمبيعات": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
+      "tires": { ar: "الإطارات", en: "Tires" },
+      "الإطارات": { ar: "الإطارات", en: "Tires" },
+      "firefighting & safety": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" },
+      "معدات الإطفاء والسلامة": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" }
+    };
 
-      return rawUnit;
+    const locationMap = {
+      "main warehouse/southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
+      "المستودع الرئيسي / مستودع المنطقة الجنوبية": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
+      "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
+      "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
+    };
+
+    function translateUnit(u, lang) {
+      if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
+      const key = u.toString().trim().toLowerCase();
+      if (unitMap[key]) return unitMap[key][lang];
+      return u;
     }
 
-    // Comprehensive Bilingual Dictionary
+    function translateClassification(c, lang) {
+      if (!c) return lang === 'ar' ? "عام" : "General";
+      const key = c.toString().trim().toLowerCase();
+      if (classificationMap[key]) return classificationMap[key][lang];
+      return c;
+    }
+
+    function translateLocation(l, lang) {
+      if (!l) return lang === 'ar' ? "المستودع الرئيسي" : "Main Warehouse";
+      const key = l.toString().trim().toLowerCase();
+      if (locationMap[key]) return locationMap[key][lang];
+      return l;
+    }
+
+    // Comprehensive Bilingual Dictionary for UI
     let currentLang = "ar";
     const translations = {
       ar: {
@@ -725,8 +772,7 @@
     function saveMaterialFromModal() {
       const code = document.getElementById('modalInputCode').value.trim();
       const name = document.getElementById('modalInputName').value.trim();
-      const rawUnit = document.getElementById('modalInputUnit').value.trim();
-      const unit = normalizeUnit(rawUnit);
+      const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
       const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
       const classification = document.getElementById('modalInputClassification').value.trim() || "General";
       const customData = document.getElementById('modalInputCustomData').value.trim();
@@ -843,7 +889,6 @@
         try {
           warehouseItems = JSON.parse(stored);
           warehouseItems.forEach(i => {
-            i.unit = normalizeUnit(i.unit);
             if (!i.customData) i.customData = "";
           });
         } catch (e) {
@@ -882,9 +927,9 @@
         {
           "كود المادة (Material Code)": "1001",
           "اسم المادة (Material Name)": "صمام أمان ديزل 2 بوصة",
-          "الوحدة (Unit)": "حبة",
-          "الموقع (Location)": "Main Warehouse",
-          "التصنيف (Classification)": "Fuel Equipment",
+          "الوحدة (Unit)": "قطعة",
+          "الموقع (Location)": "المستودع الرئيسي",
+          "التصنيف (Classification)": "العدد والأدوات",
           "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
         }
       ];
@@ -913,8 +958,7 @@
           jsonData.forEach(row => {
             const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || "").trim();
             const name = String(row["اسم المادة (Material Name)"] || row["Name"] || row["Material Name"] || "").trim();
-            const rawUnit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
-            const unit = normalizeUnit(rawUnit);
+            const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
             const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
             const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
             const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
@@ -950,10 +994,10 @@
     function updateKPIs() {
       document.getElementById('kpiTotalItems').textContent = warehouseItems.length;
 
-      const categories = new Set(warehouseItems.map(i => i.classification).filter(Boolean));
+      const categories = new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean));
       document.getElementById('kpiTotalCategories').textContent = categories.size;
 
-      const locations = new Set(warehouseItems.map(i => i.location).filter(Boolean));
+      const locations = new Set(warehouseItems.map(i => translateLocation(i.location, currentLang)).filter(Boolean));
       document.getElementById('kpiLocations').textContent = locations.size;
     }
 
@@ -961,7 +1005,7 @@
     function renderAllClassificationsChart() {
       const counts = {};
       warehouseItems.forEach(i => {
-        const cls = i.classification || (currentLang === 'ar' ? 'غير محدد' : 'Unassigned');
+        const cls = translateClassification(i.classification, currentLang);
         counts[cls] = (counts[cls] || 0) + 1;
       });
 
@@ -996,7 +1040,7 @@
 
     // Populate Categories
     function populateCategoryDropdowns() {
-      const categories = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
+      const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
       
       ['inventoryCategoryFilter', 'labelsCategoryFilter'].forEach(id => {
         const sel = document.getElementById(id);
@@ -1018,8 +1062,9 @@
       const cat = document.getElementById('inventoryCategoryFilter').value;
 
       const filtered = warehouseItems.filter(i => {
+        const translatedClass = translateClassification(i.classification, currentLang);
         const matchSearch = i.code.toLowerCase().includes(search) || i.name.toLowerCase().includes(search);
-        const matchCat = !cat || i.classification === cat;
+        const matchCat = !cat || translatedClass === cat;
         return matchSearch && matchCat;
       });
 
@@ -1031,9 +1076,9 @@
         tr.innerHTML = `
           <td><strong>${item.code}</strong></td>
           <td>${item.name}</td>
-          <td>${item.unit || 'Pieces'}</td>
-          <td>${item.location || '-'}</td>
-          <td>${item.classification || '-'}</td>
+          <td>${translateUnit(item.unit, currentLang)}</td>
+          <td>${translateLocation(item.location, currentLang)}</td>
+          <td>${translateClassification(item.classification, currentLang)}</td>
           <td>
             <button class="del-btn" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
           </td>
@@ -1048,8 +1093,9 @@
       const cat = document.getElementById('labelsCategoryFilter').value;
 
       const filtered = warehouseItems.filter(i => {
+        const translatedClass = translateClassification(i.classification, currentLang);
         const matchSearch = i.code.toLowerCase().includes(search) || i.name.toLowerCase().includes(search);
-        const matchCat = !cat || i.classification === cat;
+        const matchCat = !cat || translatedClass === cat;
         return matchSearch && matchCat;
       });
 
@@ -1064,6 +1110,10 @@
         card.className = 'sticker-card';
         card.setAttribute('data-code', item.code);
 
+        const translatedUnit = translateUnit(item.unit, currentLang);
+        const translatedClass = translateClassification(item.classification, currentLang);
+        const translatedLocation = translateLocation(item.location, currentLang);
+
         let customDataHtml = '';
         if (item.customData && item.customData.trim() !== '') {
           const isUrl = item.customData.startsWith('http://') || item.customData.startsWith('https://');
@@ -1077,14 +1127,14 @@
         card.innerHTML = `
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
-            <span style="font-size:0.75rem; color:#64748b;">🏢 ${item.location || 'Main Warehouse'}</span>
+            <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
             <button class="del-btn" onclick="deleteSingleItem('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
             <div><label>${t.cardCode}</label><span>${item.code}</span></div>
-            <div><label>${t.cardUnit}</label><span>${item.unit || 'Pieces'}</span></div>
-            <div><label>${t.cardClass}</label><span>${item.classification || '-'}</span></div>
+            <div><label>${t.cardUnit}</label><span>${translatedUnit}</span></div>
+            <div><label>${t.cardClass}</label><span>${translatedClass}</span></div>
           </div>
           ${customDataHtml}
           <div class="barcode-container">
