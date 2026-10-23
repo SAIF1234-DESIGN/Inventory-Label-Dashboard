@@ -222,7 +222,7 @@
     th { background: #0e1735; color: var(--text-muted); font-weight: 700; }
     tr:hover { background: rgba(255,255,255,0.02); }
 
-    /* Dynamic Print Page Rule Holder */
+    /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .card-checkbox,
@@ -553,7 +553,11 @@
         btnDeleteSelected: "حذف المحددة",
         btnPrintSelected: "طباعة المحدد",
         lblSelectAll: "تحديد الكل (Select All)",
-        searchPlaceholder: "ابحث بكود المادة أو الاسم..."
+        searchPlaceholder: "ابحث بكود المادة أو الاسم...",
+        // Barcode Card Labels
+        cardCode: "الكود",
+        cardUnit: "الوحدة",
+        cardClass: "التصنيف"
       },
       en: {
         toggleBtn: "العربية",
@@ -593,7 +597,11 @@
         btnDeleteSelected: "Delete Selected",
         btnPrintSelected: "Print Selected",
         lblSelectAll: "Select All",
-        searchPlaceholder: "Search by code or name..."
+        searchPlaceholder: "Search by code or name...",
+        // Barcode Card Labels
+        cardCode: "Code",
+        cardUnit: "Unit",
+        cardClass: "Classification"
       }
     };
 
@@ -991,6 +999,8 @@
       const grid = document.getElementById('labelsGridContainer');
       grid.innerHTML = '';
 
+      const t = translations[currentLang];
+
       filtered.forEach(item => {
         const isChecked = selectedCodes.has(item.code);
         const card = document.createElement('div');
@@ -1004,9 +1014,9 @@
           </div>
           <div class="sticker-title">${item.name}</div>
           <div class="meta-box">
-            <div><label>${currentLang === 'ar' ? 'الكود' : 'Code'}</label><span>${item.code}</span></div>
-            <div><label>${currentLang === 'ar' ? 'الوحدة' : 'Unit'}</label><span>${item.unit || 'Pieces'}</span></div>
-            <div><label>${currentLang === 'ar' ? 'التصنيف' : 'Class'}</label><span>${item.classification || '-'}</span></div>
+            <div><label>${t.cardCode}</label><span>${item.code}</span></div>
+            <div><label>${t.cardUnit}</label><span>${item.unit || 'Pieces'}</span></div>
+            <div><label>${t.cardClass}</label><span>${item.classification || '-'}</span></div>
           </div>
           <div class="barcode-container">
             <svg id="barcode-${item.code}"></svg>
