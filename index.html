@@ -319,7 +319,7 @@
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
-      #tab-overview, #tab-inventory, .labels-controls-bar {
+      #tab-overview, #tab-inventory, .labels-controls-bar, .studio-label-checkbox {
         display: none !important;
       }
 
@@ -533,10 +533,10 @@
         <div class="form-group">
           <label id="printLbl1Text">1. Page Size</label>
           <select id="cfgPageSize" class="input-field">
-            <option value="A4" selected>A4 Sheet (210mm × 297mm)</option>
+            <option value="A4">A4 Sheet (210mm × 297mm)</option>
             <option value="Letter">Letter Sheet (8.5" × 11")</option>
             <option value="Roll4x6">Thermal Roll 4" × 6" (100mm × 150mm)</option>
-            <option value="Roll4x2">Thermal Continuous Roll 4" × 2"</option>
+            <option value="Roll4x2" selected>Thermal Continuous Roll 4" × 2" (Default)</option>
           </select>
         </div>
 
@@ -635,8 +635,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V38";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V19";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V39";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V20";
 
     let nameMemory = {};
     let classificationMemory = {};
