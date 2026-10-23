@@ -22,6 +22,7 @@
       --danger: #ef4444;
       --danger-hover: #dc2626;
       --success: #10b981;
+      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -128,6 +129,8 @@
     .btn-success:hover { background: #059669; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: var(--danger-hover); }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-warning:hover { background: #d97706; }
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
     .btn-outline:hover { background: rgba(255,255,255,0.05); }
 
@@ -191,7 +194,10 @@
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .card-checkbox { width: 18px; height: 18px; cursor: pointer; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
+    .card-actions-group { display: flex; gap: 4px; align-items: center; }
+    .icon-btn { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { background: #e2e8f0; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     .del-btn:hover { background: #fca5a5; }
 
     .sticker-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; line-height: 1.4; }
@@ -240,7 +246,7 @@
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
-      .btn, .input-field, .del-btn, .card-checkbox,
+      .btn, .input-field, .del-btn, .icon-btn, .card-checkbox,
       #tab-overview, #tab-inventory, .labels-controls-bar, .selection-bar-container {
         display: none !important;
       }
@@ -474,7 +480,7 @@
     </div>
   </div>
 
-  <!-- ADD MATERIAL POPUP MODAL -->
+  <!-- ADD / EDIT MATERIAL POPUP MODAL -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -482,6 +488,7 @@
         <button class="modal-close" onclick="closeAddModal()">✕</button>
       </div>
       <div class="modal-grid">
+        <input type="hidden" id="modalEditOriginalCode" value="">
         <div class="form-group">
           <label id="lblCodeModal">1. كود المادة (Material Code)</label>
           <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
@@ -521,9 +528,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V10";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V11";
 
-    // Bilingual Dictionaries for Units & Classifications
+    // Comprehensive Bilingual Dictionaries for Units, Names, Classifications & Locations
     const unitMap = {
       "pieces": { ar: "قطعة", en: "Pieces" },
       "قطعة": { ar: "قطعة", en: "Pieces" },
@@ -570,6 +577,24 @@
       "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
     };
 
+    // Name Map for Material Names translation support
+    const nameMap = {
+      "لفة سلك 10*4 100 يارد": { ar: "لفة سلك 10*4 100 يارد", en: "Wire Roll 10*4 100 Yards" },
+      "wire roll 10*4 100 yards": { ar: "لفة سلك 10*4 100 يارد", en: "Wire Roll 10*4 100 Yards" },
+      "قطاعة القفل 180": { ar: "قطاعة القفل 180", en: "Lock Cutter 180" },
+      "lock cutter 180": { ar: "قطاعة القفل 180", en: "Lock Cutter 180" },
+      "سولينأئد فالف فرانتير": { ar: "سولينأئد فالف فرانتير", en: "Frontier Solenoid Valve" },
+      "frontier solenoid valve": { ar: "سولينأئد فالف فرانتير", en: "Frontier Solenoid Valve" },
+      "black dot pvc 58*125cm medium ستارة": { ar: "BLACK DOT PVC 58*125CM MEDIUM ستارة", en: "Black Dot PVC 58*125cm Medium Curtain" },
+      "black dot pvc 58*125cm medium curtain": { ar: "BLACK DOT PVC 58*125CM MEDIUM ستارة", en: "Black Dot PVC 58*125cm Medium Curtain" },
+      "مفتاح ابو جلمبو 18 بوصه": { ar: "مفتاح ابو جلمبو 18 بوصه", en: "Adjustable Wrench 18 Inch" },
+      "adjustable wrench 18 inch": { ar: "مفتاح ابو جلمبو 18 بوصه", en: "Adjustable Wrench 18 Inch" },
+      "كفر اكس لاين تروبيق جي - r22.5/385/65": { ar: "كفر اكس لاين تروبيق جي - R22.5/385/65", en: "X-Line Tropic G Tire - R22.5/385/65" },
+      "x-line tropic g tire - r22.5/385/65": { ar: "كفر اكس لاين تروبيق جي - R22.5/385/65", en: "X-Line Tropic G Tire - R22.5/385/65" },
+      "مستعمل مضخة حريق صغيره": { ar: "مستعمل مضخة حريق صغيره", en: "Used Small Fire Pump" },
+      "used small fire pump": { ar: "مستعمل مضخة حريق صغيره", en: "Used Small Fire Pump" }
+    };
+
     function translateUnit(u, lang) {
       if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
       const key = u.toString().trim().toLowerCase();
@@ -591,6 +616,13 @@
       return l;
     }
 
+    function translateName(n, lang) {
+      if (!n) return "";
+      const key = n.toString().trim().toLowerCase();
+      if (nameMap[key]) return nameMap[key][lang];
+      return n;
+    }
+
     // Comprehensive Bilingual Dictionary for UI
     let currentLang = "ar";
     const translations = {
@@ -606,7 +638,8 @@
         tab1: "📊 نظرة عامة والملخص",
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
-        modalTitle: "✏️ إضافة تفاصيل المادة (Add Material Details)",
+        modalTitleAdd: "✏️ إضافة تفاصيل المادة (Add Material Details)",
+        modalTitleEdit: "✏️ تعديل تفاصيل المادة (Edit Material Details)",
         lblCode: "1. كود المادة (Material Code)",
         lblName: "2. اسم المادة (Material Name)",
         lblUnit: "3. الوحدة (Unit)",
@@ -658,7 +691,8 @@
         tab1: "📊 Overview & Summary",
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
-        modalTitle: "✏️ Add Material Details",
+        modalTitleAdd: "✏️ Add Material Details",
+        modalTitleEdit: "✏️ Edit Material Details",
         lblCode: "1. Material Code",
         lblName: "2. Material Name",
         lblUnit: "3. Unit",
@@ -762,23 +796,41 @@
       `;
     }
 
-    // Modal Control Functions
+    // Modal Control Functions (Add & Edit)
     function openAddModal() {
-      document.getElementById('addMaterialModal').classList.add('active');
-    }
-
-    function closeAddModal() {
-      document.getElementById('addMaterialModal').classList.remove('active');
+      document.getElementById('modalEditOriginalCode').value = '';
+      document.getElementById('modalHeaderTitle').textContent = translations[currentLang].modalTitleAdd;
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputName').value = '';
       document.getElementById('modalInputUnit').value = '';
       document.getElementById('modalInputLocation').value = '';
       document.getElementById('modalInputClassification').value = '';
       document.getElementById('modalInputCustomData').value = '';
+      document.getElementById('addMaterialModal').classList.add('active');
     }
 
-    // Save Material from Modal
+    function openEditModal(code) {
+      const item = warehouseItems.find(i => i.code === code);
+      if (!item) return;
+
+      document.getElementById('modalEditOriginalCode').value = item.code;
+      document.getElementById('modalHeaderTitle').textContent = translations[currentLang].modalTitleEdit;
+      document.getElementById('modalInputCode').value = item.code;
+      document.getElementById('modalInputName').value = item.name;
+      document.getElementById('modalInputUnit').value = item.unit;
+      document.getElementById('modalInputLocation').value = item.location;
+      document.getElementById('modalInputClassification').value = item.classification;
+      document.getElementById('modalInputCustomData').value = item.customData || '';
+      document.getElementById('addMaterialModal').classList.add('active');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addMaterialModal').classList.remove('active');
+    }
+
+    // Save Material from Modal (Handles both Add & Edit)
     function saveMaterialFromModal() {
+      const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const name = document.getElementById('modalInputName').value.trim();
       const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
@@ -791,10 +843,25 @@
         return;
       }
 
-      warehouseItems.unshift({ code, name, unit, location, classification, customData });
+      if (originalCode) {
+        // Edit Mode
+        const index = warehouseItems.findIndex(i => i.code === originalCode);
+        if (index !== -1) {
+          warehouseItems[index] = { code, name, unit, location, classification, customData };
+        }
+        if (selectedCodes.has(originalCode)) {
+          selectedCodes.delete(originalCode);
+          selectedCodes.add(code);
+        }
+        alert(currentLang === 'ar' ? "تم تحديث بيانات المادة بنجاح!" : "Material updated successfully!");
+      } else {
+        // Add Mode
+        warehouseItems.unshift({ code, name, unit, location, classification, customData });
+        alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
+      }
+
       saveAndRefresh();
       closeAddModal();
-      alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
     }
 
     // Language Switcher Function
@@ -812,7 +879,6 @@
     function applyTranslations() {
       const t = translations[currentLang];
       
-      // Safe text injector to prevent crashing if elements are dynamically overwritten
       const setTxt = (id, txt) => {
         const el = document.getElementById(id);
         if (el) el.textContent = txt;
@@ -831,7 +897,6 @@
       setTxt('tab2Title', t.tab2);
       setTxt('tab3Title', t.tab3);
       
-      setTxt('modalHeaderTitle', t.modalTitle);
       setTxt('lblCodeModal', t.lblCode);
       setTxt('lblNameModal', t.lblName);
       setTxt('lblUnitModal', t.lblUnit);
@@ -870,14 +935,12 @@
       setTxt('lblSelectAll', t.lblSelectAll);
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
       
-      // Update placeholders safely
       const invSearch = document.getElementById('inventorySearch');
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
       const lblSearch = document.getElementById('labelsSearch');
       if (lblSearch) lblSearch.placeholder = t.searchPlaceholder;
     }
 
-    // Triggered explicitly when User changes language strictly inside Label Studio
     function updateLabelStudioLang() {
       populateCategoryDropdowns();
       renderLabelsGrid();
@@ -1084,12 +1147,11 @@
       });
     }
 
-    // Populate Categories (Preserving Static IDs for translation)
+    // Populate Categories
     function populateCategoryDropdowns() {
       const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
       
       const invSel = document.getElementById('inventoryCategoryFilter');
-      // Recreate "All Classifications" option while restoring the `id` so translations don't break
       invSel.innerHTML = `<option value="" id="optAllClass1">${translations[currentLang].optAllClass}</option>`;
       categories.forEach(c => {
         const opt = document.createElement('option');
@@ -1098,11 +1160,9 @@
         invSel.appendChild(opt);
       });
 
-      // For labels studio category filter, match label language selector
       const labelLang = document.getElementById('barcodeLangSelect').value;
       const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, labelLang)).filter(Boolean))];
       const lblSel = document.getElementById('labelsCategoryFilter');
-      // Recreate "All Classifications" option with `id`
       lblSel.innerHTML = `<option value="" id="optAllClass2">${translations[labelLang].optAllClass}</option>`;
       labelCategories.forEach(c => {
         const opt = document.createElement('option');
@@ -1131,19 +1191,22 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${item.code}</strong></td>
-          <td>${item.name}</td>
+          <td>${translateName(item.name, currentLang)}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
           <td>${translateLocation(item.location, currentLang)}</td>
           <td>${translateClassification(item.classification, currentLang)}</td>
           <td>
-            <button class="del-btn" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
+            <div style="display:flex; gap:6px;">
+              <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
+              <button class="del-btn" title="حذف" onclick="deleteSingleItem('${item.code}')">✕</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // Render Barcode Cards Grid (Using Label Language Selector)
+    // Render Barcode Cards Grid
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
@@ -1167,6 +1230,7 @@
         card.className = 'sticker-card';
         card.setAttribute('data-code', item.code);
 
+        const translatedName = translateName(item.name, labelLang);
         const translatedUnit = translateUnit(item.unit, labelLang);
         const translatedClass = translateClassification(item.classification, labelLang);
         const translatedLocation = translateLocation(item.location, labelLang);
@@ -1185,9 +1249,12 @@
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
             <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <button class="del-btn" onclick="deleteSingleItem('${item.code}')">✕</button>
+            <div class="card-actions-group">
+              <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
+              <button class="del-btn" title="حذف" onclick="deleteSingleItem('${item.code}')">✕</button>
+            </div>
           </div>
-          <div class="sticker-title">${item.name}</div>
+          <div class="sticker-title">${translatedName}</div>
           <div class="meta-box">
             <div><label>${t.cardCode}</label><span>${item.code}</span></div>
             <div><label>${t.cardUnit}</label><span>${translatedUnit}</span></div>
