@@ -249,7 +249,7 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Zero Horizontal Scroll & LTR Content-Aware Table */
+    /* Zero Horizontal Scroll & True Content-Aware Table */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -260,15 +260,15 @@
     }
     .excel-table {
       width: 100%;
-      table-layout: fixed;
+      table-layout: auto; /* True Content-Aware Sizing */
       border-collapse: collapse;
       direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 8px 10px; /* Minor space from border */
+      padding: 10px 12px; /* Minor space from border */
       border: 1px solid #2b3a67;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       word-break: break-word;
       white-space: normal;
       overflow-wrap: break-word;
@@ -291,28 +291,22 @@
       background-color: #243054;
     }
 
-    /* Content-Aware Proportional Widths (Zero Scroll Fit) */
-    .col-select { width: 4%; text-align: center; }
-    .col-code { width: 11%; }
-    .col-name { width: 24%; }
-    .col-unit { width: 8%; }
-    .col-location { width: 23%; }
-    .col-class { width: 13%; }
-    .col-action { width: 3.4%; text-align: center; }
+    /* Specific column sizing allowances */
+    .col-select { width: 40px; text-align: center; white-space: nowrap; }
+    .col-action { width: 80px; text-align: center; white-space: nowrap; }
 
     .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
       border-radius: 4px;
-      padding: 4px 2px;
+      padding: 5px 8px;
       cursor: pointer;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
     }
     .action-sub-btn:hover { background: var(--accent-blue); }
     .action-sub-btn.del { background: #fee2e2; color: #dc2626; }
@@ -463,11 +457,11 @@
             </tr>
             <tr>
               <th class="col-select" style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
-              <th class="col-code">Material Code</th>
-              <th class="col-name">Material Name</th>
-              <th class="col-unit">Unit</th>
-              <th class="col-location">Warehouse / Location</th>
-              <th class="col-class">Classification</th>
+              <th>Material Code</th>
+              <th>Material Name</th>
+              <th>Unit</th>
+              <th>Warehouse / Location</th>
+              <th>Classification</th>
               <th class="col-action" style="text-align:center;">Print</th>
               <th class="col-action" style="text-align:center;">Generate</th>
               <th class="col-action" style="text-align:center;">Ungenerate</th>
@@ -628,8 +622,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V29";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V10";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V30";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V11";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -1445,11 +1439,11 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="col-select" style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
-          <td class="col-code"><strong>${item.code}</strong></td>
-          <td class="col-name">${translateName(item, currentLang)}</td>
-          <td class="col-unit">${translateUnit(item.unit, currentLang)}</td>
-          <td class="col-location">${translateLocation(item.location, currentLang)}</td>
-          <td class="col-class">${translateClassification(item, currentLang)}</td>
+          <td><strong>${item.code}</strong></td>
+          <td>${translateName(item, currentLang)}</td>
+          <td>${translateUnit(item.unit, currentLang)}</td>
+          <td>${translateLocation(item.location, currentLang)}</td>
+          <td>${translateClassification(item, currentLang)}</td>
           <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
           <td class="col-action" style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
           <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
