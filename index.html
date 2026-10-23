@@ -147,6 +147,12 @@
     }
     .input-field:focus { border-color: var(--accent-blue); }
 
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
     /* Modal Popup Styles */
     .modal-overlay {
       position: fixed; inset: 0;
@@ -160,7 +166,7 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      width: 100%; max-width: 550px;
+      width: 100%; max-width: 600px;
       padding: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       max-height: 90vh;
@@ -489,40 +495,54 @@
       </div>
       <div class="modal-grid">
         <input type="hidden" id="modalEditOriginalCode" value="">
+        
         <div class="form-group">
           <label id="lblCodeModal">1. كود المادة (Material Code)</label>
           <input type="text" id="modalInputCode" class="input-field" placeholder="مثال: 7272446">
         </div>
-        <div class="form-group">
-          <label id="lblNameModal">2. اسم المادة بالعربي (Arabic Name)</label>
-          <input type="text" id="modalInputNameAr" class="input-field" placeholder="اسم المادة بالعربي...">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label id="lblNameModal">2. اسم المادة بالعربي (Arabic Name)</label>
+            <input type="text" id="modalInputNameAr" class="input-field" placeholder="اسم المادة بالعربي..." oninput="autoFillNameEn(this.value)">
+          </div>
+          <div class="form-group">
+            <label id="lblNameModalEn">اسم المادة بالانجليزي (English Name)</label>
+            <input type="text" id="modalInputNameEn" class="input-field" placeholder="Material Name in English..." oninput="autoFillNameAr(this.value)">
+          </div>
         </div>
-        <div class="form-group">
-          <label id="lblNameModalEn">اسم المادة بالانجليزي (English Name)</label>
-          <input type="text" id="modalInputNameEn" class="input-field" placeholder="Material Name in English...">
-        </div>
+
         <div class="form-group">
           <label id="lblUnitModal">3. الوحدة (Unit)</label>
           <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
         </div>
+
         <div class="form-group">
-          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location)</label>
-          <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="اختر أو اكتب اسم المستودع...">
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يترك فارغاً للمستودع الرئيسي]</label>
+          <input type="text" id="modalInputLocation" list="modalWarehouseList" class="input-field" placeholder="المستودع الرئيسي / مستودع المنطقة الجنوبية">
           <datalist id="modalWarehouseList">
             <!-- Dynamic Datalist Options -->
           </datalist>
         </div>
-        <div class="form-group">
-          <label id="lblClassModal">5. التصنيف (Classification)</label>
-          <input type="text" id="modalInputClassification" list="modalClassificationList" class="input-field" placeholder="Tools, Filters, Electrical...">
-          <datalist id="modalClassificationList">
-            <!-- Dynamic Datalist Options -->
-          </datalist>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label id="lblClassModal">5. التصنيف بالعربي (Arabic Classification)</label>
+            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="التصنيف بالعربي..." oninput="autoFillClassEn(this.value)">
+            <datalist id="modalClassificationArList"></datalist>
+          </div>
+          <div class="form-group">
+            <label id="lblClassModalEn">التصنيف بالانجليزي (English Classification)</label>
+            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="Classification in English..." oninput="autoFillClassAr(this.value)">
+            <datalist id="modalClassificationEnList"></datalist>
+          </div>
         </div>
+
         <div class="form-group">
           <label id="lblCustomDataModal">6. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
           <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com أو ملاحظة...">
         </div>
+
         <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
           <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">إلغاء</button>
           <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">حفظ المادة (Save Item)</span></button>
@@ -532,9 +552,12 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V13";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V14";
 
-    // Bilingual Dictionaries for Units & Classifications
+    // Translation memory dictionaries that auto-learn user entries
+    let nameMemory = {};
+    let classificationMemory = {};
+
     const unitMap = {
       "pieces": { ar: "قطعة", en: "Pieces" },
       "قطعة": { ar: "قطعة", en: "Pieces" },
@@ -559,28 +582,6 @@
       "متر": { ar: "متر", en: "Meter" }
     };
 
-    const classificationMap = {
-      "electrical components": { ar: "المكونات الكهربائية", en: "Electrical Components" },
-      "المكونات الكهربائية": { ar: "المكونات الكهربائية", en: "Electrical Components" },
-      "tools": { ar: "العدد والأدوات", en: "Tools" },
-      "العدد والأدوات": { ar: "العدد والأدوات", en: "Tools" },
-      "fuel pump equipment & spare parts": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
-      "معدات مضخات الوقود وقطع الغيار": { ar: "معدات مضخات الوقود وقطع الغيار", en: "Fuel Pump Equipment & Spare Parts" },
-      "retail / sales items": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
-      "مواد التجزئة والمبيعات": { ar: "مواد التجزئة والمبيعات", en: "Retail / Sales Items" },
-      "tires": { ar: "الإطارات", en: "Tires" },
-      "الإطارات": { ar: "الإطارات", en: "Tires" },
-      "firefighting & safety": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" },
-      "معدات الإطفاء والسلامة": { ar: "معدات الإطفاء والسلامة", en: "Firefighting & Safety" }
-    };
-
-    const locationMap = {
-      "main warehouse/southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
-      "المستودع الرئيسي / مستودع المنطقة الجنوبية": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse/Southern Region Warehouse" },
-      "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
-      "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" }
-    };
-
     function translateUnit(u, lang) {
       if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
       const key = u.toString().trim().toLowerCase();
@@ -588,17 +589,21 @@
       return u;
     }
 
-    function translateClassification(c, lang) {
-      if (!c) return lang === 'ar' ? "عام" : "General";
-      const key = c.toString().trim().toLowerCase();
-      if (classificationMap[key]) return classificationMap[key][lang];
-      return c;
+    function translateClassification(item, lang) {
+      if (lang === 'ar') {
+        return item.classificationAr || item.classification || "عام";
+      } else {
+        return item.classificationEn || item.classification || "General";
+      }
     }
 
     function translateLocation(l, lang) {
-      if (!l) return lang === 'ar' ? "المستودع الرئيسي" : "Main Warehouse";
-      const key = l.toString().trim().toLowerCase();
-      if (locationMap[key]) return locationMap[key][lang];
+      const defaultLoc = "المستودع الرئيسي / مستودع المنطقة الجنوبية";
+      const defaultLocEn = "Main Warehouse/Southern Region Warehouse";
+      if (!l || l.trim() === "") return lang === 'ar' ? defaultLoc : defaultLocEn;
+      if (l.includes("Main Warehouse") || l.includes("المستودع الرئيسي")) {
+        return lang === 'ar' ? defaultLoc : defaultLocEn;
+      }
       return l;
     }
 
@@ -611,7 +616,42 @@
       }
     }
 
-    // Comprehensive Bilingual Dictionary for UI
+    // Auto-fill memory hooks
+    function autoFillNameEn(val) {
+      const key = val.trim().toLowerCase();
+      if (nameMemory[key] && !document.getElementById('modalInputNameEn').value) {
+        document.getElementById('modalInputNameEn').value = nameMemory[key];
+      }
+    }
+
+    function autoFillNameAr(val) {
+      const key = val.trim().toLowerCase();
+      for (let ar in nameMemory) {
+        if (nameMemory[ar].toLowerCase() === key && !document.getElementById('modalInputNameAr').value) {
+          document.getElementById('modalInputNameAr').value = ar;
+          break;
+        }
+      }
+    }
+
+    function autoFillClassEn(val) {
+      const key = val.trim().toLowerCase();
+      if (classificationMemory[key] && !document.getElementById('modalInputClassificationEn').value) {
+        document.getElementById('modalInputClassificationEn').value = classificationMemory[key];
+      }
+    }
+
+    function autoFillClassAr(val) {
+      const key = val.trim().toLowerCase();
+      for (let ar in classificationMemory) {
+        if (classificationMemory[ar].toLowerCase() === key && !document.getElementById('modalInputClassificationAr').value) {
+          document.getElementById('modalInputClassificationAr').value = ar;
+          break;
+        }
+      }
+    }
+
+    // UI Translations Dictionary
     let currentLang = "ar";
     const translations = {
       ar: {
@@ -632,8 +672,9 @@
         lblName: "2. اسم المادة بالعربي (Arabic Name)",
         lblNameEn: "اسم المادة بالانجليزي (English Name)",
         lblUnit: "3. الوحدة (Unit)",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
-        lblClass: "5. التصنيف (Classification)",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [اتركه فارغاً للمستودع الرئيسي الافتراضي]",
+        lblClass: "5. التصنيف بالعربي (Arabic Classification)",
+        lblClassEn: "التصنيف بالانجليزي (English Classification)",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
         btnCancelModal: "إلغاء",
@@ -686,8 +727,9 @@
         lblName: "2. Arabic Name",
         lblNameEn: "English Name",
         lblUnit: "3. Unit",
-        lblLocation: "4. Warehouse / Location",
-        lblClass: "5. Classification",
+        lblLocation: "4. Warehouse / Location [Leave blank for default Main Warehouse]",
+        lblClass: "5. Arabic Classification",
+        lblClassEn: "English Classification",
         lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
         btnCancelModal: "Cancel",
@@ -724,15 +766,15 @@
       }
     };
 
-    // Initial Dataset with explicit Arabic and English names
+    // Initial Dataset with dual names and dual classifications
     const initialDataset = [
-      { code: "7272446", name: "لفة سلك 10*4 100 يارد", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components", customData: "" },
-      { code: "76152", name: "قطاعة القفل 180", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
-      { code: "761962", name: "سولينأئد فالف فرانتير", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts", customData: "" },
-      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", nameAr: "ستارة BLACK DOT PVC مقاس 58*125 سم", nameEn: "BLACK DOT PVC 58*125CM Medium Curtain", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items", customData: "" },
-      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", nameAr: "مفتاح ابو جلمبو 18 بوصه", nameEn: "Adjustable Wrench 18 Inch", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
-      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameAr: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameEn: "X-Line Tropic G Tire - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires", customData: "" },
-      { code: "68764", name: "مستعمل مضخة حريق صغيره", nameAr: "مستعمل مضخة حريق صغيره", nameEn: "Used Small Fire Pump", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety", customData: "" }
+      { code: "7272446", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "المكونات الكهربائية", classificationEn: "Electrical Components", customData: "" },
+      { code: "76152", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
+      { code: "761962", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "معدات مضخات الوقود وقطع الغيار", classificationEn: "Fuel Pump Equipment & Spare Parts", customData: "" },
+      { code: "76457", nameAr: "ستارة BLACK DOT PVC مقاس 58*125 سم", nameEn: "BLACK DOT PVC 58*125CM Medium Curtain", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "مواد التجزئة والمبيعات", classificationEn: "Retail / Sales Items", customData: "" },
+      { code: "766398", nameAr: "مفتاح ابو جلمبو 18 بوصه", nameEn: "Adjustable Wrench 18 Inch", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
+      { code: "7272475", nameAr: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameEn: "X-Line Tropic G Tire - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "الإطارات", classificationEn: "Tires", customData: "" },
+      { code: "68764", nameAr: "مستعمل مضخة حريق صغيره", nameEn: "Used Small Fire Pump", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "معدات الإطفاء والسلامة", classificationEn: "Firefighting & Safety", customData: "" }
     ];
 
     let warehouseItems = [];
@@ -793,9 +835,10 @@
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputNameAr').value = '';
       document.getElementById('modalInputNameEn').value = '';
-      document.getElementById('modalInputUnit').value = '';
+      document.getElementById('modalInputUnit').value = 'Pieces';
       document.getElementById('modalInputLocation').value = '';
-      document.getElementById('modalInputClassification').value = '';
+      document.getElementById('modalInputClassificationAr').value = '';
+      document.getElementById('modalInputClassificationEn').value = '';
       document.getElementById('modalInputCustomData').value = '';
       document.getElementById('addMaterialModal').classList.add('active');
     }
@@ -809,9 +852,10 @@
       document.getElementById('modalInputCode').value = item.code;
       document.getElementById('modalInputNameAr').value = item.nameAr || item.name || '';
       document.getElementById('modalInputNameEn').value = item.nameEn || item.name || '';
-      document.getElementById('modalInputUnit').value = item.unit;
-      document.getElementById('modalInputLocation').value = item.location;
-      document.getElementById('modalInputClassification').value = item.classification;
+      document.getElementById('modalInputUnit').value = item.unit || 'Pieces';
+      document.getElementById('modalInputLocation').value = item.location || '';
+      document.getElementById('modalInputClassificationAr').value = item.classificationAr || item.classification || '';
+      document.getElementById('modalInputClassificationEn').value = item.classificationEn || item.classification || '';
       document.getElementById('modalInputCustomData').value = item.customData || '';
       document.getElementById('addMaterialModal').classList.add('active');
     }
@@ -820,15 +864,21 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
-    // Save Material from Modal (Handles both Add & Edit with Dual Language Names)
+    // Save Material from Modal with Default Warehouse & Auto-Save Memory
     function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
       const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
       const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
-      const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
-      const classification = document.getElementById('modalInputClassification').value.trim() || "General";
+      
+      // Default warehouse set if left blank
+      const defaultWarehouse = "Main Warehouse/Southern Region Warehouse";
+      const locationInput = document.getElementById('modalInputLocation').value.trim();
+      const location = locationInput !== "" ? locationInput : defaultWarehouse;
+
+      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim() || "عام";
+      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim() || "General";
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
       if (!code || (!nameAr && !nameEn)) {
@@ -836,14 +886,22 @@
         return;
       }
 
+      // Save to memory for auto-filling future items
+      if (nameAr && nameEn) {
+        nameMemory[nameAr.toLowerCase()] = nameEn;
+      }
+      if (classificationAr && classificationEn) {
+        classificationMemory[classificationAr.toLowerCase()] = classificationEn;
+      }
+
       const newItem = {
         code,
-        name: nameAr || nameEn,
         nameAr: nameAr || nameEn,
         nameEn: nameEn || nameAr,
         unit,
         location,
-        classification,
+        classificationAr,
+        classificationEn,
         customData
       };
 
@@ -905,6 +963,7 @@
       setTxt('lblUnitModal', t.lblUnit);
       setTxt('lblLocationModal', t.lblLocation);
       setTxt('lblClassModal', t.lblClass);
+      setTxt('lblClassEn', t.lblClassEn);
       setTxt('lblCustomDataModal', t.lblCustomData);
       setTxt('btnSaveModalText', t.btnSaveModal);
       setTxt('btnCancelModal', t.btnCancelModal);
@@ -984,8 +1043,13 @@
           warehouseItems = JSON.parse(stored);
           warehouseItems.forEach(i => {
             if (!i.customData) i.customData = "";
-            if (!i.nameAr) i.nameAr = i.name;
-            if (!i.nameEn) i.nameEn = i.name;
+            if (!i.nameAr) i.nameAr = i.name || "";
+            if (!i.nameEn) i.nameEn = i.name || "";
+            if (!i.classificationAr) i.classificationAr = i.classification || "عام";
+            if (!i.classificationEn) i.classificationEn = i.classification || "General";
+            
+            if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
+            if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
           });
         } catch (e) {
           warehouseItems = [...initialDataset];
@@ -993,6 +1057,11 @@
       } else {
         warehouseItems = [...initialDataset];
       }
+      warehouseItems.forEach(i => {
+        if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
+        if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
+      });
+
       document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
       applyTranslations();
@@ -1027,7 +1096,8 @@
           "اسم المادة بالانجليزي (English Name)": "Diesel Safety Valve 2 Inch",
           "الوحدة (Unit)": "قطعة",
           "الموقع (Location)": "المستودع الرئيسي",
-          "التصنيف (Classification)": "العدد والأدوات",
+          "التصنيف بالعربي (Arabic Classification)": "العدد والأدوات",
+          "التصنيف بالانجليزي (English Classification)": "Tools",
           "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
         }
       ];
@@ -1054,23 +1124,24 @@
 
           let newItemsCount = 0;
           jsonData.forEach(row => {
-            const code = String(row["كود المادة (Material Code)"] || row["Code"] || row["Material Code"] || "").trim();
+            const code = String(row["كود المادة (Material Code)"] || row["Code"] || "").trim();
             const nameAr = String(row["اسم المادة بالعربي (Arabic Name)"] || row["Arabic Name"] || row["Name"] || "").trim();
             const nameEn = String(row["اسم المادة بالانجليزي (English Name)"] || row["English Name"] || nameAr).trim();
             const unit = String(row["الوحدة (Unit)"] || row["Unit"] || "Pieces").trim();
-            const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
-            const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
-            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
+            const location = String(row["الموقع (Location)"] || row["Location"] || "").trim() || "Main Warehouse/Southern Region Warehouse";
+            const classificationAr = String(row["التصنيف بالعربي (Arabic Classification)"] || row["Arabic Classification"] || row["Classification"] || "").trim() || "عام";
+            const classificationEn = String(row["التصنيف بالانجليزي (English Classification)"] || row["English Classification"] || classificationAr).trim() || "General";
+            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || "").trim();
 
             if (code && (nameAr || nameEn)) {
               warehouseItems.unshift({
                 code,
-                name: nameAr || nameEn,
                 nameAr: nameAr || nameEn,
                 nameEn: nameEn || nameAr,
                 unit,
                 location,
-                classification,
+                classificationAr,
+                classificationEn,
                 customData
               });
               newItemsCount++;
@@ -1086,7 +1157,7 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Populate Datalists for Warehouses & Classifications
+    // Populate Datalists for Warehouses & Classifications (Auto-saved and dropdown ready)
     function populateDatalists() {
       const dlWarehouse = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
@@ -1097,13 +1168,22 @@
         dlWarehouse.appendChild(opt);
       });
 
-      const dlClass = document.getElementById('modalClassificationList');
-      const uniqueClasses = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
-      dlClass.innerHTML = '';
-      uniqueClasses.forEach(c => {
+      const dlClassAr = document.getElementById('modalClassificationArList');
+      const uniqueClassesAr = [...new Set(warehouseItems.map(i => i.classificationAr).filter(Boolean))];
+      dlClassAr.innerHTML = '';
+      uniqueClassesAr.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
-        dlClass.appendChild(opt);
+        dlClassAr.appendChild(opt);
+      });
+
+      const dlClassEn = document.getElementById('modalClassificationEnList');
+      const uniqueClassesEn = [...new Set(warehouseItems.map(i => i.classificationEn).filter(Boolean))];
+      dlClassEn.innerHTML = '';
+      uniqueClassesEn.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        dlClassEn.appendChild(opt);
       });
     }
 
@@ -1111,7 +1191,7 @@
     function updateKPIs() {
       document.getElementById('kpiTotalItems').textContent = warehouseItems.length;
 
-      const categories = new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean));
+      const categories = new Set(warehouseItems.map(i => translateClassification(i, currentLang)).filter(Boolean));
       document.getElementById('kpiTotalCategories').textContent = categories.size;
 
       const locations = new Set(warehouseItems.map(i => translateLocation(i.location, currentLang)).filter(Boolean));
@@ -1122,7 +1202,7 @@
     function renderAllClassificationsChart() {
       const counts = {};
       warehouseItems.forEach(i => {
-        const cls = translateClassification(i.classification, currentLang);
+        const cls = translateClassification(i, currentLang);
         counts[cls] = (counts[cls] || 0) + 1;
       });
 
@@ -1163,9 +1243,9 @@
       });
     }
 
-    // Populate Categories
+    // Populate Categories Dropdown filters
     function populateCategoryDropdowns() {
-      const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
+      const categories = [...new Set(warehouseItems.map(i => translateClassification(i, currentLang)).filter(Boolean))];
       
       const invSel = document.getElementById('inventoryCategoryFilter');
       invSel.innerHTML = `<option value="" id="optAllClass1">${translations[currentLang].optAllClass}</option>`;
@@ -1177,7 +1257,7 @@
       });
 
       const labelLang = document.getElementById('barcodeLangSelect').value;
-      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, labelLang)).filter(Boolean))];
+      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i, labelLang)).filter(Boolean))];
       const lblSel = document.getElementById('labelsCategoryFilter');
       lblSel.innerHTML = `<option value="" id="optAllClass2">${translations[labelLang].optAllClass}</option>`;
       labelCategories.forEach(c => {
@@ -1194,7 +1274,7 @@
       const cat = document.getElementById('inventoryCategoryFilter').value;
 
       const filtered = warehouseItems.filter(i => {
-        const translatedClass = translateClassification(i.classification, currentLang);
+        const translatedClass = translateClassification(i, currentLang);
         const translatedName = translateName(i, currentLang).toLowerCase();
         const matchSearch = i.code.toLowerCase().includes(search) || translatedName.includes(search);
         const matchCat = !cat || translatedClass === cat;
@@ -1211,7 +1291,7 @@
           <td>${translateName(item, currentLang)}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
           <td>${translateLocation(item.location, currentLang)}</td>
-          <td>${translateClassification(item.classification, currentLang)}</td>
+          <td>${translateClassification(item, currentLang)}</td>
           <td>
             <div style="display:flex; gap:6px;">
               <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
@@ -1230,7 +1310,7 @@
       const labelLang = document.getElementById('barcodeLangSelect').value;
 
       const filtered = warehouseItems.filter(i => {
-        const translatedClass = translateClassification(i.classification, labelLang);
+        const translatedClass = translateClassification(i, labelLang);
         const translatedName = translateName(i, labelLang).toLowerCase();
         const matchSearch = i.code.toLowerCase().includes(search) || translatedName.includes(search);
         const matchCat = !cat || translatedClass === cat;
@@ -1250,7 +1330,7 @@
 
         const translatedName = translateName(item, labelLang);
         const translatedUnit = translateUnit(item.unit, labelLang);
-        const translatedClass = translateClassification(item.classification, labelLang);
+        const translatedClass = translateClassification(item, labelLang);
         const translatedLocation = translateLocation(item.location, labelLang);
 
         let customDataHtml = '';
