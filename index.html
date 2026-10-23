@@ -402,7 +402,7 @@
           <!-- Barcode Label Language Selector -->
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
-            <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
+            <select id="barcodeLangSelect" class="input-field" onchange="updateLabelStudioLang()" style="width: auto; padding: 4px 8px;">
               <option value="ar">العربية (Arabic)</option>
               <option value="en">English (إنجليزي)</option>
             </select>
@@ -410,7 +410,6 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
-          <!-- Print Settings Trigger Moved Here -->
           <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
           <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
           <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
@@ -812,60 +811,76 @@
 
     function applyTranslations() {
       const t = translations[currentLang];
-      document.getElementById('langToggleBtnText').textContent = t.toggleBtn;
-      document.getElementById('appTitleText').textContent = t.appTitleText;
-      document.getElementById('appSubTitleText').textContent = t.appSubTitleText;
-      document.getElementById('btnAddMaterialText').textContent = t.btnAddMaterial;
-      document.getElementById('btnTemplateText').textContent = t.btnTemplate;
-      document.getElementById('btnImportText').textContent = t.btnImport;
-      document.getElementById('btnBackupText').textContent = t.btnBackup;
-      document.getElementById('btnPrintText').textContent = t.btnPrint;
-      document.getElementById('tab1Title').textContent = t.tab1;
-      document.getElementById('tab2Title').textContent = t.tab2;
-      document.getElementById('tab3Title').textContent = t.tab3;
       
-      // Modal Translation
-      document.getElementById('modalHeaderTitle').textContent = t.modalTitle;
-      document.getElementById('lblCodeModal').textContent = t.lblCode;
-      document.getElementById('lblNameModal').textContent = t.lblName;
-      document.getElementById('lblUnitModal').textContent = t.lblUnit;
-      document.getElementById('lblLocationModal').textContent = t.lblLocation;
-      document.getElementById('lblClassModal').textContent = t.lblClass;
-      document.getElementById('lblCustomDataModal').textContent = t.lblCustomData;
-      document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
-      document.getElementById('btnCancelModal').textContent = t.btnCancelModal;
+      // Safe text injector to prevent crashing if elements are dynamically overwritten
+      const setTxt = (id, txt) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = txt;
+      };
 
-      // Print Modal Translation
-      document.getElementById('printModalTitleText').textContent = t.printModalTitle;
-      document.getElementById('printLbl1Text').textContent = t.printLbl1;
-      document.getElementById('printLbl2Text').textContent = t.printLbl2;
-      document.getElementById('printLbl3Text').textContent = t.printLbl3;
-      document.getElementById('printCancelBtnText').textContent = t.printCancelBtn;
-      document.getElementById('printSaveBtnText').textContent = t.printSaveBtn;
+      setTxt('langToggleBtnText', t.toggleBtn);
+      setTxt('appTitleText', t.appTitleText);
+      setTxt('appSubTitleText', t.appSubTitleText);
+      setTxt('btnAddMaterialText', t.btnAddMaterial);
+      setTxt('btnTemplateText', t.btnTemplate);
+      setTxt('btnImportText', t.btnImport);
+      setTxt('btnBackupText', t.btnBackup);
+      setTxt('btnPrintText', t.btnPrint);
+      
+      setTxt('tab1Title', t.tab1);
+      setTxt('tab2Title', t.tab2);
+      setTxt('tab3Title', t.tab3);
+      
+      setTxt('modalHeaderTitle', t.modalTitle);
+      setTxt('lblCodeModal', t.lblCode);
+      setTxt('lblNameModal', t.lblName);
+      setTxt('lblUnitModal', t.lblUnit);
+      setTxt('lblLocationModal', t.lblLocation);
+      setTxt('lblClassModal', t.lblClass);
+      setTxt('lblCustomDataModal', t.lblCustomData);
+      setTxt('btnSaveModalText', t.btnSaveModal);
+      setTxt('btnCancelModal', t.btnCancelModal);
 
-      document.getElementById('kpi1Title').textContent = t.kpi1Title;
-      document.getElementById('kpi1Sub').textContent = t.kpi1Sub;
-      document.getElementById('kpi2Title').textContent = t.kpi2Title;
-      document.getElementById('kpi2Sub').textContent = t.kpi2Sub;
-      document.getElementById('kpi3Title').textContent = t.kpi3Title;
-      document.getElementById('kpi3Sub').textContent = t.kpi3Sub;
-      document.getElementById('chartHeaderTitle').textContent = t.chartHeaderTitle;
-      document.getElementById('chartHeaderSub').textContent = t.chartHeaderSub;
-      document.getElementById('optAllClass1').textContent = t.optAllClass;
-      document.getElementById('optAllClass2').textContent = t.optAllClass;
-      document.getElementById('thCode').textContent = t.thCode;
-      document.getElementById('thName').textContent = t.thName;
-      document.getElementById('thUnit').textContent = t.thUnit;
-      document.getElementById('thLocation').textContent = t.thLocation;
-      document.getElementById('thClass').textContent = t.thClass;
-      document.getElementById('thActions').textContent = t.thActions;
-      document.getElementById('btnDeleteSelectedText').textContent = t.btnDeleteSelected;
-      document.getElementById('btnPrintSelectedText').textContent = t.btnPrintSelected;
-      document.getElementById('btnConfigPrintText').textContent = t.btnConfigPrint;
-      document.getElementById('lblSelectAll').textContent = t.lblSelectAll;
-      document.getElementById('lblBarcodeLangText').textContent = t.lblBarcodeLang;
-      document.getElementById('inventorySearch').placeholder = t.searchPlaceholder;
-      document.getElementById('labelsSearch').placeholder = t.searchPlaceholder;
+      setTxt('printModalTitleText', t.printModalTitle);
+      setTxt('printLbl1Text', t.printLbl1);
+      setTxt('printLbl2Text', t.printLbl2);
+      setTxt('printLbl3Text', t.printLbl3);
+      setTxt('printCancelBtnText', t.printCancelBtn);
+      setTxt('printSaveBtnText', t.printSaveBtn);
+
+      setTxt('kpi1Title', t.kpi1Title);
+      setTxt('kpi1Sub', t.kpi1Sub);
+      setTxt('kpi2Title', t.kpi2Title);
+      setTxt('kpi2Sub', t.kpi2Sub);
+      setTxt('kpi3Title', t.kpi3Title);
+      setTxt('kpi3Sub', t.kpi3Sub);
+      setTxt('chartHeaderTitle', t.chartHeaderTitle);
+      setTxt('chartHeaderSub', t.chartHeaderSub);
+      
+      setTxt('thCode', t.thCode);
+      setTxt('thName', t.thName);
+      setTxt('thUnit', t.thUnit);
+      setTxt('thLocation', t.thLocation);
+      setTxt('thClass', t.thClass);
+      setTxt('thActions', t.thActions);
+      
+      setTxt('btnDeleteSelectedText', t.btnDeleteSelected);
+      setTxt('btnPrintSelectedText', t.btnPrintSelected);
+      setTxt('btnConfigPrintText', t.btnConfigPrint);
+      setTxt('lblSelectAll', t.lblSelectAll);
+      setTxt('lblBarcodeLangText', t.lblBarcodeLang);
+      
+      // Update placeholders safely
+      const invSearch = document.getElementById('inventorySearch');
+      if (invSearch) invSearch.placeholder = t.searchPlaceholder;
+      const lblSearch = document.getElementById('labelsSearch');
+      if (lblSearch) lblSearch.placeholder = t.searchPlaceholder;
+    }
+
+    // Triggered explicitly when User changes language strictly inside Label Studio
+    function updateLabelStudioLang() {
+      populateCategoryDropdowns();
+      renderLabelsGrid();
     }
 
     // Clean Label-Only Print Handler
@@ -1069,34 +1084,32 @@
       });
     }
 
-    // Populate Categories (Using Dashboard Language)
+    // Populate Categories (Preserving Static IDs for translation)
     function populateCategoryDropdowns() {
       const categories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, currentLang)).filter(Boolean))];
       
       const invSel = document.getElementById('inventoryCategoryFilter');
-      const currInvVal = invSel.value;
-      invSel.innerHTML = `<option value="">${translations[currentLang].optAllClass}</option>`;
+      // Recreate "All Classifications" option while restoring the `id` so translations don't break
+      invSel.innerHTML = `<option value="" id="optAllClass1">${translations[currentLang].optAllClass}</option>`;
       categories.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         opt.textContent = c;
         invSel.appendChild(opt);
       });
-      invSel.value = currInvVal;
 
       // For labels studio category filter, match label language selector
       const labelLang = document.getElementById('barcodeLangSelect').value;
       const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i.classification, labelLang)).filter(Boolean))];
       const lblSel = document.getElementById('labelsCategoryFilter');
-      const currLblVal = lblSel.value;
-      lblSel.innerHTML = `<option value="">${translations[labelLang].optAllClass}</option>`;
+      // Recreate "All Classifications" option with `id`
+      lblSel.innerHTML = `<option value="" id="optAllClass2">${translations[labelLang].optAllClass}</option>`;
       labelCategories.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         opt.textContent = c;
         lblSel.appendChild(opt);
       });
-      lblSel.value = currLblVal;
     }
 
     // Render Table
