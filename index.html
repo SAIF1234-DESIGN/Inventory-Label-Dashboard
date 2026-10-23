@@ -262,9 +262,9 @@
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 12px 16px;
+      padding: 10px 14px;
       border: 1px solid #2b3a67;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       white-space: nowrap;
     }
     .excel-table th {
@@ -272,6 +272,7 @@
       color: var(--accent-cyan);
       font-weight: 700;
       letter-spacing: 0.03em;
+      text-align: center;
     }
     .excel-table tbody tr {
       background-color: #1c2541;
@@ -284,42 +285,27 @@
       background-color: #243054;
     }
 
-    /* Explicit Column Sizing */
-    .col-select { width: 5%; text-align: center !important; }
-    .col-code { width: 14%; }
-    .col-name { width: 24%; }
-    .col-unit { width: 10%; }
-    .col-location { width: 20%; }
-    .col-class { width: 12%; }
-    .col-actions { width: 15%; text-align: center !important; }
-
-    .action-group-btns {
-      display: flex;
-      gap: 4px;
-      justify-content: center;
-      align-items: center;
-    }
-    .table-action-btn {
+    .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
       border-radius: 6px;
-      width: 30px;
-      height: 30px;
+      padding: 6px 10px;
       cursor: pointer;
-      display: flex;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
+      gap: 4px;
     }
-    .table-action-btn:hover { background: var(--accent-blue); }
-    .table-action-btn.del { background: #fee2e2; color: #dc2626; }
-    .table-action-btn.del:hover { background: #fca5a5; }
+    .action-sub-btn:hover { background: var(--accent-blue); }
+    .action-sub-btn.del { background: #fee2e2; color: #dc2626; }
+    .action-sub-btn.del:hover { background: #fca5a5; }
 
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
-      .btn, .input-field, .del-btn, .action-group-btns, .col-select, .table-checkbox,
+      .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
       #tab-overview, #tab-inventory, .labels-controls-bar {
         display: none !important;
       }
@@ -451,13 +437,21 @@
         <table class="excel-table">
           <thead>
             <tr>
-              <th class="col-select"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
-              <th class="col-code" id="thCode">Material Code</th>
-              <th class="col-name" id="thName">Material Name</th>
-              <th class="col-unit" id="thUnit">Unit</th>
-              <th class="col-location" id="thLocation">Warehouse / Location</th>
-              <th class="col-class" id="thClass">Classification</th>
-              <th class="col-actions" id="thActions">Actions</th>
+              <th colspan="1" style="background:#080e21; text-align:center;">Selection</th>
+              <th colspan="5" style="background:#0e1735; text-align:center;">Inventory Data</th>
+              <th colspan="4" style="background:#080e21; text-align:center;">Actions</th>
+            </tr>
+            <tr>
+              <th style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
+              <th>Material Code</th>
+              <th>Material Name</th>
+              <th>Unit</th>
+              <th>Warehouse / Location</th>
+              <th>Classification</th>
+              <th style="text-align:center;">Print</th>
+              <th style="text-align:center;">Generate Label</th>
+              <th style="text-align:center;">Edit</th>
+              <th style="text-align:center;">Delete</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -608,8 +602,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V21";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V2";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V22";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V3";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -761,12 +755,6 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        thCode: "Material Code",
-        thName: "Material Name",
-        thUnit: "Unit",
-        thLocation: "Warehouse / Location",
-        thClass: "Classification",
-        thActions: "Actions",
         btnPrintSelectedInv: "طباعة المواد المحددة (Print Selected)",
         btnClearStudio: "إفراغ الاستوديو",
         btnPrintStudio: "طباعة الملصقات",
@@ -816,12 +804,6 @@
         chartHeaderTitle: "Classifications Breakdown",
         chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
-        thCode: "Material Code",
-        thName: "Material Name",
-        thUnit: "Unit",
-        thLocation: "Warehouse / Location",
-        thClass: "Classification",
-        thActions: "Actions",
         btnPrintSelectedInv: "Print Selected Items",
         btnClearStudio: "Clear Studio",
         btnPrintStudio: "Print Labels",
@@ -1072,13 +1054,6 @@
       setTxt('chartHeaderTitle', t.chartHeaderTitle);
       setTxt('chartHeaderSub', t.chartHeaderSub);
       
-      setTxt('thCode', t.thCode);
-      setTxt('thName', t.thName);
-      setTxt('thUnit', t.thUnit);
-      setTxt('thLocation', t.thLocation);
-      setTxt('thClass', t.thClass);
-      setTxt('thActions', t.thActions);
-      
       setTxt('btnPrintSelectedInvText', t.btnPrintSelectedInv);
       setTxt('btnClearStudioText', t.btnClearStudio);
       setTxt('btnPrintStudioText', t.btnPrintStudio);
@@ -1089,14 +1064,12 @@
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
     }
 
-    // Add specific item to label studio and switch tab
-    function addAndOpenLabel(code) {
+    // Add specific item to label studio in the background without changing tabs
+    function generateSingleLabel(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
       renderLabelsGrid();
-      
-      const labelsTab = document.getElementById('tab3Title');
-      switchNav('tab-labels', labelsTab);
+      alert(currentLang === 'ar' ? `تم توليد ملصق المادة (${code}) بنجاح في استوديو الملصقات!` : `Label for item (${code}) generated successfully in Label Studio!`);
     }
 
     // Print single item label directly
@@ -1432,20 +1405,16 @@
       filtered.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="col-select"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
-          <td class="col-code"><strong>${item.code}</strong></td>
-          <td class="col-name">${translateName(item, currentLang)}</td>
-          <td class="col-unit">${translateUnit(item.unit, currentLang)}</td>
-          <td class="col-location">${translateLocation(item.location, currentLang)}</td>
-          <td class="col-class">${translateClassification(item, currentLang)}</td>
-          <td class="col-actions">
-            <div class="action-group-btns">
-              <button class="table-action-btn" title="طباعة ملصق سريع" onclick="printSingleItemLabel('${item.code}')">🖨️</button>
-              <button class="table-action-btn" title="إرسال لاستوديو الملصقات" onclick="addAndOpenLabel('${item.code}')">🏷️</button>
-              <button class="table-action-btn" title="تعديل المادة" onclick="openEditModal('${item.code}')">✏️</button>
-              <button class="table-action-btn del" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
-            </div>
-          </td>
+          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
+          <td><strong>${item.code}</strong></td>
+          <td>${translateName(item, currentLang)}</td>
+          <td>${translateUnit(item.unit, currentLang)}</td>
+          <td>${translateLocation(item.location, currentLang)}</td>
+          <td>${translateClassification(item, currentLang)}</td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️ Print</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="generateSingleLabel('${item.code}')">🏷️ Generate</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️ Edit</button></td>
+          <td style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕ Delete</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1459,7 +1428,7 @@
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
           <h3>استوديو الملصقات فارغ</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">حدد المواد في جدول المخزون وانقر على (طباعة المواد المحددة) أو أيقونة (🏷️) لإرسالها وطباعتها هنا.</p>
+          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على زر (Generate) بجانب أي مادة في جدول المخزون لتوليد وإظهار ملصقها هنا.</p>
         </div>`;
         return;
       }
@@ -1513,7 +1482,7 @@
         `;
         grid.appendChild(card);
 
-        // Render Barcode
+        // Render Barcode linked to Material Code
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
@@ -1524,7 +1493,7 @@
           });
         } catch (e) {}
 
-        // Render Scannable QR Code using qrcode-generator
+        // Render QR Code linked strictly to Product Data Payload
         try {
           const qrPayload = `Code: ${item.code}\nName: ${item.nameEn || item.nameAr}\nUnit: ${item.unit}\nWarehouse: ${item.location}\nClass: ${item.classificationEn || item.classificationAr}`;
           
