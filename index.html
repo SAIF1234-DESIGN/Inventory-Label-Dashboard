@@ -189,8 +189,8 @@
     /* Label Cards Grid */
     .labels-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
     }
     .sticker-card {
       background: white;
@@ -202,6 +202,7 @@
       justify-content: space-between;
       position: relative;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      min-height: 135px;
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
@@ -314,16 +315,11 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
-    /* Hidden Single-Label Print Container */
-    #singlePrintContainer {
-      display: none;
-    }
-
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
-      #tab-overview, #tab-inventory, .labels-controls-bar, #labelsGridContainer {
+      #tab-overview, #tab-inventory, .labels-controls-bar {
         display: none !important;
       }
 
@@ -346,17 +342,6 @@
         display: block !important;
       }
 
-      /* If printing single label directly from inventory row */
-      body.printing-single #singlePrintContainer {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        padding: 0 !important;
-      }
-
-      body.printing-single #tab-labels {
-        display: none !important;
-      }
-
       .labels-grid {
         display: grid !important;
         padding: 0 !important;
@@ -366,6 +351,10 @@
         border: 1px solid #000 !important;
         break-inside: avoid !important;
         box-shadow: none !important;
+      }
+
+      .sticker-card.unselected-print {
+        display: none !important;
       }
     }
   </style>
@@ -509,6 +498,11 @@
               <option value="ar">العربية (Arabic)</option>
             </select>
           </div>
+
+          <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <input type="checkbox" id="selectAllStudioLabels" onchange="toggleSelectAllStudioLabels(this)">
+            <label for="selectAllStudioLabels" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; cursor: pointer;" id="lblSelectAllStudio">Select All Labels</label>
+          </div>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
@@ -525,9 +519,6 @@
 
   </div>
 
-  <!-- Hidden Container for Direct Single Item Row Printing without Changing Tabs -->
-  <div id="singlePrintContainer" class="labels-grid"></div>
-
   <!-- PRINT SIZE & GRID CONFIGURATOR MODAL -->
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
@@ -538,18 +529,18 @@
       <div class="modal-grid">
         <div class="form-group">
           <label id="printLbl1Text">1. Page Size</label>
-          <select id="cfgPageSize" class="input-field" onchange="updatePrintConfigPreview()">
+          <select id="cfgPageSize" class="input-field">
             <option value="A4">A4 Sheet (210mm × 297mm)</option>
             <option value="Letter">Letter Sheet (8.5" × 11")</option>
-            <option value="Roll4x6">Thermal Roll 4" × 6" (100mm × 150mm)</option>
+            <option value="Roll4x6" selected>Thermal Roll 4" × 6" (100mm × 150mm)</option>
             <option value="Roll4x2">Thermal Continuous Roll 4" × 2"</option>
           </select>
         </div>
 
         <div class="form-group">
           <label id="printLbl2Text">2. Grid Layout Preset</label>
-          <select id="cfgGridPreset" class="input-field" onchange="updatePrintConfigPreview()">
-            <option value="8_labels">8 Labels per page (2 columns × 4 rows)</option>
+          <select id="cfgGridPreset" class="input-field">
+            <option value="8_labels" selected>8 Labels per page (2 columns × 4 rows)</option>
             <option value="10_labels">10 Labels per page (2 columns × 5 rows)</option>
             <option value="12_labels">12 Labels per page (3 columns × 4 rows)</option>
             <option value="21_labels">21 Standard labels (3 columns × 7 rows)</option>
@@ -559,8 +550,8 @@
 
         <div class="form-group">
           <label id="printLbl3Text">3. Page Orientation</label>
-          <select id="cfgOrientation" class="input-field" onchange="updatePrintConfigPreview()">
-            <option value="portrait">Portrait</option>
+          <select id="cfgOrientation" class="input-field">
+            <option value="portrait" selected>Portrait</option>
             <option value="landscape">Landscape</option>
           </select>
         </div>
@@ -642,13 +633,14 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V35";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V16";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V37";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V18";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
-    let checkedItemCodes = new Set(); // Persistent set of checked inventory row codes
+    let checkedItemCodes = new Set();
+    let selectedStudioCodes = new Set(); // Codes checked inside the Studio tab for printing
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -802,6 +794,7 @@
         btnPrintStudio: "Print",
         btnConfigPrint: "⚙️ Page & Label Size",
         lblBarcodeLang: "Label Lang:",
+        lblSelectAllStudio: "Select All Labels",
         searchPlaceholder: "Search by code or name...",
         cardCode: "Code",
         cardUnit: "Unit",
@@ -866,6 +859,7 @@
         btnPrintStudio: "طباعة",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblBarcodeLang: "لغة الملصق:",
+        lblSelectAllStudio: "تحديد جميع الملصقات",
         searchPlaceholder: "البحث بالكود أو الاسم...",
         cardCode: "الكود",
         cardUnit: "الوحدة",
@@ -927,7 +921,7 @@
       const orientation = document.getElementById('cfgOrientation').value;
 
       let cols = 2;
-      let minHeight = "120px";
+      let minHeight = "135px";
 
       if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
       else if (preset === "10_labels") { cols = 2; minHeight = "110px"; }
@@ -948,6 +942,9 @@
           }
           .sticker-card {
             min-height: ${minHeight} !important;
+          }
+          .sticker-card.unselected-print {
+            display: none !important;
           }
         }
       `;
@@ -1131,6 +1128,7 @@
       setTxt('btnPrintStudioText', t.btnPrintStudio);
       setTxt('btnConfigPrintText', t.btnConfigPrint);
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
+      setTxt('lblSelectAllStudio', t.lblSelectAllStudio);
       
       // Table Header Translations
       setTxt('thGroupSelection', t.thGroupSelection);
@@ -1153,6 +1151,7 @@
 
     function generateSingleLabel(code) {
       studioItemCodes.add(code);
+      selectedStudioCodes.add(code);
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
@@ -1160,6 +1159,7 @@
 
     function ungenerateSingleLabel(code) {
       studioItemCodes.delete(code);
+      selectedStudioCodes.delete(code);
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
@@ -1171,80 +1171,17 @@
         return;
       }
       
-      const item = warehouseItems.find(i => i.code === code);
-      if (!item) return;
+      // Select only this card in studio for print, unselect others temporarily
+      const previousSelected = new Set(selectedStudioCodes);
+      selectedStudioCodes.clear();
+      selectedStudioCodes.add(code);
+      renderLabelsGrid();
 
-      const printContainer = document.getElementById('singlePrintContainer');
-      const labelLang = document.getElementById('barcodeLangSelect').value;
-      const t = translations[labelLang];
-
-      const translatedName = translateName(item, labelLang);
-      const translatedUnit = translateUnit(item.unit, labelLang);
-      const translatedClass = translateClassification(item, labelLang);
-      const translatedLocation = translateLocation(item.location, labelLang);
-
-      let customDataHtml = '';
-      if (item.customData && item.customData.trim() !== '') {
-        const isUrl = item.customData.startsWith('http://') || item.customData.startsWith('https://');
-        if (isUrl) {
-          customDataHtml = `<div class="custom-link-badge">🔗 <a href="${item.customData}" target="_blank">${item.customData}</a></div>`;
-        } else {
-          customDataHtml = `<div class="custom-link-badge">📌 <span>${item.customData}</span></div>`;
-        }
-      }
-
-      printContainer.innerHTML = `
-        <div class="sticker-card">
-          <div class="sticker-header">
-            <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-          </div>
-          <div class="sticker-title">${translatedName}</div>
-          <div class="meta-box">
-            <div><label>${t.cardCode}</label><span>${item.code}</span></div>
-            <div><label>${t.cardUnit}</label><span>${translatedUnit}</span></div>
-            <div><label>${t.cardClass}</label><span>${translatedClass}</span></div>
-          </div>
-          ${customDataHtml}
-          <div class="codes-flex-container">
-            <div class="barcode-section">
-              <svg id="single-barcode-${item.code}"></svg>
-            </div>
-            <div class="qrcode-section">
-              <div id="single-qrcode-${item.code}"></div>
-              <span class="qrcode-label">SCAN QR</span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      try {
-        JsBarcode(`#single-barcode-${item.code}`, item.code, {
-          format: "CODE128",
-          height: 35,
-          displayValue: true,
-          fontSize: 10,
-          margin: 2
-        });
-      } catch (e) {}
-
-      try {
-        const qrPayload = `Code: ${item.code}\nName: ${item.nameEn || item.nameAr}\nUnit: ${item.unit}\nWarehouse: ${item.location}\nClass: ${item.classificationEn || item.classificationAr}`;
-        const qr = qrcode(0, 'M');
-        qr.addData(qrPayload);
-        qr.make();
-        document.getElementById(`single-qrcode-${item.code}`).innerHTML = qr.createSvgTag({
-          scalable: true,
-          margin: 0
-        });
-      } catch (e) {}
-
-      // Trigger print without changing tabs
-      document.body.classList.add('printing-single');
       setTimeout(() => {
         window.print();
-        document.body.classList.remove('printing-single');
-        printContainer.innerHTML = '';
-      }, 300);
+        selectedStudioCodes = previousSelected;
+        renderLabelsGrid();
+      }, 250);
     }
 
     function handleCheckboxChange(checkbox) {
@@ -1262,10 +1199,9 @@
       const discBtn = document.getElementById('btnBatchDiscard');
       const count = checkedItemCodes.size;
 
-      if (count > 0) {
+      if (count > 2) {
         genBtn.removeAttribute('disabled');
         
-        // Discard button shall be clickable only if there is some selection and label has been generated already
         let hasGeneratedSelected = false;
         checkedItemCodes.forEach(code => {
           if (studioItemCodes.has(code)) {
@@ -1285,23 +1221,24 @@
     }
 
     function generateSelectedInventoryItems() {
-      if (checkedItemCodes.size === 0) {
-        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل." : "Please select at least one item.");
+      if (checkedItemCodes.size <= 2) {
+        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادتين (3 مواد أو أكثر) لتفعيل زر التوليد الجماعي." : "Please select more than 2 items (3 or more) to use batch generation.");
         return;
       }
 
       checkedItemCodes.forEach(code => {
         studioItemCodes.add(code);
+        selectedStudioCodes.add(code);
       });
       saveStudioToStorage();
       renderLabelsGrid();
-      renderInventoryTable(); // Keeps checkboxes checked due to persistent checkedItemCodes set
+      renderInventoryTable();
       alert(currentLang === 'ar' ? `تم توليد (${checkedItemCodes.size}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedItemCodes.size}) labels in Label Studio!`);
     }
 
     function discardSelectedInventoryItems() {
-      if (checkedItemCodes.size === 0) {
-        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل." : "Please select at least one item.");
+      if (checkedItemCodes.size <= 2) {
+        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادتين (3 مواد أو أكثر) لتفعيل زر الإلغاء الجماعي." : "Please select more than 2 items (3 or more) to use batch discard.");
         return;
       }
 
@@ -1309,12 +1246,13 @@
       checkedItemCodes.forEach(code => {
         if (studioItemCodes.has(code)) {
           studioItemCodes.delete(code);
+          selectedStudioCodes.delete(code);
           removedCount++;
         }
       });
       saveStudioToStorage();
       renderLabelsGrid();
-      renderInventoryTable(); // Keeps checkboxes checked
+      renderInventoryTable();
       alert(currentLang === 'ar' ? `تم إلغاء توليد (${removedCount}) ملصق من الاستوديو!` : `Successfully discarded (${removedCount}) labels from Studio!`);
     }
 
@@ -1331,9 +1269,33 @@
       checkInventorySelection();
     }
 
+    function handleStudioCardSelect(checkbox, code) {
+      if (checkbox.checked) {
+        selectedStudioCodes.add(code);
+      } else {
+        selectedStudioCodes.delete(code);
+        document.getElementById('selectAllStudioLabels').checked = false;
+      }
+      renderLabelsGrid();
+    }
+
+    function toggleSelectAllStudioLabels(masterCb) {
+      const studioCheckboxes = document.querySelectorAll('.studio-label-checkbox');
+      studioCheckboxes.forEach(cb => {
+        cb.checked = masterCb.checked;
+        if (masterCb.checked) {
+          selectedStudioCodes.add(cb.value);
+        } else {
+          selectedStudioCodes.delete(cb.value);
+        }
+      });
+      renderLabelsGrid();
+    }
+
     function clearLabelStudio() {
       if (confirm(currentLang === 'ar' ? "هل أنت متأكد من إفراغ جميع ملصقات الاستوديو؟" : "Are you sure you want to clear all studio labels?")) {
         studioItemCodes.clear();
+        selectedStudioCodes.clear();
         saveStudioToStorage();
         renderLabelsGrid();
         renderInventoryTable();
@@ -1343,6 +1305,10 @@
     function triggerCleanPrint() {
       if (studioItemCodes.size === 0) {
         alert(currentLang === 'ar' ? "استوديو الملصقات فارغ. يرجى توليد ملصقات لطباعتها." : "Label Studio is empty. Please generate labels first to print them.");
+        return;
+      }
+      if (selectedStudioCodes.size === 0) {
+        alert(currentLang === 'ar' ? "يرجى تحديد ملصق واحد على الأقل للطباعة." : "Please select at least one label to print.");
         return;
       }
       window.print();
@@ -1358,6 +1324,8 @@
         try {
           const arr = JSON.parse(stored);
           studioItemCodes = new Set(arr);
+          // By default, select all loaded studio items for printing
+          studioItemCodes.forEach(code => selectedStudioCodes.add(code));
         } catch (e) {
           studioItemCodes = new Set();
         }
@@ -1686,8 +1654,10 @@
         const item = warehouseItems.find(i => i.code === code);
         if (!item) return;
 
+        const isCardSelected = selectedStudioCodes.has(code);
+
         const card = document.createElement('div');
-        card.className = 'sticker-card';
+        card.className = `sticker-card ${!isCardSelected ? 'unselected-print' : ''}`;
         card.setAttribute('data-code', item.code);
 
         const translatedName = translateName(item, labelLang);
@@ -1707,7 +1677,10 @@
 
         card.innerHTML = `
           <div class="sticker-header">
-            <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" class="studio-label-checkbox" value="${item.code}" ${isCardSelected ? 'checked' : ''} onchange="handleStudioCardSelect(this, '${item.code}')">
+              <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
+            </div>
             <button class="del-btn" title="Remove from Studio" onclick="ungenerateSingleLabel('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${translatedName}</div>
@@ -1759,6 +1732,7 @@
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         studioItemCodes.delete(code);
         checkedItemCodes.delete(code);
+        selectedStudioCodes.delete(code);
         saveStudioToStorage();
         saveAndRefresh();
       }
