@@ -161,6 +161,8 @@
       width: 100%; max-width: 550px;
       padding: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan); }
@@ -193,7 +195,7 @@
     .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; }
     .del-btn:hover { background: #fca5a5; }
 
-    .sticker-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; line-height: 1.4; }
+    .sticker-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 10px; line-height: 1.4; }
     .meta-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -201,11 +203,25 @@
       background: #f8fafc;
       padding: 8px;
       border-radius: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       text-align: center;
     }
     .meta-box label { font-size: 0.65rem; color: #64748b; display: block; }
     .meta-box span { font-size: 0.8rem; font-weight: 700; color: #1e293b; }
+
+    .custom-link-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      margin-bottom: 10px;
+      word-break: break-all;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .custom-link-badge a { color: #0284c7; text-decoration: underline; }
 
     .barcode-container { text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 8px; }
     .barcode-container svg { max-width: 100%; height: 45px; }
@@ -480,6 +496,10 @@
           <label id="lblClassModal">5. التصنيف (Classification)</label>
           <input type="text" id="modalInputClassification" class="input-field" placeholder="Tools, Filters, Electrical...">
         </div>
+        <div class="form-group">
+          <label id="lblCustomDataModal">6. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
+          <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com أو ملاحظة...">
+        </div>
         <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
           <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">إلغاء</button>
           <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">حفظ المادة (Save Item)</span></button>
@@ -489,7 +509,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V2";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V3";
 
     // Unit Conversion Mapping Dictionary
     function normalizeUnit(rawUnit) {
@@ -534,6 +554,7 @@
         lblUnit: "3. الوحدة (Unit)",
         lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
         lblClass: "5. التصنيف (Classification)",
+        lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
         btnCancelModal: "إلغاء",
         kpi1Title: "إجمالي المواد المسجلة",
@@ -585,6 +606,7 @@
         lblUnit: "3. Unit",
         lblLocation: "4. Warehouse / Location",
         lblClass: "5. Classification",
+        lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
         btnCancelModal: "Cancel",
         kpi1Title: "Total Registered Items",
@@ -621,13 +643,13 @@
 
     // Initial Dataset
     const initialDataset = [
-      { code: "7272446", name: "لفة سلك 10*4 100 يارد", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components" },
-      { code: "76152", name: "قطاعة القفل 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
-      { code: "761962", name: "سولينأئد فالف فرانتير", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts" },
-      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items" },
-      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools" },
-      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires" },
-      { code: "68764", name: "مستعمل مضخة حريق صغيره", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety" }
+      { code: "7272446", name: "لفة سلك 10*4 100 يارد", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classification: "Electrical Components", customData: "" },
+      { code: "76152", name: "قطاعة القفل 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
+      { code: "761962", name: "سولينأئد فالف فرانتير", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Fuel Pump Equipment & Spare Parts", customData: "" },
+      { code: "76457", name: "BLACK DOT PVC 58*125CM MEDIUM ستارة", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Retail / Sales Items", customData: "" },
+      { code: "766398", name: "مفتاح ابو جلمبو 18 بوصه", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tools", customData: "" },
+      { code: "7272475", name: "كفر اكس لاين تروبيق جي - R22.5/385/65", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Tires", customData: "" },
+      { code: "68764", name: "مستعمل مضخة حريق صغيره", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classification: "Firefighting & Safety", customData: "" }
     ];
 
     let warehouseItems = [];
@@ -693,6 +715,7 @@
       document.getElementById('modalInputUnit').value = '';
       document.getElementById('modalInputLocation').value = '';
       document.getElementById('modalInputClassification').value = '';
+      document.getElementById('modalInputCustomData').value = '';
     }
 
     // Save Material from Modal
@@ -703,13 +726,14 @@
       const unit = normalizeUnit(rawUnit);
       const location = document.getElementById('modalInputLocation').value.trim() || "Main Warehouse";
       const classification = document.getElementById('modalInputClassification').value.trim() || "General";
+      const customData = document.getElementById('modalInputCustomData').value.trim();
 
       if (!code || !name) {
         alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
         return;
       }
 
-      warehouseItems.unshift({ code, name, unit, location, classification });
+      warehouseItems.unshift({ code, name, unit, location, classification, customData });
       saveAndRefresh();
       closeAddModal();
       alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
@@ -746,6 +770,7 @@
       document.getElementById('lblUnitModal').textContent = t.lblUnit;
       document.getElementById('lblLocationModal').textContent = t.lblLocation;
       document.getElementById('lblClassModal').textContent = t.lblClass;
+      document.getElementById('lblCustomDataModal').textContent = t.lblCustomData;
       document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
       document.getElementById('btnCancelModal').textContent = t.btnCancelModal;
 
@@ -814,7 +839,10 @@
       if (stored) {
         try {
           warehouseItems = JSON.parse(stored);
-          warehouseItems.forEach(i => i.unit = normalizeUnit(i.unit));
+          warehouseItems.forEach(i => {
+            i.unit = normalizeUnit(i.unit);
+            if (!i.customData) i.customData = "";
+          });
         } catch (e) {
           warehouseItems = [...initialDataset];
         }
@@ -853,7 +881,8 @@
           "اسم المادة (Material Name)": "صمام أمان ديزل 2 بوصة",
           "الوحدة (Unit)": "حبة",
           "الموقع (Location)": "Main Warehouse",
-          "التصنيف (Classification)": "Fuel Equipment"
+          "التصنيف (Classification)": "Fuel Equipment",
+          "رابط أو بيانات إضافية (Custom Data/Link)": "https://example.com"
         }
       ];
 
@@ -885,9 +914,10 @@
             const unit = normalizeUnit(rawUnit);
             const location = String(row["الموقع (Location)"] || row["Location"] || "Main Warehouse").trim();
             const classification = String(row["التصنيف (Classification)"] || row["Classification"] || "General").trim();
+            const customData = String(row["رابط أو بيانات إضافية (Custom Data/Link)"] || row["Custom Data"] || row["Link"] || "").trim();
 
             if (code && name) {
-              warehouseItems.unshift({ code, name, unit, location, classification });
+              warehouseItems.unshift({ code, name, unit, location, classification, customData });
               newItemsCount++;
             }
           });
@@ -1030,6 +1060,17 @@
         const card = document.createElement('div');
         card.className = 'sticker-card';
         card.setAttribute('data-code', item.code);
+
+        let customDataHtml = '';
+        if (item.customData && item.customData.trim() !== '') {
+          const isUrl = item.customData.startsWith('http://') || item.customData.startsWith('https://');
+          if (isUrl) {
+            customDataHtml = `<div class="custom-link-badge">🔗 <a href="${item.customData}" target="_blank">${item.customData}</a></div>`;
+          } else {
+            customDataHtml = `<div class="custom-link-badge">📌 <span>${item.customData}</span></div>`;
+          }
+        }
+
         card.innerHTML = `
           <div class="sticker-header">
             <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
@@ -1042,6 +1083,7 @@
             <div><label>${t.cardUnit}</label><span>${item.unit || 'Pieces'}</span></div>
             <div><label>${t.cardClass}</label><span>${item.classification || '-'}</span></div>
           </div>
+          ${customDataHtml}
           <div class="barcode-container">
             <svg id="barcode-${item.code}"></svg>
           </div>
