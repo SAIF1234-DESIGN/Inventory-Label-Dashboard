@@ -285,11 +285,12 @@
     }
 
     /* Explicit Column Sizing */
+    .col-select { width: 5%; text-align: center !important; }
     .col-code { width: 14%; }
-    .col-name { width: 26%; }
+    .col-name { width: 24%; }
     .col-unit { width: 10%; }
     .col-location { width: 20%; }
-    .col-class { width: 15%; }
+    .col-class { width: 12%; }
     .col-actions { width: 15%; text-align: center !important; }
 
     .action-group-btns {
@@ -318,7 +319,7 @@
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
-      .btn, .input-field, .del-btn, .action-group-btns,
+      .btn, .input-field, .del-btn, .action-group-btns, .col-select, .table-checkbox,
       #tab-overview, #tab-inventory, .labels-controls-bar {
         display: none !important;
       }
@@ -435,17 +436,23 @@
 
     <!-- TAB 2: INVENTORY REGISTER -->
     <div id="tab-inventory" class="tab-content">
-      <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-        <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 300px;">
-        <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 250px;">
-          <option value="" id="optAllClass1">جميع التصنيفات</option>
-        </select>
+      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="inventorySearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderInventoryTable()" style="max-width: 300px;">
+          <select id="inventoryCategoryFilter" class="input-field" onchange="renderInventoryTable()" style="max-width: 250px;">
+            <option value="" id="optAllClass1">جميع التصنيفات</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="printSelectedInventoryItems()">🖨️ <span id="btnPrintSelectedInvText">طباعة المواد المحددة (Print Selected)</span></button>
+        </div>
       </div>
 
       <div class="table-card">
         <table class="excel-table">
           <thead>
             <tr>
+              <th class="col-select"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
               <th class="col-code" id="thCode">Material Code</th>
               <th class="col-name" id="thName">Material Name</th>
               <th class="col-unit" id="thUnit">Unit</th>
@@ -482,7 +489,7 @@
       </div>
 
       <div class="labels-grid" id="labelsGridContainer">
-        <!-- Empty by default until items are added via actions -->
+        <!-- Persistent labels grid -->
       </div>
     </div>
 
@@ -602,11 +609,12 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V19";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V20";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V1";
 
     let nameMemory = {};
     let classificationMemory = {};
-    let studioItemCodes = new Set(); // Holds items sent to label studio
+    let studioItemCodes = new Set(); // Persistent studio set
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -761,6 +769,7 @@
         thLocation: "Warehouse / Location",
         thClass: "Classification",
         thActions: "Actions",
+        btnPrintSelectedInv: "طباعة المواد المحددة (Print Selected)",
         btnClearStudio: "إفراغ الاستوديو",
         btnPrintStudio: "طباعة الملصقات",
         lblBarcodeLang: "لغة الملصق:",
@@ -815,6 +824,7 @@
         thLocation: "Warehouse / Location",
         thClass: "Classification",
         thActions: "Actions",
+        btnPrintSelectedInv: "Print Selected Items",
         btnClearStudio: "Clear Studio",
         btnPrintStudio: "Print Labels",
         lblBarcodeLang: "Label Lang:",
@@ -1071,6 +1081,7 @@
       setTxt('thClass', t.thClass);
       setTxt('thActions', t.thActions);
       
+      setTxt('btnPrintSelectedInvText', t.btnPrintSelectedInv);
       setTxt('btnClearStudioText', t.btnClearStudio);
       setTxt('btnPrintStudioText', t.btnPrintStudio);
       setTxt('btnConfigPrintText', t.btnConfigPrint);
@@ -1083,17 +1094,17 @@
     // Add specific item to label studio and switch tab
     function addAndOpenLabel(code) {
       studioItemCodes.add(code);
+      saveStudioToStorage();
       renderLabelsGrid();
       
-      // Switch to Label Studio tab
       const labelsTab = document.getElementById('tab3Title');
       switchNav('tab-labels', labelsTab);
     }
 
     // Print single item label directly
     function printSingleItemLabel(code) {
-      studioItemCodes.clear();
       studioItemCodes.add(code);
+      saveStudioToStorage();
       renderLabelsGrid();
       
       const labelsTab = document.getElementById('tab-labels');
@@ -1107,14 +1118,45 @@
       }, 300);
     }
 
-    function clearLabelStudio() {
-      studioItemCodes.clear();
+    // Batch print selected items from inventory table
+    function printSelectedInventoryItems() {
+      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
+      if (checkedBoxes.length === 0) {
+        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل من جدول المخزون أولاً." : "Please select at least one item from the inventory table first.");
+        return;
+      }
+
+      checkedBoxes.forEach(cb => {
+        studioItemCodes.add(cb.value);
+      });
+      saveStudioToStorage();
       renderLabelsGrid();
+
+      const labelsTab = document.getElementById('tab-labels');
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
+      labelsTab.classList.add('active');
+      document.getElementById('tab3Title').classList.add('active');
+    }
+
+    function toggleSelectAllInventory(masterCb) {
+      const checkboxes = document.querySelectorAll('.table-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = masterCb.checked;
+      });
+    }
+
+    function clearLabelStudio() {
+      if (confirm(currentLang === 'ar' ? "هل أنت متأكد من إفراغ جميع ملصقات الاستوديو؟" : "Are you sure you want to clear all studio labels?")) {
+        studioItemCodes.clear();
+        saveStudioToStorage();
+        renderLabelsGrid();
+      }
     }
 
     function triggerCleanPrint() {
       if (studioItemCodes.size === 0) {
-        alert(currentLang === 'ar' ? "استوديو الملصقات فارغ. يرجى إضافة مواد من جدول المخزون أولاً." : "Label Studio is empty. Please generate labels from the inventory table first.");
+        alert(currentLang === 'ar' ? "استوديو الملصقات فارغ." : "Label Studio is empty.");
         return;
       }
       const labelsTab = document.getElementById('tab-labels');
@@ -1127,7 +1169,24 @@
       window.print();
     }
 
+    function saveStudioToStorage() {
+      localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(Array.from(studioItemCodes)));
+    }
+
+    function loadStudioFromStorage() {
+      const stored = localStorage.getItem(STUDIO_STORAGE_KEY);
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          studioItemCodes = new Set(arr);
+        } catch (e) {
+          studioItemCodes = new Set();
+        }
+      }
+    }
+
     function initData() {
+      loadStudioFromStorage();
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         try {
@@ -1375,6 +1434,7 @@
       filtered.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+          <td class="col-select"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
           <td class="col-code"><strong>${item.code}</strong></td>
           <td class="col-name">${translateName(item, currentLang)}</td>
           <td class="col-unit">${translateUnit(item.unit, currentLang)}</td>
@@ -1401,7 +1461,7 @@
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
           <h3>استوديو الملصقات فارغ</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على أيقونة (🏷️) بجانب أي مادة في سجل المخزون لإرسالها وطباعتها هنا.</p>
+          <p style="margin-top: 8px; font-size: 0.85rem;">حدد المواد في جدول المخزون وانقر على (طباعة المواد المحددة) أو أيقونة (🏷️) لإرسالها وطباعتها هنا.</p>
         </div>`;
         return;
       }
@@ -1484,6 +1544,7 @@
 
     function removeFromStudio(code) {
       studioItemCodes.delete(code);
+      saveStudioToStorage();
       renderLabelsGrid();
     }
 
@@ -1491,6 +1552,7 @@
       if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         studioItemCodes.delete(code);
+        saveStudioToStorage();
         saveAndRefresh();
       }
     }
