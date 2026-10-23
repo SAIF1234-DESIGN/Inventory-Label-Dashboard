@@ -186,29 +186,29 @@
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
-    /* Label Cards Grid - Exactly 5 Labels in a Row */
+    /* Label Cards Grid - Default 2x4 Layout */
     .labels-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
     }
     .sticker-card {
       background: white;
       color: #0f172a;
       border-radius: 10px;
-      padding: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      min-height: 120px;
+      min-height: 135px;
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
     .del-btn:hover { background: #fca5a5; }
 
-    .sticker-title { font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.2; }
+    .sticker-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.2; }
     .meta-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -236,19 +236,19 @@
     }
     .custom-link-badge a { color: #0284c7; text-decoration: underline; }
 
-    /* Code Sections (Barcode + QR Side by Side) */
+    /* Code Sections: Barcode on Left, QR Code on Right */
     .codes-flex-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-top: 1px dashed #cbd5e1;
       padding-top: 6px;
-      gap: 6px;
+      gap: 12px;
     }
-    .barcode-section { flex: 1; text-align: center; }
-    .barcode-section svg { max-width: 100%; height: 30px; }
-    .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .qrcode-section svg { width: 35px !important; height: 35px !important; }
+    .barcode-section { flex: 1; text-align: left; }
+    .barcode-section svg { max-width: 100%; height: 32px; }
+    .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 40px; }
+    .qrcode-section svg { width: 38px !important; height: 38px !important; }
     .qrcode-label { font-size: 0.45rem; color: #64748b; margin-top: 1px; font-weight: 600; }
 
     /* Zero Horizontal Scroll & True Content-Aware LTR Table */
@@ -345,8 +345,8 @@
 
       .labels-grid {
         display: grid !important;
-        grid-template-columns: repeat(5, 1fr) !important;
-        gap: 8px !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
         padding: 0 !important;
       }
 
@@ -354,6 +354,7 @@
         border: 1px solid #94a3b8 !important;
         break-inside: avoid !important;
         box-shadow: none !important;
+        min-height: 135px !important;
       }
 
       .sticker-card.unselected-print {
@@ -543,10 +544,10 @@
         <div class="form-group">
           <label id="printLbl2Text">2. Grid Layout Preset</label>
           <select id="cfgGridPreset" class="input-field">
-            <option value="5_labels_row" selected>5 Labels per row (5 columns layout)</option>
-            <option value="8_labels">8 Labels per page (2 columns × 4 rows)</option>
+            <option value="8_labels" selected>8 Labels per page (2 columns × 4 rows)</option>
             <option value="12_labels">12 Labels per page (3 columns × 4 rows)</option>
             <option value="21_labels">21 Standard labels (3 columns × 7 rows)</option>
+            <option value="5_labels_row">5 Labels per row (5 columns layout)</option>
           </select>
         </div>
 
@@ -635,14 +636,14 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V39";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V20";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V40";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V21";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
     let checkedItemCodes = new Set();
-    let selectedStudioCodes = new Set();
+    let selectedStudioCodes = new Set(); // Starts empty so labels are not auto-selected
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -922,24 +923,24 @@
       const preset = document.getElementById('cfgGridPreset').value;
       const orientation = document.getElementById('cfgOrientation').value;
 
-      let cols = 5;
-      let minHeight = "120px";
+      let cols = 2;
+      let minHeight = "135px";
 
-      if (preset === "5_labels_row") { cols = 5; minHeight = "120px"; }
-      else if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
+      if (preset === "8_labels") { cols = 2; minHeight = "135px"; }
       else if (preset === "12_labels") { cols = 3; minHeight = "110px"; }
       else if (preset === "21_labels") { cols = 3; minHeight = "85px"; }
+      else if (preset === "5_labels_row") { cols = 5; minHeight = "120px"; }
 
       const styleTag = document.getElementById('dynamicPrintStyles');
       styleTag.innerHTML = `
         @media print {
           @page {
             size: ${pageSize} ${orientation};
-            margin: 6mm;
+            margin: 8mm;
           }
           .labels-grid {
             grid-template-columns: repeat(${cols}, 1fr) !important;
-            gap: 8px !important;
+            gap: 10px !important;
           }
           .sticker-card {
             min-height: ${minHeight} !important;
@@ -1152,7 +1153,7 @@
 
     function generateSingleLabel(code) {
       studioItemCodes.add(code);
-      selectedStudioCodes.add(code);
+      // DO NOT auto-select in studio (leave unchecked by default)
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
@@ -1228,7 +1229,7 @@
 
       checkedItemCodes.forEach(code => {
         studioItemCodes.add(code);
-        selectedStudioCodes.add(code);
+        // DO NOT auto-select in studio
       });
       saveStudioToStorage();
       renderLabelsGrid();
@@ -1308,7 +1309,7 @@
         return;
       }
       if (selectedStudioCodes.size === 0) {
-        alert(currentLang === 'ar' ? "يرجى تحديد ملصق واحد على الأقل للطباعة." : "Please select at least one label to print.");
+        alert(currentLang === 'ar' ? "يرجى تحديد ملصق واحد على الأقل من الاستوديو للطباعة." : "Please select at least one label from the studio to print.");
         return;
       }
       window.print();
@@ -1324,7 +1325,7 @@
         try {
           const arr = JSON.parse(stored);
           studioItemCodes = new Set(arr);
-          studioItemCodes.forEach(code => selectedStudioCodes.add(code));
+          // Do not auto-populate selectedStudioCodes so they start unselected
         } catch (e) {
           studioItemCodes = new Set();
         }
@@ -1674,11 +1675,12 @@
           }
         }
 
+        // Structure: Barcode on Left, QR Code on Right
         card.innerHTML = `
           <div class="sticker-header">
             <div style="display: flex; align-items: center; gap: 6px;">
               <input type="checkbox" class="studio-label-checkbox" value="${item.code}" ${isCardSelected ? 'checked' : ''} onchange="handleStudioCardSelect(this, '${item.code}')">
-              <span style="font-size:0.7rem; color:#64748b;">🏢 ${translatedLocation}</span>
+              <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
             </div>
             <button class="del-btn" title="Remove from Studio" onclick="ungenerateSingleLabel('${item.code}')">✕</button>
           </div>
@@ -1704,7 +1706,7 @@
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
-            height: 30,
+            height: 32,
             displayValue: true,
             fontSize: 9,
             margin: 2
