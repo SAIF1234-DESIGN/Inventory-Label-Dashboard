@@ -72,7 +72,7 @@
     }
     .nav-tab:hover, .nav-tab.active { color: var(--text-main); border-bottom-color: var(--accent-blue); }
 
-    /* Main Container - Maximum Display Width Fluid Fit */
+    /* Main Container */
     .container { width: 100%; max-width: 100%; margin: 20px auto; padding: 0 16px; }
     .tab-content { display: none; width: 100%; }
     .tab-content.active { display: block; }
@@ -249,7 +249,7 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Maximum Fit Inventory Table (Zero Horizontal Scroll - 100% Display Width Allocation) */
+    /* Zero Horizontal Scroll & Smart Content-Aware Wrapping Table */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -268,9 +268,9 @@
       padding: 8px 6px;
       border: 1px solid #2b3a67;
       font-size: 0.75rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      word-break: break-word;
+      white-space: normal;
+      overflow-wrap: break-word;
     }
     .excel-table th {
       background: #0e1735;
@@ -290,14 +290,14 @@
       background-color: #243054;
     }
 
-    /* Precise Column Width Allocation for 100% Screen Fit */
-    .col-select { width: 3.5%; text-align: center; }
+    /* Dynamic Content-Aware Column Widths (Zero Scroll Fit) */
+    .col-select { width: 4%; text-align: center; }
     .col-code { width: 11%; }
-    .col-name { width: 23%; }
-    .col-unit { width: 8.5%; }
-    .col-location { width: 21%; }
-    .col-class { width: 11.5%; }
-    .col-action { width: 4.3%; text-align: center; }
+    .col-name { width: 24%; }
+    .col-unit { width: 8%; }
+    .col-location { width: 23%; }
+    .col-class { width: 13%; }
+    .col-action { width: 3.4%; text-align: center; }
 
     .action-sub-btn {
       background: #2b3a67;
@@ -627,8 +627,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V27";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V8";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V28";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V9";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -1444,11 +1444,11 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="col-select" style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}"></td>
-          <td class="col-code" title="${item.code}"><strong>${item.code}</strong></td>
-          <td class="col-name" title="${translateName(item, currentLang)}">${translateName(item, currentLang)}</td>
-          <td class="col-unit" title="${translateUnit(item.unit, currentLang)}">${translateUnit(item.unit, currentLang)}</td>
-          <td class="col-location" title="${translateLocation(item.location, currentLang)}">${translateLocation(item.location, currentLang)}</td>
-          <td class="col-class" title="${translateClassification(item, currentLang)}">${translateClassification(item, currentLang)}</td>
+          <td class="col-code"><strong>${item.code}</strong></td>
+          <td class="col-name">${translateName(item, currentLang)}</td>
+          <td class="col-unit">${translateUnit(item.unit, currentLang)}</td>
+          <td class="col-location">${translateLocation(item.location, currentLang)}</td>
+          <td class="col-class">${translateClassification(item, currentLang)}</td>
           <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
           <td class="col-action" style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
           <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
@@ -1470,7 +1470,7 @@
       if (studioItemCodes.size === 0) {
         grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
           <h3>Label Studio is Empty</h3>
-          <p style="margin-top: 8px; font-size: 0.85rem;">Click on the (Generate) button beside any item in the inventory register to display its label here.</p>
+          <p style="margin-top: 8px; font-size: 0.85rem;">Click on the (Gen) button beside any item in the inventory register to display its label here.</p>
         </div>`;
         return;
       }
