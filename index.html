@@ -301,9 +301,6 @@
       <!-- Add Material Button -->
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
 
-      <!-- Print Configurator Modal Trigger -->
-      <button class="btn btn-outline" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="openPrintSettingsModal()">⚙️ <span id="btnSettingsText">إعدادات مقاسات الطباعة</span></button>
-
       <!-- File Import / Download Actions -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
@@ -402,7 +399,7 @@
             <option value="" id="optAllClass2">جميع التصنيفات</option>
           </select>
           
-          <!-- Independent Barcode Label Language Selector -->
+          <!-- Barcode Label Language Selector -->
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
             <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
@@ -411,7 +408,9 @@
             </select>
           </div>
         </div>
-        <div style="display:flex; gap:10px;">
+
+        <div style="display:flex; gap:10px; flex-wrap: wrap;">
+          <!-- Print Settings Trigger Moved Here -->
           <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
           <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
           <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
@@ -523,7 +522,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V9";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V10";
 
     // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
@@ -601,7 +600,6 @@
         appTitleText: "نظام إدارة لوجستيات وإستعلامات المخزون",
         appSubTitleText: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
         btnAddMaterial: "+ إضافة مادة جديدة",
-        btnSettings: "إعدادات مقاسات الطباعة",
         btnTemplate: "تحميل قالب اكسل",
         btnImport: "استيراد بيانات اكسل",
         btnBackup: "حفظ النسخة الاحتياطية",
@@ -654,7 +652,6 @@
         appTitleText: "Logistics & Inventory Management System",
         appSubTitleText: "Central Equipment, Parts & Classification Control Center",
         btnAddMaterial: "+ Add New Material",
-        btnSettings: "Print Settings",
         btnTemplate: "Download Template",
         btnImport: "Import Excel Data",
         btnBackup: "Save Backup",
@@ -807,7 +804,6 @@
       document.documentElement.lang = currentLang;
       document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
       
-      // Automatically synchronize barcode label language selector to match dashboard language change
       document.getElementById('barcodeLangSelect').value = currentLang;
 
       applyTranslations();
@@ -820,7 +816,6 @@
       document.getElementById('appTitleText').textContent = t.appTitleText;
       document.getElementById('appSubTitleText').textContent = t.appSubTitleText;
       document.getElementById('btnAddMaterialText').textContent = t.btnAddMaterial;
-      document.getElementById('btnSettingsText').textContent = t.btnSettings;
       document.getElementById('btnTemplateText').textContent = t.btnTemplate;
       document.getElementById('btnImportText').textContent = t.btnImport;
       document.getElementById('btnBackupText').textContent = t.btnBackup;
