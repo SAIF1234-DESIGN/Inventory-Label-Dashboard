@@ -272,8 +272,8 @@
     <div class="brand-title">
       <div class="brand-logo">📦</div>
       <div class="brand-text">
-        <h1 id="appTitle">نظام إدارة لوجستيات وإستعلامات المخزون <span class="version-badge">v2.4</span></h1>
-        <p id="appSubTitle">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
+        <h1 id="appTitleText">نظام إدارة لوجستيات وإستعلامات المخزون</h1>
+        <p id="appSubTitleText">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
       </div>
     </div>
     <div class="header-actions">
@@ -385,7 +385,7 @@
           </select>
         </div>
         <div style="display:flex; gap:10px;">
-          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()">⚙️ مقاسات الصفحة والملصق</button>
+          <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
           <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
           <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
         </div>
@@ -408,12 +408,12 @@
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">⚙️ إعدادات مقاس الصفحة والملصقات (Page & Label Configurator)</div>
+        <div class="modal-title" id="printModalTitleText">⚙️ إعدادات مقاس الصفحة والملصقات</div>
         <button class="modal-close" onclick="closePrintSettingsModal()">✕</button>
       </div>
       <div class="modal-grid">
         <div class="form-group">
-          <label>1. نوع ورقة الطباعة (Page Size)</label>
+          <label id="printLbl1Text">1. نوع ورقة الطباعة (Page Size)</label>
           <select id="cfgPageSize" class="input-field" onchange="updatePrintConfigPreview()">
             <option value="A4">A4 Sheet (210mm × 297mm)</option>
             <option value="Letter">Letter Sheet (8.5" × 11")</option>
@@ -423,7 +423,7 @@
         </div>
 
         <div class="form-group">
-          <label>2. نمط عدد الملصقات في الصفحة (Grid Preset)</label>
+          <label id="printLbl2Text">2. نمط عدد الملصقات في الصفحة (Grid Preset)</label>
           <select id="cfgGridPreset" class="input-field" onchange="updatePrintConfigPreview()">
             <option value="8_labels">8 الملصقات في الصفحة (2 columns × 4 rows)</option>
             <option value="10_labels">10 الملصقات في الصفحة (2 columns × 5 rows)</option>
@@ -434,7 +434,7 @@
         </div>
 
         <div class="form-group">
-          <label>3. اتجاه الصفحة (Page Orientation)</label>
+          <label id="printLbl3Text">3. اتجاه الصفحة (Page Orientation)</label>
           <select id="cfgOrientation" class="input-field" onchange="updatePrintConfigPreview()">
             <option value="portrait">عمودي (Portrait)</option>
             <option value="landscape">أفقي (Landscape)</option>
@@ -442,8 +442,8 @@
         </div>
 
         <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-outline" onclick="closePrintSettingsModal()">إلغاء</button>
-          <button class="btn btn-success" onclick="applyPrintSettingsAndClose()">💾 حفظ الإعدادات وتطبيق الطباعة</button>
+          <button class="btn btn-outline" onclick="closePrintSettingsModal()" id="printCancelBtnText">إلغاء</button>
+          <button class="btn btn-success" onclick="applyPrintSettingsAndClose()" id="printSaveBtnText">💾 حفظ الإعدادات وتطبيق الطباعة</button>
         </div>
       </div>
     </div>
@@ -512,14 +512,15 @@
       return rawUnit;
     }
 
-    // Bilingual Dictionary
+    // Comprehensive Bilingual Dictionary
     let currentLang = "ar";
     const translations = {
       ar: {
         toggleBtn: "English",
-        appTitle: "نظام إدارة لوجستيات وإستعلامات المخزون v2.4",
-        appSubTitle: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
+        appTitleText: "نظام إدارة لوجستيات وإستعلامات المخزون",
+        appSubTitleText: "مركز التحكم الشامل بالمعدات والقطع والتصنيفات",
         btnAddMaterial: "+ إضافة مادة جديدة",
+        btnSettings: "إعدادات مقاسات الطباعة",
         btnTemplate: "تحميل قالب اكسل",
         btnImport: "استيراد بيانات اكسل",
         btnBackup: "حفظ النسخة الاحتياطية",
@@ -541,29 +542,36 @@
         kpi2Sub: "جميع الفئات المسجلة",
         kpi3Title: "المستودعات المسجلة",
         kpi3Sub: "مواقع التخزين المستهدفة",
-        chartTitle: "توزيع جميع التصنيفات (Classifications Breakdown)",
-        chartSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
+        chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
+        chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        thCode: "كود المادة (Code)",
-        thName: "اسم المادة (Name)",
+        thCode: "كود المادة (Material Code)",
+        thName: "اسم المادة (Material Name)",
         thUnit: "الوحدة (Unit)",
-        thLocation: "الموقع (Location)",
+        thLocation: "الموقع (Warehouse / Location)",
         thClass: "التصنيف (Classification)",
         thActions: "الإجراءات",
         btnDeleteSelected: "حذف المحددة",
         btnPrintSelected: "طباعة المحدد",
+        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblSelectAll: "تحديد الكل (Select All)",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
-        // Barcode Card Labels
         cardCode: "الكود",
         cardUnit: "الوحدة",
-        cardClass: "التصنيف"
+        cardClass: "التصنيف",
+        printModalTitle: "⚙️ إعدادات مقاس الصفحة والملصقات",
+        printLbl1: "1. نوع ورقة الطباعة (Page Size)",
+        printLbl2: "2. نمط عدد الملصقات في الصفحة (Grid Preset)",
+        printLbl3: "3. اتجاه الصفحة (Page Orientation)",
+        printCancelBtn: "إلغاء",
+        printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة"
       },
       en: {
         toggleBtn: "العربية",
-        appTitle: "Logistics & Inventory Management System v2.4",
-        appSubTitle: "Central Equipment, Parts & Classification Control Center",
+        appTitleText: "Logistics & Inventory Management System",
+        appSubTitleText: "Central Equipment, Parts & Classification Control Center",
         btnAddMaterial: "+ Add New Material",
+        btnSettings: "Print Settings",
         btnTemplate: "Download Template",
         btnImport: "Import Excel Data",
         btnBackup: "Save Backup",
@@ -585,8 +593,8 @@
         kpi2Sub: "All registered categories",
         kpi3Title: "Registered Warehouses",
         kpi3Sub: "Target storage locations",
-        chartTitle: "Classifications Breakdown",
-        chartSub: "Bar chart displaying total items per classification category",
+        chartHeaderTitle: "Classifications Breakdown",
+        chartHeaderSub: "Bar chart displaying total items per classification category",
         optAllClass: "All Classifications",
         thCode: "Material Code",
         thName: "Material Name",
@@ -596,12 +604,18 @@
         thActions: "Actions",
         btnDeleteSelected: "Delete Selected",
         btnPrintSelected: "Print Selected",
+        btnConfigPrint: "⚙️ Page & Label Size",
         lblSelectAll: "Select All",
         searchPlaceholder: "Search by code or name...",
-        // Barcode Card Labels
         cardCode: "Code",
         cardUnit: "Unit",
-        cardClass: "Classification"
+        cardClass: "Classification",
+        printModalTitle: "⚙️ Page & Label Size Configurator",
+        printLbl1: "1. Page Size",
+        printLbl2: "2. Grid Layout Preset",
+        printLbl3: "3. Page Orientation",
+        printCancelBtn: "Cancel",
+        printSaveBtn: "💾 Save Settings & Apply"
       }
     };
 
@@ -632,7 +646,7 @@
     function applyPrintSettingsAndClose() {
       updatePrintConfigPreview();
       closePrintSettingsModal();
-      alert("تم حفظ إعدادات مقاسات الطباعة وتحديث المخطط بنجاح!");
+      alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة وتحديث المخطط بنجاح!" : "Print size settings saved successfully!");
     }
 
     function updatePrintConfigPreview() {
@@ -701,7 +715,7 @@
       alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
     }
 
-    // Language Switcher
+    // Language Switcher Function
     function toggleLanguage() {
       currentLang = currentLang === "ar" ? "en" : "ar";
       document.documentElement.lang = currentLang;
@@ -713,9 +727,10 @@
     function applyTranslations() {
       const t = translations[currentLang];
       document.getElementById('langToggleBtnText').textContent = t.toggleBtn;
-      document.getElementById('appTitle').childNodes[0].nodeValue = t.appTitle + " ";
-      document.getElementById('appSubTitle').textContent = t.appSubTitle;
+      document.getElementById('appTitleText').textContent = t.appTitleText;
+      document.getElementById('appSubTitleText').textContent = t.appSubTitleText;
       document.getElementById('btnAddMaterialText').textContent = t.btnAddMaterial;
+      document.getElementById('btnSettingsText').textContent = t.btnSettings;
       document.getElementById('btnTemplateText').textContent = t.btnTemplate;
       document.getElementById('btnImportText').textContent = t.btnImport;
       document.getElementById('btnBackupText').textContent = t.btnBackup;
@@ -734,14 +749,22 @@
       document.getElementById('btnSaveModalText').textContent = t.btnSaveModal;
       document.getElementById('btnCancelModal').textContent = t.btnCancelModal;
 
+      // Print Modal Translation
+      document.getElementById('printModalTitleText').textContent = t.printModalTitle;
+      document.getElementById('printLbl1Text').textContent = t.printLbl1;
+      document.getElementById('printLbl2Text').textContent = t.printLbl2;
+      document.getElementById('printLbl3Text').textContent = t.printLbl3;
+      document.getElementById('printCancelBtnText').textContent = t.printCancelBtn;
+      document.getElementById('printSaveBtnText').textContent = t.printSaveBtn;
+
       document.getElementById('kpi1Title').textContent = t.kpi1Title;
       document.getElementById('kpi1Sub').textContent = t.kpi1Sub;
       document.getElementById('kpi2Title').textContent = t.kpi2Title;
       document.getElementById('kpi2Sub').textContent = t.kpi2Sub;
       document.getElementById('kpi3Title').textContent = t.kpi3Title;
       document.getElementById('kpi3Sub').textContent = t.kpi3Sub;
-      document.getElementById('chartHeaderTitle').textContent = t.chartTitle;
-      document.getElementById('chartHeaderSub').textContent = t.chartSub;
+      document.getElementById('chartHeaderTitle').textContent = t.chartHeaderTitle;
+      document.getElementById('chartHeaderSub').textContent = t.chartHeaderSub;
       document.getElementById('optAllClass1').textContent = t.optAllClass;
       document.getElementById('optAllClass2').textContent = t.optAllClass;
       document.getElementById('thCode').textContent = t.thCode;
@@ -752,6 +775,7 @@
       document.getElementById('thActions').textContent = t.thActions;
       document.getElementById('btnDeleteSelectedText').textContent = t.btnDeleteSelected;
       document.getElementById('btnPrintSelectedText').textContent = t.btnPrintSelected;
+      document.getElementById('btnConfigPrintText').textContent = t.btnConfigPrint;
       document.getElementById('lblSelectAll').textContent = t.lblSelectAll;
       document.getElementById('inventorySearch').placeholder = t.searchPlaceholder;
       document.getElementById('labelsSearch').placeholder = t.searchPlaceholder;
