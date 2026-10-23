@@ -46,7 +46,6 @@
     }
     .brand-text h1 { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .brand-text p { font-size: 0.8rem; color: var(--text-muted); }
-    .version-badge { background: #1e293b; color: var(--accent-cyan); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-color); }
 
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
@@ -285,7 +284,7 @@
 
   <!-- Top Header Navigation -->
   <header>
-    <!-- Left Top Right Corner: Language Toggle Button -->
+    <!-- Left Top Right Corner: Dashboard Language Toggle Button -->
     <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
       
@@ -397,11 +396,20 @@
     <!-- TAB 3: BARCODE LABELS STUDIO -->
     <div id="tab-labels" class="tab-content">
       <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderLabelsGrid()" style="max-width: 280px;">
-          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 220px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderLabelsGrid()" style="max-width: 250px;">
+          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 200px;">
             <option value="" id="optAllClass2">جميع التصنيفات</option>
           </select>
+          
+          <!-- Dedicated Barcode Label Language Selector -->
+          <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
+            <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
+              <option value="ar">العربية (Arabic)</option>
+              <option value="en">English (إنجليزي)</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex; gap:10px;">
           <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
@@ -497,7 +505,10 @@
         </div>
         <div class="form-group">
           <label id="lblClassModal">5. التصنيف (Classification)</label>
-          <input type="text" id="modalInputClassification" class="input-field" placeholder="Tools, Filters, Electrical...">
+          <input type="text" id="modalInputClassification" list="modalClassificationList" class="input-field" placeholder="Tools, Filters, Electrical...">
+          <datalist id="modalClassificationList">
+            <!-- Dynamic Datalist Options -->
+          </datalist>
         </div>
         <div class="form-group">
           <label id="lblCustomDataModal">6. بيانات إضافية أو رابط اختياري (Custom Link / Data)</label>
@@ -512,7 +523,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V5";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V7";
 
     // Bilingual Dictionaries for Units & Classifications
     const unitMap = {
@@ -626,6 +637,7 @@
         btnPrintSelected: "طباعة المحدد",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblSelectAll: "تحديد الكل (Select All)",
+        lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
         cardCode: "الكود",
         cardUnit: "الوحدة",
@@ -678,6 +690,7 @@
         btnPrintSelected: "Print Selected",
         btnConfigPrint: "⚙️ Page & Label Size",
         lblSelectAll: "Select All",
+        lblBarcodeLang: "Label Lang:",
         searchPlaceholder: "Search by code or name...",
         cardCode: "Code",
         cardUnit: "Unit",
@@ -851,6 +864,7 @@
       document.getElementById('btnPrintSelectedText').textContent = t.btnPrintSelected;
       document.getElementById('btnConfigPrintText').textContent = t.btnConfigPrint;
       document.getElementById('lblSelectAll').textContent = t.lblSelectAll;
+      document.getElementById('lblBarcodeLangText').textContent = t.lblBarcodeLang;
       document.getElementById('inventorySearch').placeholder = t.searchPlaceholder;
       document.getElementById('labelsSearch').placeholder = t.searchPlaceholder;
     }
@@ -905,7 +919,7 @@
     function saveAndRefresh() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(warehouseItems));
       updateKPIs();
-      populateWarehouseDatalist();
+      populateDatalists();
       populateCategoryDropdowns();
       renderAllClassificationsChart();
       renderInventoryTable();
@@ -978,15 +992,26 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Populate Datalist
-    function populateWarehouseDatalist() {
-      const dl = document.getElementById('modalWarehouseList');
+    // Populate Datalists for Warehouses & Classifications
+    function populateDatalists() {
+      // Warehouse Datalist
+      const dlWarehouse = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
-      dl.innerHTML = '';
+      dlWarehouse.innerHTML = '';
       uniqueWarehouses.forEach(w => {
         const opt = document.createElement('option');
         opt.value = w;
-        dl.appendChild(opt);
+        dlWarehouse.appendChild(opt);
+      });
+
+      // Classification Datalist
+      const dlClass = document.getElementById('modalClassificationList');
+      const uniqueClasses = [...new Set(warehouseItems.map(i => i.classification).filter(Boolean))];
+      dlClass.innerHTML = '';
+      uniqueClasses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        dlClass.appendChild(opt);
       });
     }
 
@@ -1032,7 +1057,15 @@
           plugins: { legend: { display: false } },
           scales: {
             x: { ticks: { color: '#8d99ae' }, grid: { display: false } },
-            y: { ticks: { color: '#8d99ae' }, grid: { color: '#2b3a67' } }
+            y: {
+              ticks: {
+                color: '#8d99ae',
+                stepSize: 1,
+                precision: 0
+              },
+              grid: { color: '#2b3a67' },
+              beginAtZero: true
+            }
           }
         }
       });
@@ -1091,9 +1124,10 @@
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
+      const labelLang = document.getElementById('barcodeLangSelect').value;
 
       const filtered = warehouseItems.filter(i => {
-        const translatedClass = translateClassification(i.classification, currentLang);
+        const translatedClass = translateClassification(i.classification, labelLang);
         const matchSearch = i.code.toLowerCase().includes(search) || i.name.toLowerCase().includes(search);
         const matchCat = !cat || translatedClass === cat;
         return matchSearch && matchCat;
@@ -1102,7 +1136,7 @@
       const grid = document.getElementById('labelsGridContainer');
       grid.innerHTML = '';
 
-      const t = translations[currentLang];
+      const t = translations[labelLang];
 
       filtered.forEach(item => {
         const isChecked = selectedCodes.has(item.code);
@@ -1110,9 +1144,9 @@
         card.className = 'sticker-card';
         card.setAttribute('data-code', item.code);
 
-        const translatedUnit = translateUnit(item.unit, currentLang);
-        const translatedClass = translateClassification(item.classification, currentLang);
-        const translatedLocation = translateLocation(item.location, currentLang);
+        const translatedUnit = translateUnit(item.unit, labelLang);
+        const translatedClass = translateClassification(item.classification, labelLang);
+        const translatedLocation = translateLocation(item.location, labelLang);
 
         let customDataHtml = '';
         if (item.customData && item.customData.trim() !== '') {
@@ -1154,7 +1188,7 @@
         } catch (e) {}
       });
 
-      document.getElementById('selectedCountBadge').textContent = `(${currentLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
+      document.getElementById('selectedCountBadge').textContent = `(${labelLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
     }
 
     // Selection Handling
