@@ -237,17 +237,50 @@
     .barcode-container { text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 8px; }
     .barcode-container svg { max-width: 100%; height: 45px; }
 
-    /* Table Styles */
+    /* Excel-Style Spreadsheet Table Styles */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 16px;
-      overflow: hidden;
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    table { width: 100%; border-collapse: collapse; text-align: inherit; }
-    th, td { padding: 14px 18px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; }
-    th { background: #0e1735; color: var(--text-muted); font-weight: 700; }
-    tr:hover { background: rgba(255,255,255,0.02); }
+    .excel-table {
+      width: 100%;
+      border-collapse: collapse;
+      direction: ltr; /* Forces left-to-right flow */
+      text-align: left;
+    }
+    .excel-table th, .excel-table td {
+      padding: 12px 16px;
+      border: 1px solid #2b3a67; /* Clean grid lines */
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+    .excel-table th {
+      background: #0e1735;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .excel-table tbody tr {
+      background-color: #1c2541;
+      transition: background-color 0.15s ease;
+    }
+    .excel-table tbody tr:nth-child(even) {
+      background-color: #161f38; /* Zebra striping like Excel */
+    }
+    .excel-table tbody tr:hover {
+      background-color: #243054;
+    }
+
+    /* Explicit Column Sizing */
+    .col-code { width: 15%; }
+    .col-name { width: 30%; }
+    .col-unit { width: 10%; }
+    .col-location { width: 25%; }
+    .col-class { width: 15%; }
+    .col-actions { width: 5%; text-align: center !important; }
 
     /* Strict Print Page Rule Holder */
     @media print {
@@ -384,15 +417,15 @@
       </div>
 
       <div class="table-card">
-        <table>
+        <table class="excel-table">
           <thead>
             <tr>
-              <th id="thCode">كود المادة (Material Code)</th>
-              <th id="thName">اسم المادة (Material Name)</th>
-              <th id="thUnit">الوحدة (Unit)</th>
-              <th id="thLocation">الموقع (Warehouse / Location)</th>
-              <th id="thClass">التصنيف (Classification)</th>
-              <th id="thActions">الإجراءات</th>
+              <th class="col-code" id="thCode">Material Code</th>
+              <th class="col-name" id="thName">Material Name</th>
+              <th class="col-unit" id="thUnit">Unit</th>
+              <th class="col-location" id="thLocation">Warehouse / Location</th>
+              <th class="col-class" id="thClass">Classification</th>
+              <th class="col-actions" id="thActions">Actions</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody">
@@ -552,9 +585,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V14";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V15";
 
-    // Translation memory dictionaries that auto-learn user entries
     let nameMemory = {};
     let classificationMemory = {};
 
@@ -616,7 +648,6 @@
       }
     }
 
-    // Auto-fill memory hooks
     function autoFillNameEn(val) {
       const key = val.trim().toLowerCase();
       if (nameMemory[key] && !document.getElementById('modalInputNameEn').value) {
@@ -651,7 +682,6 @@
       }
     }
 
-    // UI Translations Dictionary
     let currentLang = "ar";
     const translations = {
       ar: {
@@ -687,12 +717,12 @@
         chartHeaderTitle: "توزيع جميع التصنيفات (All Classifications Overview)",
         chartHeaderSub: "رسم بياني يوضح عدد المواد المسجلة لكل تصنيف بالكامل",
         optAllClass: "جميع التصنيفات",
-        thCode: "كود المادة (Material Code)",
-        thName: "اسم المادة (Material Name)",
-        thUnit: "الوحدة (Unit)",
-        thLocation: "الموقع (Warehouse / Location)",
-        thClass: "التصنيف (Classification)",
-        thActions: "الإجراءات",
+        thCode: "Material Code",
+        thName: "Material Name",
+        thUnit: "Unit",
+        thLocation: "Warehouse / Location",
+        thClass: "Classification",
+        thActions: "Actions",
         btnDeleteSelected: "حذف المحددة",
         btnPrintSelected: "طباعة المحدد",
         btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
@@ -766,8 +796,8 @@
       }
     };
 
-    // Initial Dataset with dual names and dual classifications
     const initialDataset = [
+      { code: "795", nameAr: "ورق طباعة صراف آلي", nameEn: "ATM Paper Roll", unit: "Pieces", location: "Southern Region Warehouse", classificationAr: "قرطاسية", classificationEn: "Stationery", customData: "" },
       { code: "7272446", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "المكونات الكهربائية", classificationEn: "Electrical Components", customData: "" },
       { code: "76152", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
       { code: "761962", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse/Southern Region Warehouse", classificationAr: "معدات مضخات الوقود وقطع الغيار", classificationEn: "Fuel Pump Equipment & Spare Parts", customData: "" },
@@ -781,7 +811,6 @@
     let selectedCodes = new Set();
     let chartInstance = null;
 
-    // Print Settings Modals
     function openPrintSettingsModal() {
       document.getElementById('printSettingsModal').classList.add('active');
     }
@@ -828,7 +857,6 @@
       `;
     }
 
-    // Modal Control Functions (Add & Edit)
     function openAddModal() {
       document.getElementById('modalEditOriginalCode').value = '';
       document.getElementById('modalHeaderTitle').textContent = translations[currentLang].modalTitleAdd;
@@ -864,7 +892,6 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
-    // Save Material from Modal with Default Warehouse & Auto-Save Memory
     function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
@@ -872,7 +899,6 @@
       const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
       const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
       
-      // Default warehouse set if left blank
       const defaultWarehouse = "Main Warehouse/Southern Region Warehouse";
       const locationInput = document.getElementById('modalInputLocation').value.trim();
       const location = locationInput !== "" ? locationInput : defaultWarehouse;
@@ -886,7 +912,6 @@
         return;
       }
 
-      // Save to memory for auto-filling future items
       if (nameAr && nameEn) {
         nameMemory[nameAr.toLowerCase()] = nameEn;
       }
@@ -924,7 +949,6 @@
       closeAddModal();
     }
 
-    // Language Switcher Function
     function toggleLanguage() {
       currentLang = currentLang === "ar" ? "en" : "ar";
       document.documentElement.lang = currentLang;
@@ -1008,7 +1032,6 @@
       renderLabelsGrid();
     }
 
-    // Clean Label-Only Print Handler
     function triggerCleanPrint() {
       const labelsTab = document.getElementById('tab-labels');
       if (!labelsTab.classList.contains('active')) {
@@ -1035,7 +1058,6 @@
       window.print();
     }
 
-    // Initialize App
     function initData() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -1078,7 +1100,6 @@
       renderLabelsGrid();
     }
 
-    // Navigation Switch
     function switchNav(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
@@ -1087,7 +1108,6 @@
       el.classList.add('active');
     }
 
-    // Download Excel Template
     function downloadExcelTemplate() {
       const templateData = [
         {
@@ -1108,7 +1128,6 @@
       XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
     }
 
-    // Import Excel File
     function importExcelFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1157,7 +1176,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Populate Datalists for Warehouses & Classifications (Auto-saved and dropdown ready)
     function populateDatalists() {
       const dlWarehouse = document.getElementById('modalWarehouseList');
       const uniqueWarehouses = [...new Set(warehouseItems.map(i => i.location).filter(Boolean))];
@@ -1187,7 +1205,6 @@
       });
     }
 
-    // Update KPIs
     function updateKPIs() {
       document.getElementById('kpiTotalItems').textContent = warehouseItems.length;
 
@@ -1198,7 +1215,6 @@
       document.getElementById('kpiLocations').textContent = locations.size;
     }
 
-    // Render Chart
     function renderAllClassificationsChart() {
       const counts = {};
       warehouseItems.forEach(i => {
@@ -1243,7 +1259,6 @@
       });
     }
 
-    // Populate Categories Dropdown filters
     function populateCategoryDropdowns() {
       const categories = [...new Set(warehouseItems.map(i => translateClassification(i, currentLang)).filter(Boolean))];
       
@@ -1268,7 +1283,6 @@
       });
     }
 
-    // Render Table
     function renderInventoryTable() {
       const search = document.getElementById('inventorySearch').value.toLowerCase();
       const cat = document.getElementById('inventoryCategoryFilter').value;
@@ -1287,13 +1301,13 @@
       filtered.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${item.code}</strong></td>
-          <td>${translateName(item, currentLang)}</td>
-          <td>${translateUnit(item.unit, currentLang)}</td>
-          <td>${translateLocation(item.location, currentLang)}</td>
-          <td>${translateClassification(item, currentLang)}</td>
-          <td>
-            <div style="display:flex; gap:6px;">
+          <td class="col-code"><strong>${item.code}</strong></td>
+          <td class="col-name">${translateName(item, currentLang)}</td>
+          <td class="col-unit">${translateUnit(item.unit, currentLang)}</td>
+          <td class="col-location">${translateLocation(item.location, currentLang)}</td>
+          <td class="col-class">${translateClassification(item, currentLang)}</td>
+          <td class="col-actions">
+            <div style="display:flex; gap:6px; justify-content: center;">
               <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
               <button class="del-btn" title="حذف" onclick="deleteSingleItem('${item.code}')">✕</button>
             </div>
@@ -1303,7 +1317,6 @@
       });
     }
 
-    // Render Barcode Cards Grid
     function renderLabelsGrid() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
@@ -1379,7 +1392,6 @@
       document.getElementById('selectedCountBadge').textContent = `(${labelLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
     }
 
-    // Selection Handling
     function toggleSelect(code) {
       if (selectedCodes.has(code)) selectedCodes.delete(code);
       else selectedCodes.add(code);
@@ -1395,7 +1407,6 @@
       renderLabelsGrid();
     }
 
-    // Delete Single Item
     function deleteSingleItem(code) {
       if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
@@ -1413,7 +1424,6 @@
       }
     }
 
-    // Export Backup JSON
     function exportBackupJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(warehouseItems, null, 2));
       const anchor = document.createElement('a');
@@ -1424,7 +1434,6 @@
       anchor.remove();
     }
 
-    // Init App
     initData();
   </script>
 </body>
