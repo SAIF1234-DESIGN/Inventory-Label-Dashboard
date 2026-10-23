@@ -8,8 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- JsBarcode for barcode rendering -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <!-- QRCode.js for dynamic QR Code generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Lightweight Reliable QR Code Generator -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <!-- SheetJS (XLSX) for Excel Import & Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -186,7 +186,7 @@
     /* Label Cards Grid */
     .labels-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
     }
     .sticker-card {
@@ -201,11 +201,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     .sticker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .card-checkbox { width: 18px; height: 18px; cursor: pointer; }
-    .card-actions-group { display: flex; gap: 4px; align-items: center; }
-    .icon-btn { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
-    .icon-btn:hover { background: #e2e8f0; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
     .del-btn:hover { background: #fca5a5; }
 
     .sticker-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; line-height: 1.3; }
@@ -246,9 +242,9 @@
       gap: 10px;
     }
     .barcode-section { flex: 1; text-align: center; }
-    .barcode-section svg { max-width: 100%; height: 38px; }
+    .barcode-section svg { max-width: 100%; height: 35px; }
     .qrcode-section { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .qrcode-section div img { width: 45px !important; height: 45px !important; }
+    .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
     /* Excel-Style Spreadsheet Table Styles */
@@ -262,12 +258,12 @@
     .excel-table {
       width: 100%;
       border-collapse: collapse;
-      direction: ltr; /* Forces left-to-right flow */
+      direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
       padding: 12px 16px;
-      border: 1px solid #2b3a67; /* Clean grid lines */
+      border: 1px solid #2b3a67;
       font-size: 0.875rem;
       white-space: nowrap;
     }
@@ -282,25 +278,48 @@
       transition: background-color 0.15s ease;
     }
     .excel-table tbody tr:nth-child(even) {
-      background-color: #161f38; /* Zebra striping like Excel */
+      background-color: #161f38;
     }
     .excel-table tbody tr:hover {
       background-color: #243054;
     }
 
     /* Explicit Column Sizing */
-    .col-code { width: 15%; }
-    .col-name { width: 30%; }
+    .col-code { width: 14%; }
+    .col-name { width: 26%; }
     .col-unit { width: 10%; }
-    .col-location { width: 25%; }
+    .col-location { width: 20%; }
     .col-class { width: 15%; }
-    .col-actions { width: 5%; text-align: center !important; }
+    .col-actions { width: 15%; text-align: center !important; }
+
+    .action-group-btns {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+    }
+    .table-action-btn {
+      background: #2b3a67;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+    .table-action-btn:hover { background: var(--accent-blue); }
+    .table-action-btn.del { background: #fee2e2; color: #dc2626; }
+    .table-action-btn.del:hover { background: #fca5a5; }
 
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
-      .btn, .input-field, .del-btn, .icon-btn, .card-checkbox,
-      #tab-overview, #tab-inventory, .labels-controls-bar, .selection-bar-container {
+      .btn, .input-field, .del-btn, .action-group-btns,
+      #tab-overview, #tab-inventory, .labels-controls-bar {
         display: none !important;
       }
 
@@ -331,10 +350,6 @@
         break-inside: avoid !important;
         box-shadow: none !important;
       }
-
-      .sticker-card.unselected-for-print {
-        display: none !important;
-      }
     }
   </style>
   <style id="dynamicPrintStyles"></style>
@@ -343,7 +358,6 @@
 
   <!-- Top Header Navigation -->
   <header>
-    <!-- Left Top Corner: Dashboard Language Toggle Button -->
     <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
       
@@ -357,16 +371,14 @@
     </div>
 
     <div class="header-actions">
-      <!-- Add Material Button -->
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
 
-      <!-- File Import / Download Actions -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
       <button class="btn btn-outline" onclick="downloadExcelTemplate()">📄 <span id="btnTemplateText">تحميل قالب اكسل</span></button>
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
       <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون الحالي</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
-      <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintText">طباعة ملصقات الشحنات</span></button>
+      <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintText">طباعة الملصقات المضافة</span></button>
     </div>
   </header>
 
@@ -410,7 +422,6 @@
         </div>
       </div>
 
-      <!-- Full Classification Chart Section -->
       <div class="chart-container">
         <div style="margin-bottom: 16px;">
           <h2 id="chartHeaderTitle">توزيع جميع التصنيفات (All Classifications Overview)</h2>
@@ -454,15 +465,9 @@
     <div id="tab-labels" class="tab-content">
       <div class="labels-controls-bar" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="labelsSearch" class="input-field" placeholder="ابحث بكود المادة أو الاسم..." oninput="renderLabelsGrid()" style="max-width: 250px;">
-          <select id="labelsCategoryFilter" class="input-field" onchange="renderLabelsGrid()" style="max-width: 200px;">
-            <option value="" id="optAllClass2">جميع التصنيفات</option>
-          </select>
-          
-          <!-- Barcode Label Language Selector -->
           <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <label id="lblBarcodeLangText" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">لغة الملصق:</label>
-            <select id="barcodeLangSelect" class="input-field" onchange="updateLabelStudioLang()" style="width: auto; padding: 4px 8px;">
+            <select id="barcodeLangSelect" class="input-field" onchange="renderLabelsGrid()" style="width: auto; padding: 4px 8px;">
               <option value="ar">العربية (Arabic)</option>
               <option value="en">English (إنجليزي)</option>
             </select>
@@ -471,19 +476,13 @@
 
         <div style="display:flex; gap:10px; flex-wrap: wrap;">
           <button class="btn btn-outline" style="border-color:var(--accent-blue); color:var(--accent-blue)" onclick="openPrintSettingsModal()" id="btnConfigPrintText">⚙️ مقاسات الصفحة والملصق</button>
-          <button class="btn btn-danger" onclick="deleteSelectedLabels()">🗑️ <span id="btnDeleteSelectedText">حذف المحددة</span></button>
-          <button class="btn btn-primary" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintSelectedText">طباعة المحدد</span></button>
+          <button class="btn btn-danger" onclick="clearLabelStudio()">🗑️ <span id="btnClearStudioText">إفراغ الاستوديو</span></button>
+          <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintStudioText">طباعة الملصقات</span></button>
         </div>
       </div>
 
-      <div class="selection-bar-container" style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="width:18px; height:18px; cursor:pointer;">
-        <label for="selectAllCheckbox" style="font-weight: 600;" id="lblSelectAll">تحديد الكل (Select All)</label>
-        <span id="selectedCountBadge" style="color: var(--text-muted); font-size:0.85rem;">(المحدد: 0)</span>
-      </div>
-
       <div class="labels-grid" id="labelsGridContainer">
-        <!-- Dynamic Sticker Cards -->
+        <!-- Empty by default until items are added via actions -->
       </div>
     </div>
 
@@ -566,7 +565,7 @@
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]</label>
+          <label id="lblLocationModal">4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي تلقائياً إذا ترك فارغاً]</label>
           <select id="modalInputLocation" class="input-field">
             <option value="Main Warehouse / Southern Region Warehouse">المستودع الرئيسي / مستودع المنطقة الجنوبية (Main Warehouse / Southern Region Warehouse) - [الافتراضي]</option>
             <option value="Southern Region Warehouse">مستودع المنطقة الجنوبية (Southern Region Warehouse)</option>
@@ -603,10 +602,11 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V18";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V19";
 
     let nameMemory = {};
     let classificationMemory = {};
+    let studioItemCodes = new Set(); // Holds items sent to label studio
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -730,7 +730,7 @@
         btnImport: "استيراد بيانات اكسل",
         btnDownloadInv: "تحميل المخزون الحالي",
         btnBackup: "حفظ النسخة الاحتياطية",
-        btnPrint: "طباعة ملصقات الشحنات",
+        btnPrint: "طباعة الملصقات المضافة",
         tab1: "📊 نظرة عامة والملخص",
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
@@ -761,10 +761,8 @@
         thLocation: "Warehouse / Location",
         thClass: "Classification",
         thActions: "Actions",
-        btnDeleteSelected: "حذف المحددة",
-        btnPrintSelected: "طباعة المحدد",
-        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
-        lblSelectAll: "تحديد الكل (Select All)",
+        btnClearStudio: "إفراغ الاستوديو",
+        btnPrintStudio: "طباعة الملصقات",
         lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
         cardCode: "الكود",
@@ -786,7 +784,7 @@
         btnImport: "Import Excel Data",
         btnDownloadInv: "Download Inventory",
         btnBackup: "Save Backup",
-        btnPrint: "Print Labels",
+        btnPrint: "Print Added Labels",
         tab1: "📊 Overview & Summary",
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
@@ -817,10 +815,8 @@
         thLocation: "Warehouse / Location",
         thClass: "Classification",
         thActions: "Actions",
-        btnDeleteSelected: "Delete Selected",
-        btnPrintSelected: "Print Selected",
-        btnConfigPrint: "⚙️ Page & Label Size",
-        lblSelectAll: "Select All",
+        btnClearStudio: "Clear Studio",
+        btnPrintStudio: "Print Labels",
         lblBarcodeLang: "Label Lang:",
         searchPlaceholder: "Search by code or name...",
         cardCode: "Code",
@@ -847,7 +843,6 @@
     ];
 
     let warehouseItems = [];
-    let selectedCodes = new Set();
     let chartInstance = null;
 
     function openPrintSettingsModal() {
@@ -861,7 +856,7 @@
     function applyPrintSettingsAndClose() {
       updatePrintConfigPreview();
       closePrintSettingsModal();
-      alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة وتحديث المخطط بنجاح!" : "Print size settings saved successfully!");
+      alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة بنجاح!" : "Print size settings saved successfully!");
     }
 
     function updatePrintConfigPreview() {
@@ -974,10 +969,6 @@
         if (index !== -1) {
           warehouseItems[index] = newItem;
         }
-        if (selectedCodes.has(originalCode)) {
-          selectedCodes.delete(originalCode);
-          selectedCodes.add(code);
-        }
         alert(currentLang === 'ar' ? "تم تحديث بيانات المادة بنجاح!" : "Material updated successfully!");
       } else {
         warehouseItems.unshift(newItem);
@@ -1080,24 +1071,52 @@
       setTxt('thClass', t.thClass);
       setTxt('thActions', t.thActions);
       
-      setTxt('btnDeleteSelectedText', t.btnDeleteSelected);
-      setTxt('btnPrintSelectedText', t.btnPrintSelected);
+      setTxt('btnClearStudioText', t.btnClearStudio);
+      setTxt('btnPrintStudioText', t.btnPrintStudio);
       setTxt('btnConfigPrintText', t.btnConfigPrint);
-      setTxt('lblSelectAll', t.lblSelectAll);
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
       
       const invSearch = document.getElementById('inventorySearch');
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
-      const lblSearch = document.getElementById('labelsSearch');
-      if (lblSearch) lblSearch.placeholder = t.searchPlaceholder;
     }
 
-    function updateLabelStudioLang() {
-      populateCategoryDropdowns();
+    // Add specific item to label studio and switch tab
+    function addAndOpenLabel(code) {
+      studioItemCodes.add(code);
+      renderLabelsGrid();
+      
+      // Switch to Label Studio tab
+      const labelsTab = document.getElementById('tab3Title');
+      switchNav('tab-labels', labelsTab);
+    }
+
+    // Print single item label directly
+    function printSingleItemLabel(code) {
+      studioItemCodes.clear();
+      studioItemCodes.add(code);
+      renderLabelsGrid();
+      
+      const labelsTab = document.getElementById('tab-labels');
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
+      labelsTab.classList.add('active');
+      document.getElementById('tab3Title').classList.add('active');
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }
+
+    function clearLabelStudio() {
+      studioItemCodes.clear();
       renderLabelsGrid();
     }
 
     function triggerCleanPrint() {
+      if (studioItemCodes.size === 0) {
+        alert(currentLang === 'ar' ? "استوديو الملصقات فارغ. يرجى إضافة مواد من جدول المخزون أولاً." : "Label Studio is empty. Please generate labels from the inventory table first.");
+        return;
+      }
       const labelsTab = document.getElementById('tab-labels');
       if (!labelsTab.classList.contains('active')) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
@@ -1105,21 +1124,6 @@
         labelsTab.classList.add('active');
         document.getElementById('tab3Title').classList.add('active');
       }
-
-      const cards = document.querySelectorAll('.sticker-card');
-      if (selectedCodes.size > 0) {
-        cards.forEach(card => {
-          const code = card.getAttribute('data-code');
-          if (!selectedCodes.has(code)) {
-            card.classList.add('unselected-for-print');
-          } else {
-            card.classList.remove('unselected-for-print');
-          }
-        });
-      } else {
-        cards.forEach(card => card.classList.remove('unselected-for-print'));
-      }
-
       window.print();
     }
 
@@ -1351,17 +1355,6 @@
         opt.textContent = c;
         invSel.appendChild(opt);
       });
-
-      const labelLang = document.getElementById('barcodeLangSelect').value;
-      const labelCategories = [...new Set(warehouseItems.map(i => translateClassification(i, labelLang)).filter(Boolean))];
-      const lblSel = document.getElementById('labelsCategoryFilter');
-      lblSel.innerHTML = `<option value="" id="optAllClass2">${translations[labelLang].optAllClass}</option>`;
-      labelCategories.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        lblSel.appendChild(opt);
-      });
     }
 
     function renderInventoryTable() {
@@ -1388,9 +1381,11 @@
           <td class="col-location">${translateLocation(item.location, currentLang)}</td>
           <td class="col-class">${translateClassification(item, currentLang)}</td>
           <td class="col-actions">
-            <div style="display:flex; gap:6px; justify-content: center;">
-              <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
-              <button class="del-btn" title="حذف" onclick="deleteSingleItem('${item.code}')">✕</button>
+            <div class="action-group-btns">
+              <button class="table-action-btn" title="طباعة ملصق سريع" onclick="printSingleItemLabel('${item.code}')">🖨️</button>
+              <button class="table-action-btn" title="إرسال لاستوديو الملصقات" onclick="addAndOpenLabel('${item.code}')">🏷️</button>
+              <button class="table-action-btn" title="تعديل المادة" onclick="openEditModal('${item.code}')">✏️</button>
+              <button class="table-action-btn del" title="حذف المادة" onclick="deleteSingleItem('${item.code}')">✕</button>
             </div>
           </td>
         `;
@@ -1399,25 +1394,24 @@
     }
 
     function renderLabelsGrid() {
-      const search = document.getElementById('labelsSearch').value.toLowerCase();
-      const cat = document.getElementById('labelsCategoryFilter').value;
       const labelLang = document.getElementById('barcodeLangSelect').value;
-
-      const filtered = warehouseItems.filter(i => {
-        const translatedClass = translateClassification(i, labelLang);
-        const translatedName = translateName(i, labelLang).toLowerCase();
-        const matchSearch = i.code.toLowerCase().includes(search) || translatedName.includes(search);
-        const matchCat = !cat || translatedClass === cat;
-        return matchSearch && matchCat;
-      });
-
       const grid = document.getElementById('labelsGridContainer');
       grid.innerHTML = '';
 
+      if (studioItemCodes.size === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          <h3>استوديو الملصقات فارغ</h3>
+          <p style="margin-top: 8px; font-size: 0.85rem;">انقر على أيقونة (🏷️) بجانب أي مادة في سجل المخزون لإرسالها وطباعتها هنا.</p>
+        </div>`;
+        return;
+      }
+
       const t = translations[labelLang];
 
-      filtered.forEach(item => {
-        const isChecked = selectedCodes.has(item.code);
+      studioItemCodes.forEach(code => {
+        const item = warehouseItems.find(i => i.code === code);
+        if (!item) return;
+
         const card = document.createElement('div');
         card.className = 'sticker-card';
         card.setAttribute('data-code', item.code);
@@ -1439,12 +1433,8 @@
 
         card.innerHTML = `
           <div class="sticker-header">
-            <input type="checkbox" class="card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${item.code}')">
             <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
-            <div class="card-actions-group">
-              <button class="icon-btn" title="تعديل" onclick="openEditModal('${item.code}')">✏️</button>
-              <button class="del-btn" title="حذف" onclick="deleteSingleItem('${item.code}')">✕</button>
-            </div>
+            <button class="del-btn" title="إزالة من الاستوديو" onclick="removeFromStudio('${item.code}')">✕</button>
           </div>
           <div class="sticker-title">${translatedName}</div>
           <div class="meta-box">
@@ -1459,78 +1449,48 @@
             </div>
             <div class="qrcode-section">
               <div id="qrcode-${item.code}"></div>
-              <span class="qrcode-label">SCAN INFO</span>
+              <span class="qrcode-label">SCAN QR</span>
             </div>
           </div>
         `;
         grid.appendChild(card);
 
-        // Render Barcode (CODE128)
+        // Render Barcode
         try {
           JsBarcode(`#barcode-${item.code}`, item.code, {
             format: "CODE128",
-            height: 38,
+            height: 35,
             displayValue: true,
             fontSize: 10,
             margin: 2
           });
         } catch (e) {}
 
-        // Render Scannable QR Code with Full Material Details
+        // Render Scannable QR Code using qrcode-generator
         try {
-          const qrPayload = JSON.stringify({
-            Code: item.code,
-            NameAr: item.nameAr,
-            NameEn: item.nameEn,
-            Unit: item.unit,
-            Warehouse: item.location,
-            ClassAr: item.classificationAr,
-            ClassEn: item.classificationEn,
-            Custom: item.customData || "N/A"
-          }, null, 2);
-
-          new QRCode(document.getElementById(`qrcode-${item.code}`), {
-            text: qrPayload,
-            width: 45,
-            height: 45,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+          const qrPayload = `Code: ${item.code}\nName: ${item.nameEn || item.nameAr}\nUnit: ${item.unit}\nWarehouse: ${item.location}\nClass: ${item.classificationEn || item.classificationAr}`;
+          
+          const qr = qrcode(0, 'M');
+          qr.addData(qrPayload);
+          qr.make();
+          
+          document.getElementById(`qrcode-${item.code}`).innerHTML = qr.createSvgTag({
+            scalable: true,
+            margin: 0
           });
         } catch (e) {}
       });
-
-      document.getElementById('selectedCountBadge').textContent = `(${labelLang === 'ar' ? 'المحدد' : 'Selected'}: ${selectedCodes.size})`;
     }
 
-    function toggleSelect(code) {
-      if (selectedCodes.has(code)) selectedCodes.delete(code);
-      else selectedCodes.add(code);
-      renderLabelsGrid();
-    }
-
-    function toggleSelectAll(masterCb) {
-      if (masterCb.checked) {
-        warehouseItems.forEach(i => selectedCodes.add(i.code));
-      } else {
-        selectedCodes.clear();
-      }
+    function removeFromStudio(code) {
+      studioItemCodes.delete(code);
       renderLabelsGrid();
     }
 
     function deleteSingleItem(code) {
       if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف المادة ذات الكود (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
-        selectedCodes.delete(code);
-        saveAndRefresh();
-      }
-    }
-
-    function deleteSelectedLabels() {
-      if (selectedCodes.size === 0) return alert(currentLang === 'ar' ? "يرجى تحديد عناصر للحذف." : "Please select items to delete.");
-      if (confirm(currentLang === 'ar' ? `هل أنت تأكد من حذف (${selectedCodes.size}) مادة مسجلة؟` : `Are you sure you want to delete (${selectedCodes.size}) selected items?`)) {
-        warehouseItems = warehouseItems.filter(i => !selectedCodes.has(i.code));
-        selectedCodes.clear();
+        studioItemCodes.delete(code);
         saveAndRefresh();
       }
     }
