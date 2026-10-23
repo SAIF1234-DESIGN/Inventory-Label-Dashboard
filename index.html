@@ -249,7 +249,7 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Zero Horizontal Scroll & Smart Content-Aware Wrapping Table */
+    /* Zero Horizontal Scroll & LTR Content-Aware Table */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -262,22 +262,23 @@
       width: 100%;
       table-layout: fixed;
       border-collapse: collapse;
+      direction: ltr;
       text-align: left;
     }
     .excel-table th, .excel-table td {
-      padding: 8px 6px;
+      padding: 8px 10px; /* Minor space from border */
       border: 1px solid #2b3a67;
       font-size: 0.75rem;
       word-break: break-word;
       white-space: normal;
       overflow-wrap: break-word;
+      text-align: left;
     }
     .excel-table th {
       background: #0e1735;
       color: var(--accent-cyan);
       font-weight: 700;
       letter-spacing: 0.02em;
-      text-align: center;
     }
     .excel-table tbody tr {
       background-color: #1c2541;
@@ -290,7 +291,7 @@
       background-color: #243054;
     }
 
-    /* Dynamic Content-Aware Column Widths (Zero Scroll Fit) */
+    /* Content-Aware Proportional Widths (Zero Scroll Fit) */
     .col-select { width: 4%; text-align: center; }
     .col-code { width: 11%; }
     .col-name { width: 24%; }
@@ -456,9 +457,9 @@
         <table class="excel-table">
           <thead>
             <tr>
-              <th colspan="1" style="background:#080e21; text-align:center;">Selection</th>
-              <th colspan="5" style="background:#0e1735; text-align:center;">Inventory Data</th>
-              <th colspan="5" style="background:#080e21; text-align:center;">Actions</th>
+              <th colspan="1" style="text-align:center;">Selection</th>
+              <th colspan="5" style="text-align:center;">Inventory Data</th>
+              <th colspan="5" style="text-align:center;">Actions</th>
             </tr>
             <tr>
               <th class="col-select" style="text-align:center;"><input type="checkbox" id="selectAllInv" onchange="toggleSelectAllInventory(this)"></th>
@@ -627,8 +628,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V28";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V9";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V29";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V10";
 
     let nameMemory = {};
     let classificationMemory = {};
