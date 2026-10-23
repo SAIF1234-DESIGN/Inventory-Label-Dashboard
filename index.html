@@ -314,11 +314,16 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
+    /* Hidden Single-Label Print Container */
+    #singlePrintContainer {
+      display: none;
+    }
+
     /* Strict Print Page Rule Holder */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
-      #tab-overview, #tab-inventory, .labels-controls-bar {
+      #tab-overview, #tab-inventory, .labels-controls-bar, #labelsGridContainer {
         display: none !important;
       }
 
@@ -339,6 +344,17 @@
 
       #tab-labels {
         display: block !important;
+      }
+
+      /* If printing single label directly from inventory row */
+      body.printing-single #singlePrintContainer {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        padding: 0 !important;
+      }
+
+      body.printing-single #tab-labels {
+        display: none !important;
       }
 
       .labels-grid {
@@ -509,6 +525,9 @@
 
   </div>
 
+  <!-- Hidden Container for Direct Single Item Row Printing without Changing Tabs -->
+  <div id="singlePrintContainer" class="labels-grid"></div>
+
   <!-- PRINT SIZE & GRID CONFIGURATOR MODAL -->
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
@@ -623,12 +642,13 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V34";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V15";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V35";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V16";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
+    let checkedItemCodes = new Set(); // Persistent set of checked inventory row codes
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -1151,36 +1171,113 @@
         return;
       }
       
-      // Keep only this item in the studio temporarily so print targets only this label
-      const previousStudio = new Set(studioItemCodes);
-      studioItemCodes.clear();
-      studioItemCodes.add(code);
-      renderLabelsGrid();
-      
-      const labelsTab = document.getElementById('tab-labels');
-      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-      document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
-      labelsTab.classList.add('active');
-      document.getElementById('tab3Title').classList.add('active');
+      const item = warehouseItems.find(i => i.code === code);
+      if (!item) return;
 
+      const printContainer = document.getElementById('singlePrintContainer');
+      const labelLang = document.getElementById('barcodeLangSelect').value;
+      const t = translations[labelLang];
+
+      const translatedName = translateName(item, labelLang);
+      const translatedUnit = translateUnit(item.unit, labelLang);
+      const translatedClass = translateClassification(item, labelLang);
+      const translatedLocation = translateLocation(item.location, labelLang);
+
+      let customDataHtml = '';
+      if (item.customData && item.customData.trim() !== '') {
+        const isUrl = item.customData.startsWith('http://') || item.customData.startsWith('https://');
+        if (isUrl) {
+          customDataHtml = `<div class="custom-link-badge">🔗 <a href="${item.customData}" target="_blank">${item.customData}</a></div>`;
+        } else {
+          customDataHtml = `<div class="custom-link-badge">📌 <span>${item.customData}</span></div>`;
+        }
+      }
+
+      printContainer.innerHTML = `
+        <div class="sticker-card">
+          <div class="sticker-header">
+            <span style="font-size:0.75rem; color:#64748b;">🏢 ${translatedLocation}</span>
+          </div>
+          <div class="sticker-title">${translatedName}</div>
+          <div class="meta-box">
+            <div><label>${t.cardCode}</label><span>${item.code}</span></div>
+            <div><label>${t.cardUnit}</label><span>${translatedUnit}</span></div>
+            <div><label>${t.cardClass}</label><span>${translatedClass}</span></div>
+          </div>
+          ${customDataHtml}
+          <div class="codes-flex-container">
+            <div class="barcode-section">
+              <svg id="single-barcode-${item.code}"></svg>
+            </div>
+            <div class="qrcode-section">
+              <div id="single-qrcode-${item.code}"></div>
+              <span class="qrcode-label">SCAN QR</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      try {
+        JsBarcode(`#single-barcode-${item.code}`, item.code, {
+          format: "CODE128",
+          height: 35,
+          displayValue: true,
+          fontSize: 10,
+          margin: 2
+        });
+      } catch (e) {}
+
+      try {
+        const qrPayload = `Code: ${item.code}\nName: ${item.nameEn || item.nameAr}\nUnit: ${item.unit}\nWarehouse: ${item.location}\nClass: ${item.classificationEn || item.classificationAr}`;
+        const qr = qrcode(0, 'M');
+        qr.addData(qrPayload);
+        qr.make();
+        document.getElementById(`single-qrcode-${item.code}`).innerHTML = qr.createSvgTag({
+          scalable: true,
+          margin: 0
+        });
+      } catch (e) {}
+
+      // Trigger print without changing tabs
+      document.body.classList.add('printing-single');
       setTimeout(() => {
         window.print();
-        // Restore studio state
-        studioItemCodes = previousStudio;
-        saveStudioToStorage();
-        renderLabelsGrid();
+        document.body.classList.remove('printing-single');
+        printContainer.innerHTML = '';
       }, 300);
     }
 
+    function handleCheckboxChange(checkbox) {
+      if (checkbox.checked) {
+        checkedItemCodes.add(checkbox.value);
+      } else {
+        checkedItemCodes.delete(checkbox.value);
+        document.getElementById('selectAllInv').checked = false;
+      }
+      checkInventorySelection();
+    }
+
     function checkInventorySelection() {
-      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
       const genBtn = document.getElementById('btnBatchGenerate');
       const discBtn = document.getElementById('btnBatchDiscard');
-      const count = checkedBoxes.length;
+      const count = checkedItemCodes.size;
 
-      if (count > 1) {
+      if (count > 0) {
         genBtn.removeAttribute('disabled');
-        discBtn.removeAttribute('disabled');
+        
+        // Discard button shall be clickable only if there is some selection and label has been generated already
+        let hasGeneratedSelected = false;
+        checkedItemCodes.forEach(code => {
+          if (studioItemCodes.has(code)) {
+            hasGeneratedSelected = true;
+          }
+        });
+
+        if (hasGeneratedSelected) {
+          discBtn.removeAttribute('disabled');
+        } else {
+          discBtn.setAttribute('disabled', 'true');
+        }
       } else {
         genBtn.setAttribute('disabled', 'true');
         discBtn.setAttribute('disabled', 'true');
@@ -1188,41 +1285,48 @@
     }
 
     function generateSelectedInventoryItems() {
-      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
-      if (checkedBoxes.length <= 1) {
-        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادة واحدة لتفعيل زر التوليد الجماعي." : "Please select more than one item to use batch generation.");
+      if (checkedItemCodes.size === 0) {
+        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل." : "Please select at least one item.");
         return;
       }
 
-      checkedBoxes.forEach(cb => {
-        studioItemCodes.add(cb.value);
+      checkedItemCodes.forEach(code => {
+        studioItemCodes.add(code);
       });
       saveStudioToStorage();
       renderLabelsGrid();
-      renderInventoryTable();
-      alert(currentLang === 'ar' ? `تم توليد (${checkedBoxes.length}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedBoxes.length}) labels in Label Studio!`);
+      renderInventoryTable(); // Keeps checkboxes checked due to persistent checkedItemCodes set
+      alert(currentLang === 'ar' ? `تم توليد (${checkedItemCodes.size}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedItemCodes.size}) labels in Label Studio!`);
     }
 
     function discardSelectedInventoryItems() {
-      const checkedBoxes = document.querySelectorAll('.table-checkbox:checked');
-      if (checkedBoxes.length <= 1) {
-        alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادة واحدة لتفعيل زر الإلغاء الجماعي." : "Please select more than one item to use batch discard.");
+      if (checkedItemCodes.size === 0) {
+        alert(currentLang === 'ar' ? "يرجى تحديد مادة واحدة على الأقل." : "Please select at least one item.");
         return;
       }
 
-      checkedBoxes.forEach(cb => {
-        studioItemCodes.delete(cb.value);
+      let removedCount = 0;
+      checkedItemCodes.forEach(code => {
+        if (studioItemCodes.has(code)) {
+          studioItemCodes.delete(code);
+          removedCount++;
+        }
       });
       saveStudioToStorage();
       renderLabelsGrid();
-      renderInventoryTable();
-      alert(currentLang === 'ar' ? `تم إلغاء توليد (${checkedBoxes.length}) ملصق من الاستوديو!` : `Successfully discarded (${checkedBoxes.length}) labels from Studio!`);
+      renderInventoryTable(); // Keeps checkboxes checked
+      alert(currentLang === 'ar' ? `تم إلغاء توليد (${removedCount}) ملصق من الاستوديو!` : `Successfully discarded (${removedCount}) labels from Studio!`);
     }
 
     function toggleSelectAllInventory(masterCb) {
       const checkboxes = document.querySelectorAll('.table-checkbox');
       checkboxes.forEach(cb => {
         cb.checked = masterCb.checked;
+        if (masterCb.checked) {
+          checkedItemCodes.add(cb.value);
+        } else {
+          checkedItemCodes.delete(cb.value);
+        }
       });
       checkInventorySelection();
     }
@@ -1519,13 +1623,14 @@
 
       filtered.forEach(item => {
         const isGenerated = studioItemCodes.has(item.code);
+        const isChecked = checkedItemCodes.has(item.code);
         const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
         const genBtnText = isGenerated ? (currentLang === 'ar' ? "✓ مُولَّد" : "✓ Gen") : (currentLang === 'ar' ? "🏷️ توليد" : "🏷️ Gen");
         const discardBtnText = currentLang === 'ar' ? "إلغاء" : "Discard";
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}" onchange="checkInventorySelection()"></td>
+          <td style="text-align:center;"><input type="checkbox" class="table-checkbox" value="${item.code}" ${isChecked ? 'checked' : ''} onchange="handleCheckboxChange(this)"></td>
           <td><strong>${item.code}</strong></td>
           <td class="wrap-cell">${translateName(item, currentLang)}</td>
           <td>${translateUnit(item.unit, currentLang)}</td>
@@ -1653,6 +1758,7 @@
       if (confirm(currentLang === 'ar' ? `هل أنت متأكد من حذف المادة (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         warehouseItems = warehouseItems.filter(i => i.code !== code);
         studioItemCodes.delete(code);
+        checkedItemCodes.delete(code);
         saveStudioToStorage();
         saveAndRefresh();
       }
