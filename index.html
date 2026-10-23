@@ -379,7 +379,6 @@
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">استيراد بيانات اكسل</span></button>
       <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">تحميل المخزون الحالي</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">حفظ النسخة الاحتياطية</span></button>
-      <button class="btn btn-success" onclick="triggerCleanPrint()">🖨️ <span id="btnPrintText">طباعة الملصقات المضافة</span></button>
     </div>
   </header>
 
@@ -609,8 +608,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V20";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V1";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V21";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V2";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -738,7 +737,6 @@
         btnImport: "استيراد بيانات اكسل",
         btnDownloadInv: "تحميل المخزون الحالي",
         btnBackup: "حفظ النسخة الاحتياطية",
-        btnPrint: "طباعة الملصقات المضافة",
         tab1: "📊 نظرة عامة والملخص",
         tab2: "📋 سجل المواد والمخزون",
         tab3: "🏷️ مولد طباعة الباركود",
@@ -772,6 +770,7 @@
         btnPrintSelectedInv: "طباعة المواد المحددة (Print Selected)",
         btnClearStudio: "إفراغ الاستوديو",
         btnPrintStudio: "طباعة الملصقات",
+        btnConfigPrint: "⚙️ مقاسات الصفحة والملصق",
         lblBarcodeLang: "لغة الملصق:",
         searchPlaceholder: "ابحث بكود المادة أو الاسم...",
         cardCode: "الكود",
@@ -793,7 +792,6 @@
         btnImport: "Import Excel Data",
         btnDownloadInv: "Download Inventory",
         btnBackup: "Save Backup",
-        btnPrint: "Print Added Labels",
         tab1: "📊 Overview & Summary",
         tab2: "📋 Inventory Register",
         tab3: "🏷️ Barcode Labels Studio",
@@ -827,6 +825,7 @@
         btnPrintSelectedInv: "Print Selected Items",
         btnClearStudio: "Clear Studio",
         btnPrintStudio: "Print Labels",
+        btnConfigPrint: "⚙️ Page & Label Size",
         lblBarcodeLang: "Label Lang:",
         searchPlaceholder: "Search by code or name...",
         cardCode: "Code",
@@ -1041,7 +1040,6 @@
       setTxt('btnImportText', t.btnImport);
       setTxt('btnDownloadInvText', t.btnDownloadInv);
       setTxt('btnBackupText', t.btnBackup);
-      setTxt('btnPrintText', t.btnPrint);
       
       setTxt('tab1Title', t.tab1);
       setTxt('tab2Title', t.tab2);
