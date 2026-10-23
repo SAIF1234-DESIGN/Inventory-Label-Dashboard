@@ -285,22 +285,25 @@
 
   <!-- Top Header Navigation -->
   <header>
-    <div class="brand-title">
-      <div class="brand-logo">📦</div>
-      <div class="brand-text">
-        <h1 id="appTitleText">نظام إدارة لوجستيات وإستعلامات المخزون</h1>
-        <p id="appSubTitleText">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
+    <!-- Left Top Right Corner: Language Toggle Button -->
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
+      
+      <div class="brand-title">
+        <div class="brand-logo">📦</div>
+        <div class="brand-text">
+          <h1 id="appTitleText">نظام إدارة لوجستيات وإستعلامات المخزون</h1>
+          <p id="appSubTitleText">مركز التحكم الشامل بالمعدات والقطع والتصنيفات</p>
+        </div>
       </div>
     </div>
+
     <div class="header-actions">
       <!-- Add Material Button -->
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ إضافة مادة جديدة</span></button>
 
       <!-- Print Configurator Modal Trigger -->
       <button class="btn btn-outline" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="openPrintSettingsModal()">⚙️ <span id="btnSettingsText">إعدادات مقاسات الطباعة</span></button>
-
-      <!-- Language Toggle Button -->
-      <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">English</span></button>
 
       <!-- File Import / Download Actions -->
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
@@ -509,7 +512,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V3";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V4";
 
     // Unit Conversion Mapping Dictionary
     function normalizeUnit(rawUnit) {
