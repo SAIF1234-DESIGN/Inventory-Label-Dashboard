@@ -72,9 +72,9 @@
     }
     .nav-tab:hover, .nav-tab.active { color: var(--text-main); border-bottom-color: var(--accent-blue); }
 
-    /* Main Container */
-    .container { max-width: 1400px; margin: 24px auto; padding: 0 24px; width: 100%; }
-    .tab-content { display: none; }
+    /* Main Container - Maximum Display Width Fluid Fit */
+    .container { width: 100%; max-width: 100%; margin: 20px auto; padding: 0 16px; }
+    .tab-content { display: none; width: 100%; }
     .tab-content.active { display: block; }
 
     /* KPI Cards Grid */
@@ -114,16 +114,16 @@
 
     /* Buttons */
     .btn {
-      padding: 10px 18px;
+      padding: 8px 14px;
       border-radius: 8px;
       border: none;
       font-weight: 600;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s;
     }
     .btn-primary { background: var(--accent-blue); color: white; }
@@ -142,10 +142,10 @@
       background: #0e1735;
       border: 1px solid var(--border-color);
       color: white;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border-radius: 8px;
       outline: none;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       width: 100%;
     }
     .input-field:focus { border-color: var(--accent-blue); }
@@ -249,7 +249,7 @@
     .qrcode-section svg { width: 45px !important; height: 45px !important; }
     .qrcode-label { font-size: 0.55rem; color: #64748b; margin-top: 2px; font-weight: 600; }
 
-    /* Maximum Fit Inventory Table (Zero Horizontal Scroll - Table Layout Fixed) */
+    /* Maximum Fit Inventory Table (Zero Horizontal Scroll - 100% Display Width Allocation) */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -290,21 +290,21 @@
       background-color: #243054;
     }
 
-    /* Fixed Column Width Allocation for 100% Screen Fit */
-    .col-select { width: 4%; text-align: center; }
-    .col-code { width: 12%; }
-    .col-name { width: 25%; }
-    .col-unit { width: 9%; }
-    .col-location { width: 22%; }
-    .col-class { width: 12%; }
-    .col-action { width: 4%; text-align: center; }
+    /* Precise Column Width Allocation for 100% Screen Fit */
+    .col-select { width: 3.5%; text-align: center; }
+    .col-code { width: 11%; }
+    .col-name { width: 23%; }
+    .col-unit { width: 8.5%; }
+    .col-location { width: 21%; }
+    .col-class { width: 11.5%; }
+    .col-action { width: 4.3%; text-align: center; }
 
     .action-sub-btn {
       background: #2b3a67;
       color: white;
       border: none;
       border-radius: 4px;
-      padding: 4px 4px;
+      padding: 4px 2px;
       cursor: pointer;
       font-size: 0.65rem;
       font-weight: 600;
@@ -362,7 +362,7 @@
 </head>
 <body>
 
-  <!-- Top Header Navigation -->
+  <!-- Top Navigation Header -->
   <header>
     <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">العربية</span></button>
@@ -627,8 +627,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V26";
-    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V7";
+    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V27";
+    const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V8";
 
     let nameMemory = {};
     let classificationMemory = {};
@@ -745,7 +745,7 @@
       }
     }
 
-    let currentLang = "en"; // Default Landing Language set to English
+    let currentLang = "en";
     const translations = {
       en: {
         toggleBtn: "العربية",
@@ -1439,7 +1439,7 @@
       filtered.forEach(item => {
         const isGenerated = studioItemCodes.has(item.code);
         const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
-        const genBtnText = isGenerated ? "✓ Generated" : "🏷️ Generate";
+        const genBtnText = isGenerated ? "✓ Gen" : "🏷️ Gen";
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1449,11 +1449,11 @@
           <td class="col-unit" title="${translateUnit(item.unit, currentLang)}">${translateUnit(item.unit, currentLang)}</td>
           <td class="col-location" title="${translateLocation(item.location, currentLang)}">${translateLocation(item.location, currentLang)}</td>
           <td class="col-class" title="${translateClassification(item, currentLang)}">${translateClassification(item, currentLang)}</td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️ Print</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="printSingleItemLabel('${item.code}')">🖨️</button></td>
           <td class="col-action" style="text-align:center;"><button class="${genBtnClass}" onclick="generateSingleLabel('${item.code}')">${genBtnText}</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺ Ungen</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️ Edit</button></td>
-          <td class="col-action" style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕ Del</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="ungenerateSingleLabel('${item.code}')" style="background:${isGenerated ? '#f59e0b' : '#334155'};">↺</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn" onclick="openEditModal('${item.code}')">✏️</button></td>
+          <td class="col-action" style="text-align:center;"><button class="action-sub-btn del" onclick="deleteSingleItem('${item.code}')">✕</button></td>
         `;
         tbody.appendChild(tr);
       });
