@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logistics & Inventory Management System</title>
+  
   <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- JsBarcode for barcode rendering -->
@@ -12,6 +13,11 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <!-- SheetJS (XLSX) for Excel Import & Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Firebase App & Firestore SDKs for Real-Time Synchronization -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg-dark: #0b132b;
@@ -638,14 +644,30 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "WAREHOUSE_DYNAMIC_FULL_APP_V42";
+    // ----------------------------------------------------
+    // YOUR FIREBASE CONFIGURATION CREDENTIALS
+    // ----------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyCerwC0X7z2SeihxqOQxepSE74Vg_cIJyI",
+      authDomain: "inventory-label.firebaseapp.com",
+      projectId: "inventory-label",
+      storageBucket: "inventory-label.firebasestorage.app",
+      messagingSenderId: "220560027845",
+      appId: "1:220560027845:web:87e48a27ba43a93c5b40ac",
+      measurementId: "G-2D9GXHM3HT"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V23";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
     let checkedItemCodes = new Set();
-    let selectedStudioCodes = new Set(); // Starts unselected by default
+    let selectedStudioCodes = new Set(); 
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -810,7 +832,6 @@
         printLbl3: "3. Page Orientation",
         printCancelBtn: "Cancel",
         printSaveBtn: "💾 Save Settings & Apply",
-        // Table Headers
         thGroupSelection: "Selection",
         thGroupData: "Inventory Data",
         thGroupActions: "Actions",
@@ -875,7 +896,6 @@
         printLbl3: "3. اتجاه الصفحة (Page Orientation)",
         printCancelBtn: "إلغاء",
         printSaveBtn: "💾 حفظ الإعدادات وتطبيق الطباعة",
-        // Table Headers
         thGroupSelection: "التحديد",
         thGroupData: "بيانات المخزون",
         thGroupActions: "الإجراءات",
@@ -891,17 +911,6 @@
         thDelete: "حذف"
       }
     };
-
-    const initialDataset = [
-      { code: "795", nameAr: "ورق طباعة صراف آلي", nameEn: "ATM Paper Roll", unit: "Pieces", location: "Southern Region Warehouse", classificationAr: "قرطاسية", classificationEn: "Stationery", customData: "" },
-      { code: "7272446", nameAr: "لفة سلك 10*4 100 يارد", nameEn: "Wire Roll 10*4 100 Yards", unit: "Roll", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "المكونات الكهربائية", classificationEn: "Electrical Components", customData: "" },
-      { code: "76152", nameAr: "قطاعة القفل 180", nameEn: "Lock Cutter 180", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
-      { code: "761962", nameAr: "سولينأئد فالف فرانتير", nameEn: "Frontier Solenoid Valve", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "معدات مضخات الوقود وقطع الغيار", classificationEn: "Fuel Pump Equipment & Spare Parts", customData: "" },
-      { code: "76457", nameAr: "ستارة BLACK DOT PVC مقاس 58*125 سم", nameEn: "BLACK DOT PVC 58*125CM Medium Curtain", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "مواد التجزئة والمبيعات", classificationEn: "Retail / Sales Items", customData: "" },
-      { code: "766398", nameAr: "مفتاح ابو جلمبو 18 بوصه", nameEn: "Adjustable Wrench 18 Inch", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "العدد والأدوات", classificationEn: "Tools", customData: "" },
-      { code: "7272475", nameAr: "كفر اكس لاين تروبيق جي - R22.5/385/65", nameEn: "X-Line Tropic G Tire - R22.5/385/65", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "الإطارات", classificationEn: "Tires", customData: "" },
-      { code: "68764", nameAr: "مستعمل مضخة حريق صغيره", nameEn: "Used Small Fire Pump", unit: "Pieces", location: "Main Warehouse / Southern Region Warehouse", classificationAr: "معدات الإطفاء والسلامة", classificationEn: "Firefighting & Safety", customData: "" }
-    ];
 
     let warehouseItems = [];
     let chartInstance = null;
@@ -938,7 +947,7 @@
           }
           .labels-grid {
             grid-template-columns: repeat(${cols}, 1fr) !important;
-            gap: 8px !important;
+            gap: 8mm !important;
           }
           .sticker-card {
             min-height: 125px !important;
@@ -985,7 +994,8 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
-    function saveMaterialFromModal() {
+    // Save or Update Material directly in Real-Time Firestore Cloud Database
+    async function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
@@ -1005,13 +1015,6 @@
         return;
       }
 
-      if (nameAr && nameEn) {
-        nameMemory[nameAr.toLowerCase()] = nameEn;
-      }
-      if (classificationAr && classificationEn) {
-        classificationMemory[classificationAr.toLowerCase()] = classificationEn;
-      }
-
       const newItem = {
         code,
         nameAr: nameAr || nameEn,
@@ -1023,19 +1026,19 @@
         customData
       };
 
-      if (originalCode) {
-        const index = warehouseItems.findIndex(i => i.code === originalCode);
-        if (index !== -1) {
-          warehouseItems[index] = newItem;
-        }
-        alert(currentLang === 'ar' ? "تم تحديث بيانات المادة بنجاح!" : "Material updated successfully!");
-      } else {
-        warehouseItems.unshift(newItem);
-        alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح وتحديث القائمة!" : "Material saved successfully!");
-      }
+      try {
+        await db.collection("inventory").doc(code).set(newItem);
 
-      saveAndRefresh();
-      closeAddModal();
+        if (originalCode && originalCode !== code) {
+          await db.collection("inventory").doc(originalCode).delete();
+        }
+
+        alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح في السحابة!" : "Material saved successfully to cloud!");
+        closeAddModal();
+      } catch (err) {
+        console.error("Error saving item: ", err);
+        alert("Failed to save to cloud database.");
+      }
     }
 
     function toggleLanguage() {
@@ -1047,7 +1050,7 @@
 
       applyTranslations();
       populateWarehouseDropdown();
-      saveAndRefresh();
+      refreshUI();
     }
 
     function populateWarehouseDropdown() {
@@ -1130,7 +1133,6 @@
       setTxt('lblBarcodeLangText', t.lblBarcodeLang);
       setTxt('lblSelectAllStudio', t.lblSelectAllStudio);
       
-      // Table Header Translations
       setTxt('thGroupSelection', t.thGroupSelection);
       setTxt('thGroupData', t.thGroupData);
       setTxt('thGroupActions', t.thGroupActions);
@@ -1327,43 +1329,33 @@
       }
     }
 
-    function initData() {
+    // Real-Time listener connection with Firestore
+    function initRealtimeDatabase() {
       loadStudioFromStorage();
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          warehouseItems = JSON.parse(stored);
-          warehouseItems.forEach(i => {
-            if (!i.customData) i.customData = "";
-            if (!i.nameAr) i.nameAr = i.name || "";
-            if (!i.nameEn) i.nameEn = i.name || "";
-            if (!i.classificationAr) i.classificationAr = i.classification || "عام";
-            if (!i.classificationEn) i.classificationEn = i.classification || "General";
-            if (!i.location) i.location = "Main Warehouse / Southern Region Warehouse";
-            
-            if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
-            if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
-          });
-        } catch (e) {
-          warehouseItems = [...initialDataset];
-        }
-      } else {
-        warehouseItems = [...initialDataset];
-      }
-      warehouseItems.forEach(i => {
-        if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
-        if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
+      
+      db.collection("inventory").onSnapshot((snapshot) => {
+        warehouseItems = [];
+        snapshot.forEach((doc) => {
+          warehouseItems.push(doc.data());
+        });
+
+        warehouseItems.forEach(i => {
+          if (i.nameAr && i.nameEn) nameMemory[i.nameAr.toLowerCase()] = i.nameEn;
+          if (i.classificationAr && i.classificationEn) classificationMemory[i.classificationAr.toLowerCase()] = i.classificationEn;
+        });
+
+        refreshUI();
+      }, (error) => {
+        console.error("Error listening to real-time updates:", error);
       });
 
       document.getElementById('barcodeLangSelect').value = currentLang;
       updatePrintConfigPreview();
       applyTranslations();
       populateWarehouseDropdown();
-      saveAndRefresh();
     }
 
-    function saveAndRefresh() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(warehouseItems));
+    function refreshUI() {
       updateKPIs();
       populateDatalists();
       populateCategoryDropdowns();
@@ -1428,7 +1420,7 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         try {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
@@ -1437,6 +1429,8 @@
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           let newItemsCount = 0;
+          const batch = db.batch();
+
           jsonData.forEach(row => {
             const code = String(row["Material Code"] || row["Code"] || "").trim();
             const nameAr = String(row["Arabic Name"] || row["Name"] || "").trim();
@@ -1448,7 +1442,8 @@
             const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
             if (code && (nameAr || nameEn)) {
-              warehouseItems.unshift({
+              const itemRef = db.collection("inventory").doc(code);
+              batch.set(itemRef, {
                 code,
                 nameAr: nameAr || nameEn,
                 nameEn: nameEn || nameAr,
@@ -1462,10 +1457,11 @@
             }
           });
 
-          saveAndRefresh();
-          alert(`Successfully imported (${newItemsCount}) items!`);
+          await batch.commit();
+          alert(`Successfully imported (${newItemsCount}) items to cloud database!`);
         } catch (err) {
-          alert("Error parsing file.");
+          console.error(err);
+          alert("Error parsing or uploading file.");
         }
       };
       reader.readAsArrayBuffer(file);
@@ -1588,7 +1584,7 @@
         const isGenerated = studioItemCodes.has(item.code);
         const isChecked = checkedItemCodes.has(item.code);
         const genBtnClass = isGenerated ? "action-sub-btn success" : "action-sub-btn";
-        const genBtnText = isGenerated ? (currentLang === 'ar' ? "✓ مُولَّد" : "✓ Gen") : (currentLang === 'ar' ? "🏷️ توليد" : "🏷️ Gen");
+        const genBtnText = isGenerated ? (currentLang === 'ar' ? "✓ مُولَّد" : "✓ Gen") : (currentLang === 'ar' ? "🏷️ توليد" : "🏷️ Gen");
         const discardBtnText = currentLang === 'ar' ? "إلغاء" : "Discard";
 
         const tr = document.createElement('tr');
@@ -1670,7 +1666,6 @@
           }
         }
 
-        // 5 Labels in a row layout with Barcode on Left & QR on Right
         card.innerHTML = `
           <div class="sticker-header">
             <div style="display: flex; align-items: center; gap: 4px;">
@@ -1723,14 +1718,18 @@
       });
     }
 
-    function deleteSingleItem(code) {
+    async function deleteSingleItem(code) {
       if (confirm(currentLang === 'ar' ? `هل أنت متأكد من حذف المادة (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
-        warehouseItems = warehouseItems.filter(i => i.code !== code);
-        studioItemCodes.delete(code);
-        checkedItemCodes.delete(code);
-        selectedStudioCodes.delete(code);
-        saveStudioToStorage();
-        saveAndRefresh();
+        try {
+          await db.collection("inventory").doc(code).delete();
+          studioItemCodes.delete(code);
+          checkedItemCodes.delete(code);
+          selectedStudioCodes.delete(code);
+          saveStudioToStorage();
+        } catch (err) {
+          console.error("Error deleting item:", err);
+          alert("Failed to delete item from cloud.");
+        }
       }
     }
 
@@ -1744,7 +1743,8 @@
       anchor.remove();
     }
 
-    initData();
+    // Initialize application with Real-Time listener
+    initRealtimeDatabase();
   </script>
 </body>
 </html>
