@@ -203,10 +203,6 @@
     .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
     .modal-close:hover { color: white; }
     
-    .modal-grid { display: flex; flex-direction: column; gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-
     .labels-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -335,6 +331,8 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
+    .req-star { color: var(--danger); font-weight: bold; margin-left: 2px; }
+
     @media print {
       #loginScreen, header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
@@ -385,7 +383,7 @@
 </head>
 <body oncontextmenu="return false;">
 
-  <!-- SINGLE FIXED USER LOGIN SCREEN -->
+  <!-- PREDEFINED USER LOGIN SCREEN -->
   <div id="loginScreen">
     <div class="login-box">
       <div style="font-size: 2.5rem; margin-bottom: 12px;">🔐</div>
@@ -607,75 +605,77 @@
     </div>
   </div>
 
-  <!-- ADD / EDIT MATERIAL MODAL -->
+  <!-- ADD / EDIT MATERIAL MODAL WITH MANDATORY VALIDATION -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-title" id="modalHeaderTitle">✏️ Add Material Details</div>
         <button class="modal-close" onclick="closeAddModal()">✕</button>
       </div>
-      <div class="modal-grid">
-        <input type="hidden" id="modalEditOriginalCode" value="">
-        
-        <div class="form-group">
-          <label id="lblCodeModal">1. Material Code</label>
-          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446">
-        </div>
-
-        <div class="form-row">
+      <form onsubmit="saveMaterialFromModal(event)">
+        <div class="modal-grid">
+          <input type="hidden" id="modalEditOriginalCode" value="">
+          
           <div class="form-group">
-            <label id="lblNameModal">2. Arabic Name</label>
-            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)">
+            <label id="lblCodeModal">1. Material Code <span class="req-star">*</span></label>
+            <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446" required>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label id="lblNameModal">2. Arabic Name <span class="req-star">*</span></label>
+              <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)" required>
+            </div>
+            <div class="form-group">
+              <label id="lblNameModalEn">English Name <span class="req-star">*</span></label>
+              <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)" required>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label id="lblNameModalEn">English Name</label>
-            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)">
+            <label id="lblUnitModal">3. Unit <span class="req-star">*</span></label>
+            <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box..." required>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label id="lblUnitModal">3. Unit</label>
-          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
-        </div>
-
-        <div class="form-group">
-          <label id="lblLocationModal">4. Warehouse / Location</label>
-          <select id="modalInputLocation" class="input-field">
-            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse - [Default]</option>
-            <option value="Southern Region Warehouse">Southern Region Warehouse</option>
-            <option value="Hail Region Warehouse">Hail Region Warehouse</option>
-            <option value="Eastern Region Warehouse">Eastern Region Warehouse</option>
-            <option value="Main Warehouse">Main Warehouse</option>
-          </select>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
-            <label id="lblClassModal">5. Arabic Classification</label>
-            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)">
-            <datalist id="modalClassificationArList"></datalist>
+            <label id="lblLocationModal">4. Warehouse / Location <span class="req-star">*</span></label>
+            <select id="modalInputLocation" class="input-field" required>
+              <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse - [Default]</option>
+              <option value="Southern Region Warehouse">Southern Region Warehouse</option>
+              <option value="Hail Region Warehouse">Hail Region Warehouse</option>
+              <option value="Eastern Region Warehouse">Eastern Region Warehouse</option>
+              <option value="Main Warehouse">Main Warehouse</option>
+            </select>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label id="lblClassModal">5. Arabic Classification <span class="req-star">*</span></label>
+              <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)" required>
+              <datalist id="modalClassificationArList"></datalist>
+            </div>
+            <div class="form-group">
+              <label id="lblClassModalEn">English Classification <span class="req-star">*</span></label>
+              <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)" required>
+              <datalist id="modalClassificationEnList"></datalist>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label id="lblClassModalEn">English Classification</label>
-            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)">
-            <datalist id="modalClassificationEnList"></datalist>
+            <label id="lblCustomDataModal">6. Custom Link / Data (Optional)</label>
+            <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com or note...">
+          </div>
+
+          <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">Cancel</button>
+            <button type="submit" class="btn btn-success" style="padding: 10px 24px;">💾 <span id="btnSaveModalText">Save Item</span></button>
           </div>
         </div>
-
-        <div class="form-group">
-          <label id="lblCustomDataModal">6. Custom Link / Data (Optional)</label>
-          <input type="text" id="modalInputCustomData" class="input-field" placeholder="https://example.com or note...">
-        </div>
-
-        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-outline" onclick="closeAddModal()" id="btnCancelModal">Cancel</button>
-          <button class="btn btn-success" style="padding: 10px 24px;" onclick="saveMaterialFromModal()">💾 <span id="btnSaveModalText">Save Item</span></button>
-        </div>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- NEW FIREBASE ES MODULE SCRIPT INITIALIZATION -->
+  <!-- FIREBASE ES MODULE SCRIPT -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
@@ -772,7 +772,7 @@
         lblName: "2. Arabic Name",
         lblNameEn: "English Name",
         lblUnit: "3. Unit",
-        lblLocation: "4. Warehouse / Location [Defaults to Main Warehouse if left unselected]",
+        lblLocation: "4. Warehouse / Location",
         lblClass: "5. Arabic Classification",
         lblClassEn: "English Classification",
         lblCustomData: "6. Custom Link / Data (Optional)",
@@ -836,7 +836,7 @@
         lblName: "2. اسم المادة بالعربي (Arabic Name)",
         lblNameEn: "اسم المادة بالانجليزي (English Name)",
         lblUnit: "3. الوحدة (Unit)",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location)",
         lblClass: "5. التصنيف بالعربي (Arabic Classification)",
         lblClassEn: "التصنيف بالانجليزي (English Classification)",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
@@ -918,7 +918,7 @@
       }
     }
 
-    // Attach core handlers globally to window
+    // Attach predefined authentication function globally
     window.handleUserLogin = function(event) {
       event.preventDefault();
       const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -977,7 +977,7 @@
     window.autoFillClassAr = function(val) {
       const key = val.trim().toLowerCase();
       for (let ar in classificationMemory) {
-        if (classificationMemory[ar].toLowerCase() === key && !document.getElementById('modalInputClassificationEn').value) {
+        if (classificationMemory[ar].toLowerCase() === key && !document.getElementById('modalInputClassificationAr').value) {
           document.getElementById('modalInputClassificationAr').value = ar;
           break;
         }
@@ -1063,30 +1063,30 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     };
 
-    window.saveMaterialFromModal = async function() {
+    // Form Save Handler with mandatory validation
+    window.saveMaterialFromModal = async function(event) {
+      event.preventDefault();
+
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
-      const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
-      const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
-      
-      const defaultWarehouse = "Main Warehouse / Southern Region Warehouse";
-      const locationInput = document.getElementById('modalInputLocation').value.trim();
-      const location = locationInput !== "" ? locationInput : defaultWarehouse;
-
-      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim() || "عام";
-      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim() || "General";
+      const nameEn = document.getElementById('modalInputNameEn').value.trim();
+      const unit = document.getElementById('modalInputUnit').value.trim();
+      const location = document.getElementById('modalInputLocation').value.trim();
+      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim();
+      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim();
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
-      if (!code || (!nameAr && !nameEn)) {
-        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
+      // Ensure mandatory fields are provided
+      if (!code || !nameAr || !nameEn || !unit || !location || !classificationAr || !classificationEn) {
+        alert(currentLang === 'ar' ? "يرجى تعبئة جميع الحقول المطلوبة." : "Please fill out all required fields.");
         return;
       }
 
       const newItem = {
         code,
-        nameAr: nameAr || nameEn,
-        nameEn: nameEn || nameAr,
+        nameAr,
+        nameEn,
         unit,
         location,
         classificationAr,
@@ -1102,7 +1102,7 @@
         closeAddModal();
       } catch (err) {
         console.error("Cloud Save Error:", err);
-        alert("Failed to save to cloud database.");
+        alert("Failed to save item to cloud database. Please check Firestore Security Rules.");
       }
     };
 
@@ -1506,12 +1506,12 @@
             const classificationEn = String(row["English Classification"] || classificationAr).trim() || "General";
             const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
-            if (code && (nameAr || nameEn)) {
+            if (code && nameAr && nameEn) {
               const itemRef = doc(db, "inventory", code);
               batch.set(itemRef, {
                 code,
-                nameAr: nameAr || nameEn,
-                nameEn: nameEn || nameAr,
+                nameAr,
+                nameEn,
                 unit,
                 location,
                 classificationAr,
