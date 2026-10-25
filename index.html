@@ -34,7 +34,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 40px; overflow-x: hidden; }
 
-    /* Top Navigation Header */
     header {
       background-color: #080e21;
       padding: 16px 32px;
@@ -56,7 +55,6 @@
 
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    /* Navigation Bar */
     .nav-bar {
       background-color: #0e1735;
       padding: 0 32px;
@@ -75,12 +73,10 @@
     }
     .nav-tab:hover, .nav-tab.active { color: var(--text-main); border-bottom-color: var(--accent-blue); }
 
-    /* Main Container */
     .container { width: 100%; max-width: 100%; margin: 20px auto; padding: 0 16px; }
     .tab-content { display: none; width: 100%; }
     .tab-content.active { display: block; }
 
-    /* KPI Cards Grid */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -106,7 +102,6 @@
       display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
     }
 
-    /* Chart Section */
     .chart-container {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -115,7 +110,6 @@
       margin-bottom: 24px;
     }
 
-    /* Buttons */
     .btn {
       padding: 8px 14px;
       border-radius: 8px;
@@ -141,7 +135,6 @@
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
     .btn-outline:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 
-    /* Form Fields */
     .input-field {
       background: #0e1735;
       border: 1px solid var(--border-color);
@@ -160,7 +153,6 @@
       gap: 10px;
     }
 
-    /* Modal Popup Styles */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0, 0, 0, 0.7);
@@ -189,7 +181,6 @@
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
-    /* Label Cards Grid - 5 Labels per row on Studio Page */
     .labels-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -241,7 +232,6 @@
     }
     .custom-link-badge a { color: #0284c7; text-decoration: underline; }
 
-    /* Code Sections: Barcode on Left, QR Code on Right */
     .codes-flex-container {
       display: flex;
       align-items: center;
@@ -256,7 +246,6 @@
     .qrcode-section svg { width: 32px !important; height: 32px !important; }
     .qrcode-label { font-size: 0.4rem; color: #64748b; margin-top: 1px; font-weight: 600; }
 
-    /* Table Container */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -320,7 +309,6 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
-    /* Print View Media Rules */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
@@ -396,7 +384,7 @@
     </div>
   </header>
 
-  <!-- Main Navigation -->
+  <!-- Navigation Bar -->
   <div class="nav-bar">
     <div class="nav-tab active" id="tab1Title" onclick="switchNav('tab-overview', this)">📊 Overview & Summary</div>
     <div class="nav-tab" id="tab2Title" onclick="switchNav('tab-inventory', this)">📋 Inventory Register</div>
@@ -980,7 +968,6 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
-    // Direct Real-Time Save & Sync with Firestore
     async function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
@@ -1020,7 +1007,7 @@
         closeAddModal();
       } catch (err) {
         console.error("Cloud Save Error:", err);
-        alert("Failed to save to cloud database. Ensure rules are configured.");
+        alert("Failed to save to cloud database.");
       }
     }
 
@@ -1312,7 +1299,6 @@
       }
     }
 
-    // Real-Time Listener Instance Connected directly to Firestore
     function initRealtimeDatabase() {
       loadStudioFromStorage();
       
@@ -1726,7 +1712,6 @@
       anchor.remove();
     }
 
-    // Initialize application and start Firestore real-time listener
     initRealtimeDatabase();
   </script>
 </body>
