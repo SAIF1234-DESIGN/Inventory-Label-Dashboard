@@ -30,6 +30,37 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 40px; overflow-x: hidden; }
 
+    /* Toast Notification Styles */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast-msg {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-left: 4px solid var(--accent-blue);
+      animation: fadeInOut 1s ease forwards;
+    }
+    .toast-msg.success { border-left-color: var(--success); }
+    .toast-msg.warning { border-left-color: var(--warning); }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      85% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
     /* Login Overlay */
     #loginScreen {
       position: fixed;
@@ -339,7 +370,7 @@
     @media print {
       #loginScreen, header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
-      #tab-overview, #tab-inventory, .labels-controls-bar, .studio-label-checkbox {
+      #tab-overview, #tab-inventory, .labels-controls-bar, .studio-label-checkbox, #toastContainer {
         display: none !important;
       }
 
@@ -380,11 +411,19 @@
       .sticker-card.unselected-print {
         display: none !important;
       }
+
+      @page {
+        size: auto;
+        margin: 19mm; /* Normal standard page margins */
+      }
     }
   </style>
   <style id="dynamicPrintStyles"></style>
 </head>
 <body oncontextmenu="return false;">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"></div>
 
   <!-- PREDEFINED USER LOGIN SCREEN -->
   <div id="loginScreen">
@@ -564,7 +603,7 @@
 
   </div>
 
-  <!-- PRINT CONFIGURATION MODAL (Default: A4, 8 Labels per page, Portrait) -->
+  <!-- PRINT CONFIGURATION MODAL -->
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -608,7 +647,7 @@
     </div>
   </div>
 
-  <!-- ADD / EDIT MATERIAL MODAL (Mandatory Validation) -->
+  <!-- ADD / EDIT MATERIAL MODAL -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -886,6 +925,21 @@
       }
     };
 
+    // Auto-Disappearing Toast Notifications (disappears after 1 second)
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `toast-msg ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 1000);
+    };
+
     function translateUnit(u, lang) {
       if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
       const key = u.toString().trim().toLowerCase();
@@ -931,6 +985,7 @@
         localStorage.setItem("IS_AUTHENTICATED_USER", "true");
         localStorage.setItem("AUTHENTICATED_EMAIL", emailInput);
         document.getElementById('loginScreen').style.display = "none";
+        showToast(currentLang === 'ar' ? "تم تسجيل الدخول بنجاح!" : "Logged in successfully!");
       } else {
         errorMsg.style.display = "block";
       }
@@ -940,6 +995,7 @@
       localStorage.removeItem("IS_AUTHENTICATED_USER");
       localStorage.removeItem("AUTHENTICATED_EMAIL");
       document.getElementById('loginScreen').style.display = "flex";
+      showToast(currentLang === 'ar' ? "تم تسجيل الخروج" : "Logged out", "warning");
     };
 
     function checkUserAuthOnLoad() {
@@ -996,7 +1052,7 @@
     window.applyPrintSettingsAndClose = function() {
       updatePrintConfigPreview();
       closePrintSettingsModal();
-      alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة بنجاح!" : "Print size settings saved successfully!");
+      showToast(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة!" : "Print size settings saved!");
     };
 
     function updatePrintConfigPreview() {
@@ -1013,7 +1069,7 @@
         @media print {
           @page {
             size: ${pageSize} ${orientation};
-            margin: 6mm;
+            margin: 19mm;
           }
           .labels-grid {
             grid-template-columns: repeat(${cols}, 1fr) !important;
@@ -1064,6 +1120,7 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     };
 
+    // Save Material Modal Handler with Custom Warehouse Matching Validation
     window.saveMaterialFromModal = async function(event) {
       event.preventDefault();
 
@@ -1080,6 +1137,31 @@
       if (!code || !nameAr || !nameEn || !unit || !location || !classificationAr || !classificationEn) {
         alert(currentLang === 'ar' ? "يرجى تعبئة جميع الحقول المطلوبة." : "Please fill out all required fields.");
         return;
+      }
+
+      // Check Duplication Rules against existing items
+      for (let i = 0; i < warehouseItems.length; i++) {
+        const existing = warehouseItems[i];
+        if (originalCode && existing.code === originalCode) continue;
+
+        const codeMatch = existing.code === code;
+        const nameMatch = (existing.nameAr.toLowerCase() === nameAr.toLowerCase()) || 
+                          (existing.nameEn.toLowerCase() === nameEn.toLowerCase());
+        const warehouseMatch = existing.location === location;
+
+        // Rule 1: Exact match on Code, Name, and Warehouse -> Already exists
+        if (codeMatch && nameMatch && warehouseMatch) {
+          alert(currentLang === 'ar' ? "البيانات موجودة مسبقاً بنفس المستودع!" : "Data is exist already in this warehouse!");
+          showToast(currentLang === 'ar' ? "البيانات موجودة مسبقاً!" : "Data already exists!", "warning");
+          return;
+        }
+
+        // Rule 2: If code or name matches an existing item in the SAME warehouse -> blocked
+        if ((codeMatch || nameMatch) && warehouseMatch) {
+          alert(currentLang === 'ar' ? "يجب أن يكون الكود أو الاسم مختلفاً!" : "The code or name shall be different!");
+          showToast(currentLang === 'ar' ? "الكود أو الاسم يجب أن يكون مختلفاً" : "Code or name must be different", "warning");
+          return;
+        }
       }
 
       const newItem = {
@@ -1099,6 +1181,7 @@
           await deleteDoc(doc(db, "inventory", originalCode));
         }
         closeAddModal();
+        showToast(currentLang === 'ar' ? "تم حفظ المادة بنجاح!" : "Item saved successfully!");
       } catch (err) {
         console.error("Cloud Save Error:", err);
         alert("Failed to save item to cloud database.");
@@ -1115,6 +1198,7 @@
       applyTranslations();
       populateWarehouseDropdown();
       refreshUI();
+      showToast(currentLang === 'ar' ? "تم التبديل إلى العربية" : "Switched to English");
     };
 
     function populateWarehouseDropdown() {
@@ -1220,6 +1304,7 @@
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
+      showToast(currentLang === 'ar' ? "تم توليد الملصق بنجاح" : "Label generated successfully");
     };
 
     window.ungenerateSingleLabel = function(code) {
@@ -1228,6 +1313,7 @@
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
+      showToast(currentLang === 'ar' ? "تم إلغاء توليد الملصق" : "Label discarded", "warning");
     };
 
     window.printSingleItemLabel = function(code) {
@@ -1296,7 +1382,7 @@
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
-      alert(currentLang === 'ar' ? `تم توليد (${checkedItemCodes.size}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedItemCodes.size}) labels in Label Studio!`);
+      showToast(currentLang === 'ar' ? `تم توليد (${checkedItemCodes.size}) ملصق بنجاح!` : `Successfully generated (${checkedItemCodes.size}) labels!`);
     };
 
     window.discardSelectedInventoryItems = function() {
@@ -1316,7 +1402,7 @@
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
-      alert(currentLang === 'ar' ? `تم إلغاء توليد (${removedCount}) ملصق من الاستوديو!` : `Successfully discarded (${removedCount}) labels from Studio!`);
+      showToast(currentLang === 'ar' ? `تم إلغاء (${removedCount}) ملصق!` : `Discarded (${removedCount}) labels!`, "warning");
     };
 
     window.toggleSelectAllInventory = function(masterCb) {
@@ -1362,6 +1448,7 @@
         saveStudioToStorage();
         renderLabelsGrid();
         renderInventoryTable();
+        showToast(currentLang === 'ar' ? "تم إفراغ الاستوديو" : "Studio cleared", "warning");
       }
     };
 
@@ -1454,6 +1541,7 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Warehouse Items");
       XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
+      showToast(currentLang === 'ar' ? "تم تحميل القالب بنجاح!" : "Template downloaded successfully!");
     };
 
     window.downloadAvailableInventoryExcel = function() {
@@ -1477,6 +1565,7 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Available Inventory");
       XLSX.writeFile(workbook, `Available_Inventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+      showToast(currentLang === 'ar' ? "تم تنزيل المخزون بنجاح!" : "Inventory downloaded successfully!");
     };
 
     window.importExcelFile = function(event) {
@@ -1522,7 +1611,7 @@
           });
 
           await batch.commit();
-          alert(`Successfully imported (${newItemsCount}) items to cloud database!`);
+          showToast(currentLang === 'ar' ? `تم استيراد (${newItemsCount}) مادة بنجاح!` : `Successfully imported (${newItemsCount}) items!`);
         } catch (err) {
           console.error(err);
           alert("Error parsing or uploading file.");
@@ -1790,6 +1879,7 @@
           checkedItemCodes.delete(code);
           selectedStudioCodes.delete(code);
           saveStudioToStorage();
+          showToast(currentLang === 'ar' ? "تم حذف المادة بنجاح!" : "Item deleted successfully!", "warning");
         } catch (err) {
           console.error("Error deleting item:", err);
           alert("Failed to delete item from cloud.");
@@ -1805,6 +1895,7 @@
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
+      showToast(currentLang === 'ar' ? "تم تصدير النسخة الاحتياطية!" : "Backup exported successfully!");
     };
 
     initRealtimeDatabase();
