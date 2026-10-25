@@ -14,9 +14,10 @@
   <!-- SheetJS (XLSX) for Excel Import & Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <!-- Firebase App & Firestore Compat SDKs -->
+  <!-- Firebase App, Firestore, and Auth SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
     :root {
@@ -163,11 +164,13 @@
       gap: 10px;
     }
 
+    .req-asterisk { color: var(--danger); font-weight: bold; margin-left: 2px; }
+
     /* Modal Popup Styles */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
       display: none; justify-content: center; align-items: center;
       z-index: 1000;
       padding: 16px;
@@ -191,6 +194,13 @@
     .modal-grid { display: flex; flex-direction: column; gap: 14px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+
+    /* Auth Screens Styles */
+    .auth-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
+    .auth-tab-btn { flex: 1; padding: 10px; text-align: center; background: none; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+    .auth-tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+    .auth-mode-content { display: none; }
+    .auth-mode-content.active { display: flex; flex-direction: column; gap: 12px; }
 
     /* Label Cards Grid - 5 Labels per row on Studio Page */
     .labels-grid {
@@ -374,6 +384,45 @@
 </head>
 <body oncontextmenu="return false;">
 
+  <!-- AUTHENTICATION OVERLAY MODAL -->
+  <div class="modal-overlay active" id="authModal">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header" style="justify-content: center;">
+        <div class="modal-title" style="font-size: 1.3rem;">🔒 System Authentication</div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthMode('login')">Login (Password)</button>
+        <button class="auth-tab-btn" id="tabBtnOtp" onclick="switchAuthMode('otp')">Register / OTP</button>
+      </div>
+
+      <!-- MODE 1: LOGIN WITH EMAIL & PASSWORD -->
+      <div class="auth-mode-content active" id="authModeLogin">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" class="input-field" placeholder="user@domain.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" style="margin-top: 10px; padding: 10px;" onclick="handleEmailPasswordLogin()">Sign In</button>
+      </div>
+
+      <!-- MODE 2: REGISTER / OTP VIA EMAIL LINK -->
+      <div class="auth-mode-content" id="authModeOtp">
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          Enter your email to receive a passwordless OTP / sign-in verification link directly to your inbox.
+        </p>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="otpEmail" class="input-field" placeholder="user@domain.com">
+        </div>
+        <button class="btn btn-success" style="margin-top: 10px; padding: 10px;" onclick="handleSendOtpLink()">📧 Send OTP Verification Link</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation Header -->
   <header>
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -389,6 +438,9 @@
     </div>
 
     <div class="header-actions">
+      <span id="currentUserDisplay" style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;"></span>
+      <button class="btn btn-danger" style="padding: 6px 10px; font-size: 0.75rem;" onclick="handleSignOut()">Sign Out</button>
+
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ Add New Material</span></button>
 
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
@@ -586,30 +638,30 @@
         <input type="hidden" id="modalEditOriginalCode" value="">
         
         <div class="form-group">
-          <label id="lblCodeModal">1. Material Code</label>
-          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446">
+          <label id="lblCodeModal">1. Material Code <span class="req-asterisk">*</span></label>
+          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446" required>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblNameModal">2. Arabic Name</label>
-            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)">
+            <label id="lblNameModal">2. Arabic Name <span class="req-asterisk">*</span></label>
+            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)" required>
           </div>
           <div class="form-group">
-            <label id="lblNameModalEn">English Name</label>
-            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)">
+            <label id="lblNameModalEn">English Name <span class="req-asterisk">*</span></label>
+            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)" required>
           </div>
         </div>
 
         <div class="form-group">
-          <label id="lblUnitModal">3. Unit</label>
-          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
+          <label id="lblUnitModal">3. Unit <span class="req-asterisk">*</span></label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box..." required>
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. Warehouse / Location [Defaults to Main Warehouse if left unselected]</label>
-          <select id="modalInputLocation" class="input-field">
-            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse - [Default]</option>
+          <label id="lblLocationModal">4. Warehouse / Location <span class="req-asterisk">*</span></label>
+          <select id="modalInputLocation" class="input-field" required>
+            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse</option>
             <option value="Southern Region Warehouse">Southern Region Warehouse</option>
             <option value="Hail Region Warehouse">Hail Region Warehouse</option>
             <option value="Eastern Region Warehouse">Eastern Region Warehouse</option>
@@ -619,13 +671,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblClassModal">5. Arabic Classification</label>
-            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)">
+            <label id="lblClassModal">5. Arabic Classification <span class="req-asterisk">*</span></label>
+            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)" required>
             <datalist id="modalClassificationArList"></datalist>
           </div>
           <div class="form-group">
-            <label id="lblClassModalEn">English Classification</label>
-            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)">
+            <label id="lblClassModalEn">English Classification <span class="req-asterisk">*</span></label>
+            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)" required>
             <datalist id="modalClassificationEnList"></datalist>
           </div>
         </div>
@@ -644,9 +696,7 @@
   </div>
 
   <script>
-    // ----------------------------------------------------
-    // UPDATED FIREBASE CONFIGURATION CREDENTIALS
-    // ----------------------------------------------------
+    // FIREBASE CONFIGURATION CREDENTIALS
     const firebaseConfig = {
       apiKey: "AIzaSyCq7QipA_x-5h714PRVPGBVQOK1-8mwlzc",
       authDomain: "inventory-label-20aa1.firebaseapp.com",
@@ -657,9 +707,9 @@
       measurementId: "G-XQL0L8TDRV"
     };
 
-    // Initialize Firebase Compat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
     const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V23";
 
@@ -669,19 +719,96 @@
     let checkedItemCodes = new Set();
     let selectedStudioCodes = new Set(); 
 
+    // --- AUTHENTICATION LOGIC ---
+    function switchAuthMode(mode) {
+      document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.auth-mode-content').forEach(c => c.classList.remove('active'));
+      
+      if (mode === 'login') {
+        document.getElementById('tabBtnLogin').classList.add('active');
+        document.getElementById('authModeLogin').classList.add('active');
+      } else {
+        document.getElementById('tabBtnOtp').classList.add('active');
+        document.getElementById('authModeOtp').classList.add('active');
+      }
+    }
+
+    async function handleEmailPasswordLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      if (!email || !password) {
+        alert("Please provide both email and password.");
+        return;
+      }
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        document.getElementById('authModal').classList.remove('active');
+      } catch (e) {
+        alert("Login failed: " + e.message);
+      }
+    }
+
+    async function handleSendOtpLink() {
+      const email = document.getElementById('otpEmail').value.trim();
+      if (!email) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      const actionCodeSettings = {
+        url: window.location.href,
+        handleCodeInApp: true
+      };
+      try {
+        await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+        window.localStorage.setItem('emailForSignIn', email);
+        alert("OTP verification link sent! Please check your email inbox to complete sign-in.");
+      } catch (e) {
+        alert("Failed to send OTP link: " + e.message);
+      }
+    }
+
+    function checkOtpLinkSignIn() {
+      if (auth.isSignInWithEmailLink(window.location.href)) {
+        let email = window.localStorage.getItem('emailForSignIn');
+        if (!email) {
+          email = window.prompt('Please confirm your email for verification');
+        }
+        if (email) {
+          auth.signInWithEmailLink(email, window.location.href)
+            .then(() => {
+              window.localStorage.removeItem('emailForSignIn');
+              document.getElementById('authModal').classList.remove('active');
+            })
+            .catch(err => alert("OTP login failed: " + err.message));
+        }
+      }
+    }
+
+    function handleSignOut() {
+      auth.signOut().then(() => {
+        document.getElementById('authModal').classList.add('active');
+      });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('authModal').classList.remove('active');
+        document.getElementById('currentUserDisplay').textContent = "👤 " + (user.email || "Authenticated User");
+      } else {
+        document.getElementById('authModal').classList.add('active');
+        document.getElementById('currentUserDisplay').textContent = "";
+      }
+    });
+
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
       "مستودع المنطقة الجنوبية": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
-      
       "hail region warehouse": { ar: "مستودع منطقة حائل", en: "Hail Region Warehouse" },
       "مستودع منطقة حائل": { ar: "مستودع منطقة حائل", en: "Hail Region Warehouse" },
-      
       "eastern region warehouse": { ar: "مستودع المنطقة الشرقية", en: "Eastern Region Warehouse" },
       "مستودع المنطقة الشرقية": { ar: "مستودع المنطقة الشرقية", en: "Eastern Region Warehouse" },
-      
       "main warehouse": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
       "المستودع الرئيسي": { ar: "المستودع الرئيسي", en: "Main Warehouse" },
-      
       "main warehouse / southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" },
       "main warehouse/southern region warehouse": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" },
       "المستودع الرئيسي / مستودع المنطقة الجنوبية": { ar: "المستودع الرئيسي / مستودع المنطقة الجنوبية", en: "Main Warehouse / Southern Region Warehouse" }
@@ -796,13 +923,13 @@
         tab3: "🏷️ Barcode Labels Studio",
         modalTitleAdd: "✏️ Add Material Details",
         modalTitleEdit: "✏️ Edit Material Details",
-        lblCode: "1. Material Code",
-        lblName: "2. Arabic Name",
-        lblNameEn: "English Name",
-        lblUnit: "3. Unit",
-        lblLocation: "4. Warehouse / Location [Defaults to Main Warehouse if left unselected]",
-        lblClass: "5. Arabic Classification",
-        lblClassEn: "English Classification",
+        lblCode: "1. Material Code *",
+        lblName: "2. Arabic Name *",
+        lblNameEn: "English Name *",
+        lblUnit: "3. Unit *",
+        lblLocation: "4. Warehouse / Location *",
+        lblClass: "5. Arabic Classification *",
+        lblClassEn: "English Classification *",
         lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
         btnCancelModal: "Cancel",
@@ -860,13 +987,13 @@
         tab3: "🏷️ مولد طباعة الباركود",
         modalTitleAdd: "✏️ إضافة تفاصيل المادة (Add Material Details)",
         modalTitleEdit: "✏️ تعديل تفاصيل المادة (Edit Material Details)",
-        lblCode: "1. كود المادة (Material Code)",
-        lblName: "2. اسم المادة بالعربي (Arabic Name)",
-        lblNameEn: "اسم المادة بالانجليزي (English Name)",
-        lblUnit: "3. الوحدة (Unit)",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
-        lblClass: "5. التصنيف بالعربي (Arabic Classification)",
-        lblClassEn: "التصنيف بالانجليزي (English Classification)",
+        lblCode: "1. كود المادة (Material Code) *",
+        lblName: "2. اسم المادة بالعربي (Arabic Name) *",
+        lblNameEn: "اسم المادة بالانجليزي (English Name) *",
+        lblUnit: "3. الوحدة (Unit) *",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location) *",
+        lblClass: "5. التصنيف بالعربي (Arabic Classification) *",
+        lblClassEn: "التصنيف بالانجليزي (English Classification) *",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
         btnCancelModal: "إلغاء",
@@ -965,7 +1092,7 @@
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputNameAr').value = '';
       document.getElementById('modalInputNameEn').value = '';
-      document.getElementById('modalInputUnit').value = 'Pieces';
+      document.getElementById('modalInputUnit').value = '';
       document.getElementById('modalInputLocation').value = 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = '';
       document.getElementById('modalInputClassificationEn').value = '';
@@ -982,7 +1109,7 @@
       document.getElementById('modalInputCode').value = item.code;
       document.getElementById('modalInputNameAr').value = item.nameAr || item.name || '';
       document.getElementById('modalInputNameEn').value = item.nameEn || item.name || '';
-      document.getElementById('modalInputUnit').value = item.unit || 'Pieces';
+      document.getElementById('modalInputUnit').value = item.unit || '';
       document.getElementById('modalInputLocation').value = item.location || 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = item.classificationAr || item.classification || '';
       document.getElementById('modalInputClassificationEn').value = item.classificationEn || item.classification || '';
@@ -994,31 +1121,28 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
-    // Save or Update Material directly in Real-Time Firestore Cloud Database
+    // MANDATORY PRODUCT INFORMATION VALIDATION
     async function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
-      const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
-      const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
-      
-      const defaultWarehouse = "Main Warehouse / Southern Region Warehouse";
-      const locationInput = document.getElementById('modalInputLocation').value.trim();
-      const location = locationInput !== "" ? locationInput : defaultWarehouse;
-
-      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim() || "عام";
-      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim() || "General";
+      const nameEn = document.getElementById('modalInputNameEn').value.trim();
+      const unit = document.getElementById('modalInputUnit').value.trim();
+      const location = document.getElementById('modalInputLocation').value.trim();
+      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim();
+      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim();
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
-      if (!code || (!nameAr && !nameEn)) {
-        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
+      // ALL PRODUCT INFORMATION MANDATORY (EXCEPT CUSTOM LINK / URL)
+      if (!code || !nameAr || !nameEn || !unit || !location || !classificationAr || !classificationEn) {
+        alert(currentLang === 'ar' ? "جميع الحقول إجبارية (باستثناء البيانات والإضافات والروابط الاختيارية)." : "All product fields are mandatory, except the Custom Link / URL.");
         return;
       }
 
       const newItem = {
         code,
-        nameAr: nameAr || nameEn,
-        nameEn: nameEn || nameAr,
+        nameAr,
+        nameEn,
         unit,
         location,
         classificationAr,
@@ -1037,7 +1161,7 @@
         closeAddModal();
       } catch (err) {
         console.error("Error saving item: ", err);
-        alert("Failed to save to cloud database. Make sure Firestore rules allow read/write.");
+        alert("Failed to save to cloud database. Make sure you are logged in.");
       }
     }
 
@@ -1098,13 +1222,6 @@
       setTxt('tab2Title', t.tab2);
       setTxt('tab3Title', t.tab3);
       
-      setTxt('lblCodeModal', t.lblCode);
-      setTxt('lblNameModal', t.lblName);
-      setTxt('lblNameModalEn', t.lblNameEn);
-      setTxt('lblUnitModal', t.lblUnit);
-      setTxt('lblLocationModal', t.lblLocation);
-      setTxt('lblClassModal', t.lblClass);
-      setTxt('lblClassModalEn', t.lblClassEn);
       setTxt('lblCustomDataModal', t.lblCustomData);
       setTxt('btnSaveModalText', t.btnSaveModal);
       setTxt('btnCancelModal', t.btnCancelModal);
@@ -1329,8 +1446,8 @@
       }
     }
 
-    // Real-Time listener connection with Firestore
     function initRealtimeDatabase() {
+      checkOtpLinkSignIn();
       loadStudioFromStorage();
       
       db.collection("inventory").onSnapshot((snapshot) => {
@@ -1435,18 +1552,18 @@
             const code = String(row["Material Code"] || row["Code"] || "").trim();
             const nameAr = String(row["Arabic Name"] || row["Name"] || "").trim();
             const nameEn = String(row["English Name"] || nameAr).trim();
-            const unit = String(row["Unit"] || "Pieces").trim();
-            const location = String(row["Warehouse / Location"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
-            const classificationAr = String(row["Arabic Classification"] || row["Classification"] || "").trim() || "General";
-            const classificationEn = String(row["English Classification"] || classificationAr).trim() || "General";
+            const unit = String(row["Unit"] || "").trim();
+            const location = String(row["Warehouse / Location"] || row["Location"] || "").trim();
+            const classificationAr = String(row["Arabic Classification"] || row["Classification"] || "").trim();
+            const classificationEn = String(row["English Classification"] || classificationAr).trim();
             const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
-            if (code && (nameAr || nameEn)) {
+            if (code && nameAr && nameEn && unit && location && classificationAr && classificationEn) {
               const itemRef = db.collection("inventory").doc(code);
               batch.set(itemRef, {
                 code,
-                nameAr: nameAr || nameEn,
-                nameEn: nameEn || nameAr,
+                nameAr,
+                nameEn,
                 unit,
                 location,
                 classificationAr,
@@ -1458,7 +1575,7 @@
           });
 
           await batch.commit();
-          alert(`Successfully imported (${newItemsCount}) items to cloud database!`);
+          alert(`Successfully imported (${newItemsCount}) valid items to cloud database!`);
         } catch (err) {
           console.error(err);
           alert("Error parsing or uploading file.");
@@ -1743,7 +1860,6 @@
       anchor.remove();
     }
 
-    // Initialize application with Real-Time listener
     initRealtimeDatabase();
   </script>
 </body>
