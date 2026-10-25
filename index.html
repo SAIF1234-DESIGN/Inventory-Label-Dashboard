@@ -11,10 +11,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- Firebase Compat Libraries for Direct Browser Real-Time Sync -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <style>
     :root {
       --bg-dark: #0b132b;
@@ -34,6 +30,34 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 40px; overflow-x: hidden; }
 
+    /* Login Overlay */
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-dark);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .login-box h2 { font-size: 1.4rem; margin-bottom: 8px; color: var(--text-main); }
+    .login-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; }
+    .login-form { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+    .login-form label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .login-error { color: var(--danger); font-size: 0.8rem; font-weight: 600; text-align: center; display: none; }
+
+    /* Navigation Header */
     header {
       background-color: #080e21;
       padding: 16px 32px;
@@ -55,6 +79,7 @@
 
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+    /* Navigation Bar */
     .nav-bar {
       background-color: #0e1735;
       padding: 0 32px;
@@ -77,6 +102,7 @@
     .tab-content { display: none; width: 100%; }
     .tab-content.active { display: block; }
 
+    /* KPI Cards */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -310,7 +336,7 @@
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
     @media print {
-      header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
+      #loginScreen, header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
       #tab-overview, #tab-inventory, .labels-controls-bar, .studio-label-checkbox {
         display: none !important;
@@ -359,6 +385,30 @@
 </head>
 <body oncontextmenu="return false;">
 
+  <!-- SINGLE FIXED USER LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">🔐</div>
+      <h2>System Authentication</h2>
+      <p>Enter your credentials to access the system.</p>
+      
+      <form class="login-form" onsubmit="handleUserLogin(event)">
+        <div>
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" class="input-field" placeholder="noor@noor.com" required>
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="input-field" placeholder="••••••••" required>
+        </div>
+        
+        <div id="loginErrorMsg" class="login-error">Invalid email or password. Please try again.</div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 8px;">Log In</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Header Section -->
   <header>
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -381,6 +431,7 @@
       <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📊 <span id="btnImportText">Import Excel Data</span></button>
       <button class="btn btn-success" onclick="downloadAvailableInventoryExcel()">📥 <span id="btnDownloadInvText">Download Inventory</span></button>
       <button class="btn btn-outline" onclick="exportBackupJSON()">💾 <span id="btnBackupText">Save Backup</span></button>
+      <button class="btn btn-danger" onclick="logoutUser()">🚪 Log Out</button>
     </div>
   </header>
 
@@ -624,21 +675,34 @@
     </div>
   </div>
 
-  <script>
-    // Live Firebase Project Configuration
+  <!-- NEW FIREBASE ES MODULE SCRIPT INITIALIZATION -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      setDoc, 
+      deleteDoc, 
+      onSnapshot, 
+      writeBatch 
+    } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+
     const firebaseConfig = {
-      apiKey: "AIzaSyCerwC0X7z2SeihxqOQxepSE74Vg_cIJyI",
-      authDomain: "inventory-label.firebaseapp.com",
-      projectId: "inventory-label",
-      storageBucket: "inventory-label.firebasestorage.app",
-      messagingSenderId: "220560027845",
-      appId: "1:220560027845:web:87e48a27ba43a93c5b40ac",
-      measurementId: "G-2D9GXHM3HT"
+      apiKey: "AIzaSyCQW0pliQ3ghRgFCbJw6ryG3UN1EnwiHEQ",
+      authDomain: "inventory-label-8b8f7.firebaseapp.com",
+      projectId: "inventory-label-8b8f7",
+      storageBucket: "inventory-label-8b8f7.firebasestorage.app",
+      messagingSenderId: "763911008603",
+      appId: "1:763911008603:web:f5a083484e4f8474af2a7e",
+      measurementId: "G-3TNZ4F44VQ"
     };
 
-    // Initialize Firebase Compat SDK
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // Initialize Firebase Services
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
     const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V23";
 
@@ -647,6 +711,9 @@
     let studioItemCodes = new Set();
     let checkedItemCodes = new Set();
     let selectedStudioCodes = new Set(); 
+    let warehouseItems = [];
+    let chartInstance = null;
+    let currentLang = "en";
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -686,75 +753,6 @@
       "متر": { ar: "متر", en: "Meter" }
     };
 
-    function translateUnit(u, lang) {
-      if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
-      const key = u.toString().trim().toLowerCase();
-      if (unitMap[key]) return unitMap[key][lang];
-      return u;
-    }
-
-    function translateClassification(item, lang) {
-      if (lang === 'ar') {
-        return item.classificationAr || item.classification || "عام";
-      } else {
-        return item.classificationEn || item.classification || "General";
-      }
-    }
-
-    function translateLocation(l, lang) {
-      const defaultLoc = "Main Warehouse / Southern Region Warehouse";
-      if (!l || l.trim() === "") return warehouseMap[defaultLoc.toLowerCase()][lang];
-      const key = l.toString().trim().toLowerCase();
-      if (warehouseMap[key]) {
-        return warehouseMap[key][lang];
-      }
-      return l;
-    }
-
-    function translateName(item, lang) {
-      if (!item) return "";
-      if (lang === 'ar') {
-        return item.nameAr || item.name || "";
-      } else {
-        return item.nameEn || item.name || "";
-      }
-    }
-
-    function autoFillNameEn(val) {
-      const key = val.trim().toLowerCase();
-      if (nameMemory[key] && !document.getElementById('modalInputNameEn').value) {
-        document.getElementById('modalInputNameEn').value = nameMemory[key];
-      }
-    }
-
-    function autoFillNameAr(val) {
-      const key = val.trim().toLowerCase();
-      for (let ar in nameMemory) {
-        if (nameMemory[ar].toLowerCase() === key && !document.getElementById('modalInputNameAr').value) {
-          document.getElementById('modalInputNameAr').value = ar;
-          break;
-        }
-      }
-    }
-
-    function autoFillClassEn(val) {
-      const key = val.trim().toLowerCase();
-      if (classificationMemory[key] && !document.getElementById('modalInputClassificationEn').value) {
-        document.getElementById('modalInputClassificationEn').value = classificationMemory[key];
-      }
-    }
-
-    function autoFillClassAr(val) {
-      const key = val.trim().toLowerCase();
-      for (let ar in classificationMemory) {
-        if (classificationMemory[ar].toLowerCase() === key && !document.getElementById('modalInputClassificationAr').value) {
-          document.getElementById('modalInputClassificationAr').value = ar;
-          break;
-        }
-      }
-    }
-
-    let currentLang = "en";
     const translations = {
       en: {
         toggleBtn: "العربية",
@@ -886,22 +884,119 @@
       }
     };
 
-    let warehouseItems = [];
-    let chartInstance = null;
+    function translateUnit(u, lang) {
+      if (!u) return lang === 'ar' ? "قطعة" : "Pieces";
+      const key = u.toString().trim().toLowerCase();
+      if (unitMap[key]) return unitMap[key][lang];
+      return u;
+    }
 
-    function openPrintSettingsModal() {
+    function translateClassification(item, lang) {
+      if (lang === 'ar') {
+        return item.classificationAr || item.classification || "عام";
+      } else {
+        return item.classificationEn || item.classification || "General";
+      }
+    }
+
+    function translateLocation(l, lang) {
+      const defaultLoc = "Main Warehouse / Southern Region Warehouse";
+      if (!l || l.trim() === "") return warehouseMap[defaultLoc.toLowerCase()][lang];
+      const key = l.toString().trim().toLowerCase();
+      if (warehouseMap[key]) {
+        return warehouseMap[key][lang];
+      }
+      return l;
+    }
+
+    function translateName(item, lang) {
+      if (!item) return "";
+      if (lang === 'ar') {
+        return item.nameAr || item.name || "";
+      } else {
+        return item.nameEn || item.name || "";
+      }
+    }
+
+    // Attach core handlers globally to window
+    window.handleUserLogin = function(event) {
+      event.preventDefault();
+      const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('loginPassword').value.trim();
+      const errorMsg = document.getElementById('loginErrorMsg');
+
+      if (emailInput === "noor@noor.com" && passwordInput === "Aa123456@") {
+        errorMsg.style.display = "none";
+        localStorage.setItem("IS_AUTHENTICATED_USER", "true");
+        localStorage.setItem("AUTHENTICATED_EMAIL", emailInput);
+        document.getElementById('loginScreen').style.display = "none";
+      } else {
+        errorMsg.style.display = "block";
+      }
+    };
+
+    window.logoutUser = function() {
+      localStorage.removeItem("IS_AUTHENTICATED_USER");
+      localStorage.removeItem("AUTHENTICATED_EMAIL");
+      document.getElementById('loginScreen').style.display = "flex";
+    };
+
+    function checkUserAuthOnLoad() {
+      const isAuthenticated = localStorage.getItem("IS_AUTHENTICATED_USER");
+      if (isAuthenticated === "true") {
+        document.getElementById('loginScreen').style.display = "none";
+      } else {
+        document.getElementById('loginScreen').style.display = "flex";
+      }
+    }
+
+    window.autoFillNameEn = function(val) {
+      const key = val.trim().toLowerCase();
+      if (nameMemory[key] && !document.getElementById('modalInputNameEn').value) {
+        document.getElementById('modalInputNameEn').value = nameMemory[key];
+      }
+    };
+
+    window.autoFillNameAr = function(val) {
+      const key = val.trim().toLowerCase();
+      for (let ar in nameMemory) {
+        if (nameMemory[ar].toLowerCase() === key && !document.getElementById('modalInputNameAr').value) {
+          document.getElementById('modalInputNameAr').value = ar;
+          break;
+        }
+      }
+    };
+
+    window.autoFillClassEn = function(val) {
+      const key = val.trim().toLowerCase();
+      if (classificationMemory[key] && !document.getElementById('modalInputClassificationEn').value) {
+        document.getElementById('modalInputClassificationEn').value = classificationMemory[key];
+      }
+    };
+
+    window.autoFillClassAr = function(val) {
+      const key = val.trim().toLowerCase();
+      for (let ar in classificationMemory) {
+        if (classificationMemory[ar].toLowerCase() === key && !document.getElementById('modalInputClassificationEn').value) {
+          document.getElementById('modalInputClassificationAr').value = ar;
+          break;
+        }
+      }
+    };
+
+    window.openPrintSettingsModal = function() {
       document.getElementById('printSettingsModal').classList.add('active');
-    }
+    };
 
-    function closePrintSettingsModal() {
+    window.closePrintSettingsModal = function() {
       document.getElementById('printSettingsModal').classList.remove('active');
-    }
+    };
 
-    function applyPrintSettingsAndClose() {
+    window.applyPrintSettingsAndClose = function() {
       updatePrintConfigPreview();
       closePrintSettingsModal();
       alert(currentLang === 'ar' ? "تم حفظ إعدادات مقاسات الطباعة بنجاح!" : "Print size settings saved successfully!");
-    }
+    };
 
     function updatePrintConfigPreview() {
       const pageSize = document.getElementById('cfgPageSize').value;
@@ -933,7 +1028,7 @@
       `;
     }
 
-    function openAddModal() {
+    window.openAddModal = function() {
       document.getElementById('modalEditOriginalCode').value = '';
       document.getElementById('modalHeaderTitle').textContent = translations[currentLang].modalTitleAdd;
       document.getElementById('modalInputCode').value = '';
@@ -945,9 +1040,9 @@
       document.getElementById('modalInputClassificationEn').value = '';
       document.getElementById('modalInputCustomData').value = '';
       document.getElementById('addMaterialModal').classList.add('active');
-    }
+    };
 
-    function openEditModal(code) {
+    window.openEditModal = function(code) {
       const item = warehouseItems.find(i => i.code === code);
       if (!item) return;
 
@@ -962,13 +1057,13 @@
       document.getElementById('modalInputClassificationEn').value = item.classificationEn || item.classification || '';
       document.getElementById('modalInputCustomData').value = item.customData || '';
       document.getElementById('addMaterialModal').classList.add('active');
-    }
+    };
 
-    function closeAddModal() {
+    window.closeAddModal = function() {
       document.getElementById('addMaterialModal').classList.remove('active');
-    }
+    };
 
-    async function saveMaterialFromModal() {
+    window.saveMaterialFromModal = async function() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
@@ -1000,18 +1095,18 @@
       };
 
       try {
-        await db.collection("inventory").doc(code).set(newItem);
+        await setDoc(doc(db, "inventory", code), newItem);
         if (originalCode && originalCode !== code) {
-          await db.collection("inventory").doc(originalCode).delete();
+          await deleteDoc(doc(db, "inventory", originalCode));
         }
         closeAddModal();
       } catch (err) {
         console.error("Cloud Save Error:", err);
         alert("Failed to save to cloud database.");
       }
-    }
+    };
 
-    function toggleLanguage() {
+    window.toggleLanguage = function() {
       currentLang = currentLang === "ar" ? "en" : "ar";
       document.documentElement.lang = currentLang;
       document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
@@ -1021,7 +1116,7 @@
       applyTranslations();
       populateWarehouseDropdown();
       refreshUI();
-    }
+    };
 
     function populateWarehouseDropdown() {
       const select = document.getElementById('modalInputLocation');
@@ -1121,22 +1216,22 @@
       if (invSearch) invSearch.placeholder = t.searchPlaceholder;
     }
 
-    function generateSingleLabel(code) {
+    window.generateSingleLabel = function(code) {
       studioItemCodes.add(code);
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
-    }
+    };
 
-    function ungenerateSingleLabel(code) {
+    window.ungenerateSingleLabel = function(code) {
       studioItemCodes.delete(code);
       selectedStudioCodes.delete(code);
       saveStudioToStorage();
       renderLabelsGrid();
       renderInventoryTable();
-    }
+    };
 
-    function printSingleItemLabel(code) {
+    window.printSingleItemLabel = function(code) {
       if (!studioItemCodes.has(code)) {
         alert(currentLang === 'ar' ? "يرجى توليد ملصق هذه المادة أولاً لطباعتها." : "Please generate this item's label first before printing.");
         return;
@@ -1152,9 +1247,9 @@
         selectedStudioCodes = previousSelected;
         renderLabelsGrid();
       }, 250);
-    }
+    };
 
-    function handleCheckboxChange(checkbox) {
+    window.handleCheckboxChange = function(checkbox) {
       if (checkbox.checked) {
         checkedItemCodes.add(checkbox.value);
       } else {
@@ -1162,7 +1257,7 @@
         document.getElementById('selectAllInv').checked = false;
       }
       checkInventorySelection();
-    }
+    };
 
     function checkInventorySelection() {
       const genBtn = document.getElementById('btnBatchGenerate');
@@ -1190,7 +1285,7 @@
       }
     }
 
-    function generateSelectedInventoryItems() {
+    window.generateSelectedInventoryItems = function() {
       if (checkedItemCodes.size <= 2) {
         alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادتين (3 مواد أو أكثر) لتفعيل زر التوليد الجماعي." : "Please select more than 2 items (3 or more) to use batch generation.");
         return;
@@ -1203,9 +1298,9 @@
       renderLabelsGrid();
       renderInventoryTable();
       alert(currentLang === 'ar' ? `تم توليد (${checkedItemCodes.size}) ملصق بنجاح في استوديو الملصقات!` : `Successfully generated (${checkedItemCodes.size}) labels in Label Studio!`);
-    }
+    };
 
-    function discardSelectedInventoryItems() {
+    window.discardSelectedInventoryItems = function() {
       if (checkedItemCodes.size <= 2) {
         alert(currentLang === 'ar' ? "يرجى تحديد أكثر من مادتين (3 مواد أو أكثر) لتفعيل زر الإلغاء الجماعي." : "Please select more than 2 items (3 or more) to use batch discard.");
         return;
@@ -1223,9 +1318,9 @@
       renderLabelsGrid();
       renderInventoryTable();
       alert(currentLang === 'ar' ? `تم إلغاء توليد (${removedCount}) ملصق من الاستوديو!` : `Successfully discarded (${removedCount}) labels from Studio!`);
-    }
+    };
 
-    function toggleSelectAllInventory(masterCb) {
+    window.toggleSelectAllInventory = function(masterCb) {
       const checkboxes = document.querySelectorAll('.table-checkbox');
       checkboxes.forEach(cb => {
         cb.checked = masterCb.checked;
@@ -1236,9 +1331,9 @@
         }
       });
       checkInventorySelection();
-    }
+    };
 
-    function handleStudioCardSelect(checkbox, code) {
+    window.handleStudioCardSelect = function(checkbox, code) {
       if (checkbox.checked) {
         selectedStudioCodes.add(code);
       } else {
@@ -1246,9 +1341,9 @@
         document.getElementById('selectAllStudioLabels').checked = false;
       }
       renderLabelsGrid();
-    }
+    };
 
-    function toggleSelectAllStudioLabels(masterCb) {
+    window.toggleSelectAllStudioLabels = function(masterCb) {
       const studioCheckboxes = document.querySelectorAll('.studio-label-checkbox');
       studioCheckboxes.forEach(cb => {
         cb.checked = masterCb.checked;
@@ -1259,9 +1354,9 @@
         }
       });
       renderLabelsGrid();
-    }
+    };
 
-    function clearLabelStudio() {
+    window.clearLabelStudio = function() {
       if (confirm(currentLang === 'ar' ? "هل أنت متأكد من إفراغ جميع ملصقات الاستوديو؟" : "Are you sure you want to clear all studio labels?")) {
         studioItemCodes.clear();
         selectedStudioCodes.clear();
@@ -1269,9 +1364,9 @@
         renderLabelsGrid();
         renderInventoryTable();
       }
-    }
+    };
 
-    function triggerCleanPrint() {
+    window.triggerCleanPrint = function() {
       if (studioItemCodes.size === 0) {
         alert(currentLang === 'ar' ? "استوديو الملصقات فارغ. يرجى توليد ملصقات لطباعتها." : "Label Studio is empty. Please generate labels first to print them.");
         return;
@@ -1281,7 +1376,7 @@
         return;
       }
       window.print();
-    }
+    };
 
     function saveStudioToStorage() {
       localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(Array.from(studioItemCodes)));
@@ -1300,12 +1395,13 @@
     }
 
     function initRealtimeDatabase() {
+      checkUserAuthOnLoad();
       loadStudioFromStorage();
       
-      db.collection("inventory").onSnapshot((snapshot) => {
+      onSnapshot(collection(db, "inventory"), (snapshot) => {
         warehouseItems = [];
-        snapshot.forEach((doc) => {
-          warehouseItems.push(doc.data());
+        snapshot.forEach((docSnap) => {
+          warehouseItems.push(docSnap.data());
         });
 
         warehouseItems.forEach(i => {
@@ -1333,15 +1429,15 @@
       renderLabelsGrid();
     }
 
-    function switchNav(tabId, el) {
+    window.switchNav = function(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(nt => nt.classList.remove('active'));
 
       document.getElementById(tabId).classList.add('active');
       el.classList.add('active');
-    }
+    };
 
-    function downloadExcelTemplate() {
+    window.downloadExcelTemplate = function() {
       const templateData = [
         {
           "Material Code": "1001",
@@ -1359,9 +1455,9 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Warehouse Items");
       XLSX.writeFile(workbook, "Warehouse_Items_Template.xlsx");
-    }
+    };
 
-    function downloadAvailableInventoryExcel() {
+    window.downloadAvailableInventoryExcel = function() {
       if (warehouseItems.length === 0) {
         alert(currentLang === 'ar' ? "لا توجد مواد مخصصة للتحميل في المخزون." : "No available inventory items to download.");
         return;
@@ -1382,9 +1478,9 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Available Inventory");
       XLSX.writeFile(workbook, `Available_Inventory_${new Date().toISOString().slice(0,10)}.xlsx`);
-    }
+    };
 
-    function importExcelFile(event) {
+    window.importExcelFile = function(event) {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -1398,7 +1494,7 @@
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           let newItemsCount = 0;
-          const batch = db.batch();
+          const batch = writeBatch(db);
 
           jsonData.forEach(row => {
             const code = String(row["Material Code"] || row["Code"] || "").trim();
@@ -1411,7 +1507,7 @@
             const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
             if (code && (nameAr || nameEn)) {
-              const itemRef = db.collection("inventory").doc(code);
+              const itemRef = doc(db, "inventory", code);
               batch.set(itemRef, {
                 code,
                 nameAr: nameAr || nameEn,
@@ -1434,7 +1530,7 @@
         }
       };
       reader.readAsArrayBuffer(file);
-    }
+    };
 
     function populateDatalists() {
       const dlClassAr = document.getElementById('modalClassificationArList');
@@ -1534,7 +1630,7 @@
       });
     }
 
-    function renderInventoryTable() {
+    window.renderInventoryTable = function() {
       const search = document.getElementById('inventorySearch').value.toLowerCase();
       const cat = document.getElementById('inventoryCategoryFilter').value;
 
@@ -1573,9 +1669,9 @@
         tbody.appendChild(tr);
       });
       checkInventorySelection();
-    }
+    };
 
-    function renderLabelsGrid() {
+    window.renderLabelsGrid = function() {
       const search = document.getElementById('labelsSearch').value.toLowerCase();
       const cat = document.getElementById('labelsCategoryFilter').value;
       const labelLang = document.getElementById('barcodeLangSelect').value;
@@ -1685,12 +1781,12 @@
           });
         } catch (e) {}
       });
-    }
+    };
 
-    async function deleteSingleItem(code) {
+    window.deleteSingleItem = async function(code) {
       if (confirm(currentLang === 'ar' ? `هل أنت متأكد من حذف المادة (${code})؟` : `Are you sure you want to delete item (${code})?`)) {
         try {
-          await db.collection("inventory").doc(code).delete();
+          await deleteDoc(doc(db, "inventory", code));
           studioItemCodes.delete(code);
           checkedItemCodes.delete(code);
           selectedStudioCodes.delete(code);
@@ -1700,9 +1796,9 @@
           alert("Failed to delete item from cloud.");
         }
       }
-    }
+    };
 
-    function exportBackupJSON() {
+    window.exportBackupJSON = function() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(warehouseItems, null, 2));
       const anchor = document.createElement('a');
       anchor.setAttribute("href", dataStr);
@@ -1710,8 +1806,9 @@
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-    }
+    };
 
+    // Initialize application and real-time database listener
     initRealtimeDatabase();
   </script>
 </body>
