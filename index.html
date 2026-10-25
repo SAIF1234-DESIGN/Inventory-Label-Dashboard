@@ -4,20 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logistics & Inventory Management System</title>
-  
-  <!-- Chart.js for analytics -->
+
+  <!-- External Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- JsBarcode for barcode rendering -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <!-- QR Code Generator -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-  <!-- SheetJS (XLSX) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  
-  <!-- Firebase App, Firestore, and Auth SDKs -->
+
+  <!-- Firebase Compat Libraries for Direct Browser Real-Time Sync -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
     :root {
@@ -38,6 +34,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 40px; overflow-x: hidden; }
 
+    /* Top Navigation Header */
     header {
       background-color: #080e21;
       padding: 16px 32px;
@@ -59,6 +56,7 @@
 
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+    /* Navigation Bar */
     .nav-bar {
       background-color: #0e1735;
       padding: 0 32px;
@@ -77,10 +75,12 @@
     }
     .nav-tab:hover, .nav-tab.active { color: var(--text-main); border-bottom-color: var(--accent-blue); }
 
+    /* Main Container */
     .container { width: 100%; max-width: 100%; margin: 20px auto; padding: 0 16px; }
     .tab-content { display: none; width: 100%; }
     .tab-content.active { display: block; }
 
+    /* KPI Cards Grid */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -106,6 +106,7 @@
       display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
     }
 
+    /* Chart Section */
     .chart-container {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -114,6 +115,7 @@
       margin-bottom: 24px;
     }
 
+    /* Buttons */
     .btn {
       padding: 8px 14px;
       border-radius: 8px;
@@ -139,6 +141,7 @@
     .btn-outline { background: transparent; border: 1px solid var(--border-color); color: white; }
     .btn-outline:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
 
+    /* Form Fields */
     .input-field {
       background: #0e1735;
       border: 1px solid var(--border-color);
@@ -157,12 +160,11 @@
       gap: 10px;
     }
 
-    .req-asterisk { color: var(--danger); font-weight: bold; margin-left: 2px; }
-
+    /* Modal Popup Styles */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(6px);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
       display: none; justify-content: center; align-items: center;
       z-index: 1000;
       padding: 16px;
@@ -187,15 +189,7 @@
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
-    .auth-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
-    .auth-tab-btn { flex: 1; padding: 10px; text-align: center; background: none; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
-    .auth-tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
-    .auth-mode-content { display: none; }
-    .auth-mode-content.active { display: flex; flex-direction: column; gap: 12px; }
-
-    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
-    .otp-box { width: 42px; height: 48px; text-align: center; font-size: 1.2rem; font-weight: 700; background: #0e1735; border: 1px solid var(--border-color); border-radius: 8px; color: var(--accent-cyan); }
-
+    /* Label Cards Grid - 5 Labels per row on Studio Page */
     .labels-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -247,6 +241,7 @@
     }
     .custom-link-badge a { color: #0284c7; text-decoration: underline; }
 
+    /* Code Sections: Barcode on Left, QR Code on Right */
     .codes-flex-container {
       display: flex;
       align-items: center;
@@ -261,12 +256,13 @@
     .qrcode-section svg { width: 32px !important; height: 32px !important; }
     .qrcode-label { font-size: 0.4rem; color: #64748b; margin-top: 1px; font-weight: 600; }
 
+    /* Table Container */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       width: 100%;
-      overflow-x: hidden;
+      overflow-x: auto;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .excel-table {
@@ -324,6 +320,7 @@
     .action-sub-btn.success { background: var(--success); color: white; }
     .action-sub-btn.success:hover { background: var(--success-hover); }
 
+    /* Print View Media Rules */
     @media print {
       header, .nav-bar, .modal-overlay, .kpi-grid, .chart-container, 
       .btn, .input-field, .del-btn, .action-sub-btn, .col-select-header, .table-checkbox,
@@ -374,78 +371,7 @@
 </head>
 <body oncontextmenu="return false;">
 
-  <!-- AUTHENTICATION OVERLAY MODAL -->
-  <div class="modal-overlay active" id="authModal">
-    <div class="modal-card" style="max-width: 440px;">
-      <div class="modal-header" style="justify-content: center;">
-        <div class="modal-title" style="font-size: 1.3rem;">🔒 System Authentication</div>
-      </div>
-
-      <div class="auth-tabs">
-        <button class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthMode('login')">Login (Password)</button>
-        <button class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthMode('register')">Register / OTP</button>
-      </div>
-
-      <!-- MODE 1: LOGIN WITH EMAIL & PASSWORD -->
-      <div class="auth-mode-content active" id="authModeLogin">
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="loginEmail" class="input-field" placeholder="user@domain.com">
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
-        </div>
-        <button class="btn btn-primary" style="margin-top: 10px; padding: 10px;" onclick="handleEmailPasswordLogin()">Sign In</button>
-      </div>
-
-      <!-- MODE 2: REGISTER WITH EMAIL, OTP CODE & PASSWORD SETUP -->
-      <div class="auth-mode-content" id="authModeRegister">
-        
-        <!-- STEP 1: SEND OTP -->
-        <div id="registerStep1">
-          <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
-            Enter your email address to receive a 6-digit verification OTP code.
-          </p>
-          <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="regEmail" class="input-field" placeholder="user@domain.com">
-          </div>
-          <button class="btn btn-success" style="margin-top: 12px; padding: 10px; width: 100%;" onclick="sendOtpCode()">📧 Send 6-Digit OTP</button>
-        </div>
-
-        <!-- STEP 2: ENTER OTP CODE & CREATE PASSWORD -->
-        <div id="registerStep2" style="display: none;">
-          <p style="font-size: 0.8rem; color: var(--accent-cyan); text-align: center; margin-bottom: 6px;">
-            OTP Code sent to <strong id="sentEmailDisplay"></strong>
-          </p>
-          
-          <div class="form-group" style="align-items: center;">
-            <label>Enter 6-Digit Verification Code</label>
-            <div class="otp-inputs">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 0)">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 1)">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 2)">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 3)">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 4)">
-              <input type="text" maxlength="1" class="otp-box" oninput="focusNextOtp(this, 5)">
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-top: 6px;">
-            <label>Create Account Password</label>
-            <input type="password" id="regPassword" class="input-field" placeholder="Minimum 6 characters">
-          </div>
-
-          <button class="btn btn-primary" style="margin-top: 12px; padding: 10px; width: 100%;" onclick="verifyOtpAndCreateAccount()">Set Password & Create Account</button>
-          <button class="btn btn-outline" style="margin-top: 6px; width: 100%; font-size: 0.75rem;" onclick="resetRegisterStep()">← Change Email</button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- Top Navigation Header -->
+  <!-- Header Section -->
   <header>
     <div style="display: flex; align-items: center; gap: 16px;">
       <button class="btn btn-outline" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="toggleLanguage()">🌐 <span id="langToggleBtnText">العربية</span></button>
@@ -460,9 +386,6 @@
     </div>
 
     <div class="header-actions">
-      <span id="currentUserDisplay" style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 600;"></span>
-      <button class="btn btn-danger" style="padding: 6px 10px; font-size: 0.75rem;" onclick="handleSignOut()">Sign Out</button>
-
       <button class="btn btn-success" onclick="openAddModal()">✨ <span id="btnAddMaterialText">+ Add New Material</span></button>
 
       <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcelFile(event)">
@@ -473,7 +396,7 @@
     </div>
   </header>
 
-  <!-- Navigation Bar -->
+  <!-- Main Navigation -->
   <div class="nav-bar">
     <div class="nav-tab active" id="tab1Title" onclick="switchNav('tab-overview', this)">📊 Overview & Summary</div>
     <div class="nav-tab" id="tab2Title" onclick="switchNav('tab-inventory', this)">📋 Inventory Register</div>
@@ -561,9 +484,7 @@
               <th style="text-align:center;" id="thDelete">Delete</th>
             </tr>
           </thead>
-          <tbody id="inventoryTableBody">
-            <!-- Dynamic Rows -->
-          </tbody>
+          <tbody id="inventoryTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -598,14 +519,12 @@
         </div>
       </div>
 
-      <div class="labels-grid" id="labelsGridContainer">
-        <!-- Persistent labels grid -->
-      </div>
+      <div class="labels-grid" id="labelsGridContainer"></div>
     </div>
 
   </div>
 
-  <!-- PRINT SIZE & GRID CONFIGURATOR MODAL -->
+  <!-- PRINT CONFIGURATION MODAL -->
   <div class="modal-overlay" id="printSettingsModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -649,7 +568,7 @@
     </div>
   </div>
 
-  <!-- ADD / EDIT MATERIAL POPUP MODAL -->
+  <!-- ADD / EDIT MATERIAL MODAL -->
   <div class="modal-overlay" id="addMaterialModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -660,30 +579,30 @@
         <input type="hidden" id="modalEditOriginalCode" value="">
         
         <div class="form-group">
-          <label id="lblCodeModal">1. Material Code <span class="req-asterisk">*</span></label>
-          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446" required>
+          <label id="lblCodeModal">1. Material Code</label>
+          <input type="text" id="modalInputCode" class="input-field" placeholder="e.g. 7272446">
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblNameModal">2. Arabic Name <span class="req-asterisk">*</span></label>
-            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)" required>
+            <label id="lblNameModal">2. Arabic Name</label>
+            <input type="text" id="modalInputNameAr" class="input-field" placeholder="Arabic Name..." oninput="autoFillNameEn(this.value)">
           </div>
           <div class="form-group">
-            <label id="lblNameModalEn">English Name <span class="req-asterisk">*</span></label>
-            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)" required>
+            <label id="lblNameModalEn">English Name</label>
+            <input type="text" id="modalInputNameEn" class="input-field" placeholder="English Name..." oninput="autoFillNameAr(this.value)">
           </div>
         </div>
 
         <div class="form-group">
-          <label id="lblUnitModal">3. Unit <span class="req-asterisk">*</span></label>
-          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box..." required>
+          <label id="lblUnitModal">3. Unit</label>
+          <input type="text" id="modalInputUnit" class="input-field" placeholder="Pieces, Roll, Litre, Box...">
         </div>
 
         <div class="form-group">
-          <label id="lblLocationModal">4. Warehouse / Location <span class="req-asterisk">*</span></label>
-          <select id="modalInputLocation" class="input-field" required>
-            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse</option>
+          <label id="lblLocationModal">4. Warehouse / Location</label>
+          <select id="modalInputLocation" class="input-field">
+            <option value="Main Warehouse / Southern Region Warehouse">Main Warehouse / Southern Region Warehouse - [Default]</option>
             <option value="Southern Region Warehouse">Southern Region Warehouse</option>
             <option value="Hail Region Warehouse">Hail Region Warehouse</option>
             <option value="Eastern Region Warehouse">Eastern Region Warehouse</option>
@@ -693,13 +612,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label id="lblClassModal">5. Arabic Classification <span class="req-asterisk">*</span></label>
-            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)" required>
+            <label id="lblClassModal">5. Arabic Classification</label>
+            <input type="text" id="modalInputClassificationAr" list="modalClassificationArList" class="input-field" placeholder="Arabic Classification..." oninput="autoFillClassEn(this.value)">
             <datalist id="modalClassificationArList"></datalist>
           </div>
           <div class="form-group">
-            <label id="lblClassModalEn">English Classification <span class="req-asterisk">*</span></label>
-            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)" required>
+            <label id="lblClassModalEn">English Classification</label>
+            <input type="text" id="modalInputClassificationEn" list="modalClassificationEnList" class="input-field" placeholder="English Classification..." oninput="autoFillClassAr(this.value)">
             <datalist id="modalClassificationEnList"></datalist>
           </div>
         </div>
@@ -718,130 +637,28 @@
   </div>
 
   <script>
+    // Live Firebase Project Configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyCq7QipA_x-5h714PRVPGBVQOK1-8mwlzc",
-      authDomain: "inventory-label-20aa1.firebaseapp.com",
-      projectId: "inventory-label-20aa1",
-      storageBucket: "inventory-label-20aa1.firebasestorage.app",
-      messagingSenderId: "1074999372344",
-      appId: "1:1074999372344:web:557894eeb7f20a601bd4cd",
-      measurementId: "G-XQL0L8TDRV"
+      apiKey: "AIzaSyCerwC0X7z2SeihxqOQxepSE74Vg_cIJyI",
+      authDomain: "inventory-label.firebaseapp.com",
+      projectId: "inventory-label",
+      storageBucket: "inventory-label.firebasestorage.app",
+      messagingSenderId: "220560027845",
+      appId: "1:220560027845:web:87e48a27ba43a93c5b40ac",
+      measurementId: "G-2D9GXHM3HT"
     };
 
+    // Initialize Firebase Compat SDK
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
     const STUDIO_STORAGE_KEY = "WAREHOUSE_STUDIO_PERSISTENT_ITEMS_V23";
-
-    let generatedOtpCode = null;
-    let pendingRegisterEmail = "";
 
     let nameMemory = {};
     let classificationMemory = {};
     let studioItemCodes = new Set();
     let checkedItemCodes = new Set();
     let selectedStudioCodes = new Set(); 
-
-    function switchAuthMode(mode) {
-      document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.auth-mode-content').forEach(c => c.classList.remove('active'));
-      
-      if (mode === 'login') {
-        document.getElementById('tabBtnLogin').classList.add('active');
-        document.getElementById('authModeLogin').classList.add('active');
-      } else {
-        document.getElementById('tabBtnRegister').classList.add('active');
-        document.getElementById('authModeRegister').classList.add('active');
-      }
-    }
-
-    function focusNextOtp(elem, idx) {
-      if (elem.value.length === 1 && idx < 5) {
-        document.querySelectorAll('.otp-box')[idx + 1].focus();
-      }
-    }
-
-    async function handleEmailPasswordLogin() {
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      if (!email || !password) {
-        alert("Please provide both email and password.");
-        return;
-      }
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        document.getElementById('authModal').classList.remove('active');
-      } catch (e) {
-        alert("Login failed: " + e.message);
-      }
-    }
-
-    function sendOtpCode() {
-      const email = document.getElementById('regEmail').value.trim();
-      if (!email || !email.includes('@')) {
-        alert("Please enter a valid email address.");
-        return;
-      }
-
-      generatedOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      pendingRegisterEmail = email;
-
-      document.getElementById('sentEmailDisplay').textContent = email;
-      document.getElementById('registerStep1').style.display = 'none';
-      document.getElementById('registerStep2').style.display = 'block';
-
-      alert(`[DEMO SYSTEM VERIFICATION]\nYour 6-Digit Verification OTP Code is: ${generatedOtpCode}`);
-    }
-
-    function resetRegisterStep() {
-      document.getElementById('registerStep1').style.display = 'block';
-      document.getElementById('registerStep2').style.display = 'none';
-      document.querySelectorAll('.otp-box').forEach(i => i.value = '');
-      document.getElementById('regPassword').value = '';
-    }
-
-    async function verifyOtpAndCreateAccount() {
-      const otpInput = Array.from(document.querySelectorAll('.otp-box')).map(i => i.value).join('');
-      const password = document.getElementById('regPassword').value.trim();
-
-      if (otpInput.length !== 6) {
-        alert("Please enter the complete 6-digit OTP code.");
-        return;
-      }
-      if (otpInput !== generatedOtpCode) {
-        alert("Invalid OTP code. Please try again.");
-        return;
-      }
-      if (!password || password.length < 6) {
-        alert("Password must be at least 6 characters long.");
-        return;
-      }
-
-      try {
-        await auth.createUserWithEmailAndPassword(pendingRegisterEmail, password);
-        alert("Account registered and password created successfully!");
-        document.getElementById('authModal').classList.remove('active');
-      } catch (e) {
-        alert("Account registration failed: " + e.message);
-      }
-    }
-
-    function handleSignOut() {
-      auth.signOut().then(() => {
-        document.getElementById('authModal').classList.add('active');
-      });
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('authModal').classList.remove('active');
-        document.getElementById('currentUserDisplay').textContent = "👤 " + (user.email || "Authenticated User");
-      } else {
-        document.getElementById('authModal').classList.add('active');
-        document.getElementById('currentUserDisplay').textContent = "";
-      }
-    });
 
     const warehouseMap = {
       "southern region warehouse": { ar: "مستودع المنطقة الجنوبية", en: "Southern Region Warehouse" },
@@ -899,7 +716,6 @@
     function translateLocation(l, lang) {
       const defaultLoc = "Main Warehouse / Southern Region Warehouse";
       if (!l || l.trim() === "") return warehouseMap[defaultLoc.toLowerCase()][lang];
-      
       const key = l.toString().trim().toLowerCase();
       if (warehouseMap[key]) {
         return warehouseMap[key][lang];
@@ -966,13 +782,13 @@
         tab3: "🏷️ Barcode Labels Studio",
         modalTitleAdd: "✏️ Add Material Details",
         modalTitleEdit: "✏️ Edit Material Details",
-        lblCode: "1. Material Code *",
-        lblName: "2. Arabic Name *",
-        lblNameEn: "English Name *",
-        lblUnit: "3. Unit *",
-        lblLocation: "4. Warehouse / Location *",
-        lblClass: "5. Arabic Classification *",
-        lblClassEn: "English Classification *",
+        lblCode: "1. Material Code",
+        lblName: "2. Arabic Name",
+        lblNameEn: "English Name",
+        lblUnit: "3. Unit",
+        lblLocation: "4. Warehouse / Location [Defaults to Main Warehouse if left unselected]",
+        lblClass: "5. Arabic Classification",
+        lblClassEn: "English Classification",
         lblCustomData: "6. Custom Link / Data (Optional)",
         btnSaveModal: "Save Item",
         btnCancelModal: "Cancel",
@@ -1030,13 +846,13 @@
         tab3: "🏷️ مولد طباعة الباركود",
         modalTitleAdd: "✏️ إضافة تفاصيل المادة (Add Material Details)",
         modalTitleEdit: "✏️ تعديل تفاصيل المادة (Edit Material Details)",
-        lblCode: "1. كود المادة (Material Code) *",
-        lblName: "2. اسم المادة بالعربي (Arabic Name) *",
-        lblNameEn: "اسم المادة بالانجليزي (English Name) *",
-        lblUnit: "3. الوحدة (Unit) *",
-        lblLocation: "4. الموقع / المستودع (Warehouse / Location) *",
-        lblClass: "5. التصنيف بالعربي (Arabic Classification) *",
-        lblClassEn: "التصنيف بالانجليزي (English Classification) *",
+        lblCode: "1. كود المادة (Material Code)",
+        lblName: "2. اسم المادة بالعربي (Arabic Name)",
+        lblNameEn: "اسم المادة بالانجليزي (English Name)",
+        lblUnit: "3. الوحدة (Unit)",
+        lblLocation: "4. الموقع / المستودع (Warehouse / Location) [يتم تعيين المستودع الرئيسي افتراضياً إذا ترك فارغاً]",
+        lblClass: "5. التصنيف بالعربي (Arabic Classification)",
+        lblClassEn: "التصنيف بالانجليزي (English Classification)",
         lblCustomData: "6. بيانات إضافية أو رابط اختياري (Custom Link / Data)",
         btnSaveModal: "حفظ المادة (Save Item)",
         btnCancelModal: "إلغاء",
@@ -1117,7 +933,7 @@
           }
           .labels-grid {
             grid-template-columns: repeat(${cols}, 1fr) !important;
-            gap: 8mm !important;
+            gap: 8px !important;
           }
           .sticker-card {
             min-height: 125px !important;
@@ -1135,7 +951,7 @@
       document.getElementById('modalInputCode').value = '';
       document.getElementById('modalInputNameAr').value = '';
       document.getElementById('modalInputNameEn').value = '';
-      document.getElementById('modalInputUnit').value = '';
+      document.getElementById('modalInputUnit').value = 'Pieces';
       document.getElementById('modalInputLocation').value = 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = '';
       document.getElementById('modalInputClassificationEn').value = '';
@@ -1152,7 +968,7 @@
       document.getElementById('modalInputCode').value = item.code;
       document.getElementById('modalInputNameAr').value = item.nameAr || item.name || '';
       document.getElementById('modalInputNameEn').value = item.nameEn || item.name || '';
-      document.getElementById('modalInputUnit').value = item.unit || '';
+      document.getElementById('modalInputUnit').value = item.unit || 'Pieces';
       document.getElementById('modalInputLocation').value = item.location || 'Main Warehouse / Southern Region Warehouse';
       document.getElementById('modalInputClassificationAr').value = item.classificationAr || item.classification || '';
       document.getElementById('modalInputClassificationEn').value = item.classificationEn || item.classification || '';
@@ -1164,26 +980,31 @@
       document.getElementById('addMaterialModal').classList.remove('active');
     }
 
+    // Direct Real-Time Save & Sync with Firestore
     async function saveMaterialFromModal() {
       const originalCode = document.getElementById('modalEditOriginalCode').value.trim();
       const code = document.getElementById('modalInputCode').value.trim();
       const nameAr = document.getElementById('modalInputNameAr').value.trim();
-      const nameEn = document.getElementById('modalInputNameEn').value.trim();
-      const unit = document.getElementById('modalInputUnit').value.trim();
-      const location = document.getElementById('modalInputLocation').value.trim();
-      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim();
-      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim();
+      const nameEn = document.getElementById('modalInputNameEn').value.trim() || nameAr;
+      const unit = document.getElementById('modalInputUnit').value.trim() || "Pieces";
+      
+      const defaultWarehouse = "Main Warehouse / Southern Region Warehouse";
+      const locationInput = document.getElementById('modalInputLocation').value.trim();
+      const location = locationInput !== "" ? locationInput : defaultWarehouse;
+
+      const classificationAr = document.getElementById('modalInputClassificationAr').value.trim() || "عام";
+      const classificationEn = document.getElementById('modalInputClassificationEn').value.trim() || "General";
       const customData = document.getElementById('modalInputCustomData').value.trim();
 
-      if (!code || !nameAr || !nameEn || !unit || !location || !classificationAr || !classificationEn) {
-        alert(currentLang === 'ar' ? "جميع الحقول إجبارية (باستثناء البيانات والإضافات والروابط الاختيارية)." : "All product fields are mandatory, except the Custom Link / URL.");
+      if (!code || (!nameAr && !nameEn)) {
+        alert(currentLang === 'ar' ? "يرجى إدخال كود المادة واسم المادة على الأقل." : "Please enter both Material Code and Material Name.");
         return;
       }
 
       const newItem = {
         code,
-        nameAr,
-        nameEn,
+        nameAr: nameAr || nameEn,
+        nameEn: nameEn || nameAr,
         unit,
         location,
         classificationAr,
@@ -1193,16 +1014,13 @@
 
       try {
         await db.collection("inventory").doc(code).set(newItem);
-
         if (originalCode && originalCode !== code) {
           await db.collection("inventory").doc(originalCode).delete();
         }
-
-        alert(currentLang === 'ar' ? "تم حفظ المادة بنجاح في السحابة!" : "Material saved successfully to cloud!");
         closeAddModal();
       } catch (err) {
-        console.error("Error saving item: ", err);
-        alert("Failed to save to cloud database. Make sure you are logged in.");
+        console.error("Cloud Save Error:", err);
+        alert("Failed to save to cloud database. Ensure rules are configured.");
       }
     }
 
@@ -1263,6 +1081,13 @@
       setTxt('tab2Title', t.tab2);
       setTxt('tab3Title', t.tab3);
       
+      setTxt('lblCodeModal', t.lblCode);
+      setTxt('lblNameModal', t.lblName);
+      setTxt('lblNameModalEn', t.lblNameEn);
+      setTxt('lblUnitModal', t.lblUnit);
+      setTxt('lblLocationModal', t.lblLocation);
+      setTxt('lblClassModal', t.lblClass);
+      setTxt('lblClassModalEn', t.lblClassEn);
       setTxt('lblCustomDataModal', t.lblCustomData);
       setTxt('btnSaveModalText', t.btnSaveModal);
       setTxt('btnCancelModal', t.btnCancelModal);
@@ -1487,6 +1312,7 @@
       }
     }
 
+    // Real-Time Listener Instance Connected directly to Firestore
     function initRealtimeDatabase() {
       loadStudioFromStorage();
       
@@ -1503,7 +1329,7 @@
 
         refreshUI();
       }, (error) => {
-        console.error("Error listening to real-time updates:", error);
+        console.error("Firestore connection error:", error);
       });
 
       document.getElementById('barcodeLangSelect').value = currentLang;
@@ -1592,18 +1418,18 @@
             const code = String(row["Material Code"] || row["Code"] || "").trim();
             const nameAr = String(row["Arabic Name"] || row["Name"] || "").trim();
             const nameEn = String(row["English Name"] || nameAr).trim();
-            const unit = String(row["Unit"] || "").trim();
-            const location = String(row["Warehouse / Location"] || row["Location"] || "").trim();
-            const classificationAr = String(row["Arabic Classification"] || row["Classification"] || "").trim();
-            const classificationEn = String(row["English Classification"] || classificationAr).trim();
+            const unit = String(row["Unit"] || "Pieces").trim();
+            const location = String(row["Warehouse / Location"] || row["Location"] || "").trim() || "Main Warehouse / Southern Region Warehouse";
+            const classificationAr = String(row["Arabic Classification"] || row["Classification"] || "").trim() || "General";
+            const classificationEn = String(row["English Classification"] || classificationAr).trim() || "General";
             const customData = String(row["Custom Data / Link"] || row["Custom Data"] || "").trim();
 
-            if (code && nameAr && nameEn && unit && location && classificationAr && classificationEn) {
+            if (code && (nameAr || nameEn)) {
               const itemRef = db.collection("inventory").doc(code);
               batch.set(itemRef, {
                 code,
-                nameAr,
-                nameEn,
+                nameAr: nameAr || nameEn,
+                nameEn: nameEn || nameAr,
                 unit,
                 location,
                 classificationAr,
@@ -1615,7 +1441,7 @@
           });
 
           await batch.commit();
-          alert(`Successfully imported (${newItemsCount}) valid items to cloud database!`);
+          alert(`Successfully imported (${newItemsCount}) items to cloud database!`);
         } catch (err) {
           console.error(err);
           alert("Error parsing or uploading file.");
@@ -1900,6 +1726,7 @@
       anchor.remove();
     }
 
+    // Initialize application and start Firestore real-time listener
     initRealtimeDatabase();
   </script>
 </body>
